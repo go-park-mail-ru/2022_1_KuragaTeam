@@ -1,59 +1,66 @@
 package handlers
 
 import (
-	"database/sql"
-	"github.com/labstack/echo"
+	"errors"
 	"myapp/models"
 	"net/http"
+
+	"github.com/jackc/pgx/v4/pgxpool"
+
+	"github.com/labstack/echo"
 )
 
-func CreateUserHandler(db *sql.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+func CreateUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
+	return func(context echo.Context) error {
 		user := new(models.User)
-		if err := c.Bind(user); err != nil {
+		if err := context.Bind(user); err != nil {
 			return err
 		}
 
-		isUnique, err := models.IsUserUnique(db, *user)
+		isUnique, err := models.IsUserUnique(dbPool, *user)
 		if err != nil {
 			return err
 		}
 
 		if !isUnique {
-			return c.JSON(http.StatusBadRequest, "ERROR: Email is not unique")
+			return context.JSON(http.StatusBadRequest, "ERROR: Email is not unique")
 		}
 
-		err = models.CreateUser(db, *user)
+		err = models.CreateUser(dbPool, *user)
 		if err != nil {
 			return err
 		}
 
-		return c.JSON(http.StatusCreated, "OK: User created")
+		return context.JSON(http.StatusCreated, "OK: User created")
 	}
 }
 
-func LoginUserHandler(db *sql.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+func LoginUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
+	return func(context echo.Context) error {
 		user := new(models.User)
-		if err := c.Bind(user); err != nil {
+		if err := context.Bind(user); err != nil {
 			return err
 		}
 
-		userExists, err := models.IsUserExists(db, *user)
+		userExists, err := models.IsUserExists(dbPool, *user)
 		if err != nil {
+			if errors.Is(err, models.ErrWrongPassword) {
+				return context.JSON(http.StatusUnauthorized, "ERROR: Wrong password")
+			}
+
 			return err
 		}
 
 		if !userExists {
-			return c.JSON(http.StatusNotFound, "ERROR: User not found")
+			return context.JSON(http.StatusNotFound, "ERROR: User not found")
 		}
 
-		return c.JSON(http.StatusOK, "OK: User can be registered")
+		return context.JSON(http.StatusOK, "OK: User can be registered")
 	}
 }
 
 func GetHomePageHandler() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		return c.JSON(http.StatusOK, "Test: homePageHandler")
+	return func(context echo.Context) error {
+		return context.JSON(http.StatusOK, "Test: homePageHandler")
 	}
 }

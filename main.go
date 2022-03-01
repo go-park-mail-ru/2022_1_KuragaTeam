@@ -1,41 +1,26 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"github.com/labstack/echo"
-	_ "github.com/lib/pq"
 	"log"
+	"myapp/db"
 	"myapp/handlers"
-)
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "net"
-	password = "pass"
-	dbname   = "netflix"
+	_ "github.com/jackc/pgx/v4"
+	"github.com/labstack/echo"
 )
 
 func main() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-	db, err := sql.Open("postgres", psqlInfo)
+	dbPool, err := db.ConnectDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err = db.Ping(); err != nil {
-		log.Fatal(err)
-	} else {
-		fmt.Println("DB Connected...")
-	}
+	defer dbPool.Close()
 
 	e := echo.New()
 
-	e.POST("/signup", handlers.CreateUserHandler(db))
-	e.POST("/signin", handlers.LoginUserHandler(db))
+	e.POST("/signup", handlers.CreateUserHandler(dbPool))
+	e.POST("/signin", handlers.LoginUserHandler(dbPool))
 	e.GET("/", handlers.GetHomePageHandler())
 	e.Logger.Fatal(e.Start(":1323"))
 }
