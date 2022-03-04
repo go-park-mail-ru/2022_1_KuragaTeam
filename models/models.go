@@ -9,10 +9,10 @@ import (
 )
 
 type User struct {
-	ID       string `json:"id"`
-	Name     string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	ID       string `json:"id"` // validate:"nonzero"`
+	Name     string `json:"username" validate:"nonzero"`
+	Email    string `json:"email" validate:"regexp=^[0-9a-z]+@[0-9a-z]+(\\.[0-9a-z]+)+$"`
+	Password string `json:"password" validate:"min=8"`
 }
 
 var ErrWrongPassword = errors.New("wrong password")
