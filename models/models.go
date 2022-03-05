@@ -3,7 +3,10 @@ package models
 import (
 	"context"
 	"errors"
+	"gopkg.in/validator.v2"
 	"myapp/utils"
+	"strings"
+	"unicode"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -90,4 +93,62 @@ func CreateUser(dbPool *pgxpool.Pool, user User) error {
 	conn.QueryRow(context.Background(), sql, user.Name, user.Email, hashPassword)
 
 	return nil
+}
+
+func ValidateUser(user *User) []error {
+	errs := make([]error, 0)
+	user.Name = strings.TrimSpace(user.Name)
+	if err := validator.Validate(user); err != nil {
+		errs = append(errs, err)
+	}
+
+	if passErrs := ValidatePassword(user.Password); passErrs != nil {
+		errs = append(errs, passErrs...)
+	}
+
+	return errs
+}
+
+func ValidatePassword(pass string) []error {
+	var (
+		upp, low, num bool
+		//sym bool
+		symbolsCount uint8
+		errs         []error
+	)
+
+	for _, char := range pass {
+		switch {
+		case unicode.IsUpper(char):
+			upp = true
+			symbolsCount++
+		case unicode.IsLower(char):
+			low = true
+			symbolsCount++
+		case unicode.IsNumber(char):
+			num = true
+			symbolsCount++
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			//sym = true
+			symbolsCount++
+		default:
+			errs = append(errs, errors.New("password uses unavailable symbols"))
+			return errs
+		}
+	}
+
+	if !upp {
+		errs = append(errs, errors.New("at least one upper case letter is required"))
+	}
+	if !low {
+		errs = append(errs, errors.New("at least one lower case letter is required"))
+	}
+	if !num {
+		errs = append(errs, errors.New("at least one digit is required"))
+	}
+	if symbolsCount < 8 {
+		errs = append(errs, errors.New("at least eight characters long is required"))
+	}
+
+	return errs
 }

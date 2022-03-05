@@ -2,13 +2,9 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
-	"gopkg.in/validator.v2"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"myapp/models"
 	"net/http"
-	"strings"
-
-	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/labstack/echo"
 )
@@ -21,12 +17,8 @@ func CreateUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 			return err
 		}
 
-		user.Name = strings.TrimSpace(user.Name)
-		if err := validator.Validate(user); err != nil {
-			// values not valid, deal with errors here
-			fmt.Println(err)
-			return context.JSON(http.StatusBadRequest, err)
-			//return err
+		if errs := models.ValidateUser(user); errs != nil {
+			return context.JSON(http.StatusBadRequest, errs)
 		}
 
 		isUnique, err := models.IsUserUnique(dbPool, *user)
