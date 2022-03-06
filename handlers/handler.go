@@ -13,7 +13,7 @@ import (
 func CreateUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		user := new(models.User)
-		if err := context.Bind(user); err != nil {
+		if err := context.Bind(&user); err != nil {
 			return err
 		}
 
@@ -55,7 +55,7 @@ func LoginUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 			return context.JSON(http.StatusNotFound, "ERROR: User not found")
 		}
 
-		return context.JSON(http.StatusOK, "OK: User can be registered")
+		return context.JSON(http.StatusOK, "OK: User can be logged in")
 	}
 }
 

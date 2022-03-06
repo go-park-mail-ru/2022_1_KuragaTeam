@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"errors"
+	"github.com/gofrs/uuid"
 	"myapp/utils"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -13,6 +14,7 @@ type User struct {
 	Name     string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Salt     string `json:"salt"`
 }
 
 var ErrWrongPassword = errors.New("wrong password")
@@ -20,7 +22,7 @@ var ErrWrongPassword = errors.New("wrong password")
 // Используется LoginUserHandler.
 // Проверяет, что пользователь есть в базе данных.
 func IsUserExists(dbPool *pgxpool.Pool, user User) (bool, error) {
-	sql := "SELECT email, password FROM USERS WHERE email=$1"
+	sql := "SELECT email, password, salt FROM USERS WHERE email=$1"
 	rows, err := dbPool.Query(context.Background(), sql, user.Email)
 	if err != nil {
 		return false, err
@@ -37,14 +39,14 @@ func IsUserExists(dbPool *pgxpool.Pool, user User) (bool, error) {
 	}
 
 	var signInUser User
-	err = rows.Scan(&signInUser.Email, &signInUser.Password)
+	err = rows.Scan(&signInUser.Email, &signInUser.Password, &signInUser.Salt)
 
 	// выход при ошибке
 	if err != nil {
 		return false, err
 	}
 
-	result, err := utils.ComparePasswords(signInUser.Password, []byte(user.Password))
+	result, err := utils.ComparePasswords(signInUser.Password, signInUser.Salt, user.Password)
 	if err != nil {
 		return false, ErrWrongPassword
 	}
@@ -57,8 +59,9 @@ func IsUserExists(dbPool *pgxpool.Pool, user User) (bool, error) {
 // Используется CreateUserHandler.
 // email должен быть уникален
 func IsUserUnique(dbPool *pgxpool.Pool, user User) (bool, error) {
-	sql := "SELECT * FROM users WHERE email=$1"
+	sql := "SELECT * FROM users WHERE email=$1;"
 	rows, err := dbPool.Query(context.Background(), sql, user.Email)
+
 	if err != nil {
 		return false, err
 	}
@@ -76,7 +79,12 @@ func IsUserUnique(dbPool *pgxpool.Pool, user User) (bool, error) {
 // Используется CreateUserHandler.
 // Создает пользователя
 func CreateUser(dbPool *pgxpool.Pool, user User) error {
-	hashPassword, err := utils.HashAndSalt([]byte(user.Password))
+	salt, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
+	hashPassword, err := utils.HashAndSalt(user.Password, salt.String())
 	if err != nil {
 		return err
 	}
@@ -86,8 +94,8 @@ func CreateUser(dbPool *pgxpool.Pool, user User) error {
 		return err
 	}
 
-	sql := "INSERT INTO users(username, email, password) VALUES($1, $2, $3)"
-	conn.QueryRow(context.Background(), sql, user.Name, user.Email, hashPassword)
+	sql := "INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4);"
+	conn.QueryRow(context.Background(), sql, user.Name, user.Email, hashPassword, salt)
 
 	return nil
 }

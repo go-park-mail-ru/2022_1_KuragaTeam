@@ -15,11 +15,10 @@ func ConnectDB() (*pgxpool.Pool, error) {
 	}
 
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable",
-		os.Getenv("HOST"), os.Getenv("PORT"), os.Getenv("USER"),
-		os.Getenv("PASSWORD"), os.Getenv("DBNAME"))
+		os.Getenv("DBHOST"), os.Getenv("DBPORT"), os.Getenv("DBUSER"),
+		os.Getenv("DBPASSWORD"), os.Getenv("DBNAME"))
 
 	dbPool, err := pgxpool.Connect(context.Background(), psqlInfo)
-
 	if err != nil {
 		return nil, err
 	}
