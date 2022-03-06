@@ -3,6 +3,8 @@ module myapp
 go 1.17
 
 require (
+	github.com/garyburd/redigo v1.6.3 // indirect
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.11.0 // indirect

@@ -18,3 +18,8 @@ services:
       - ./sql/init.sh:/docker-entrypoint-initdb.d/init.sh
     ports:
       - 5432:5432
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"

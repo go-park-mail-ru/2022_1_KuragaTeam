@@ -15,12 +15,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	defer dbPool.Close()
+	connRedis, err := db.ConnectRedis()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer func() {
+		err = connRedis.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+		dbPool.Close()
+	}()
 
 	e := echo.New()
 
-	e.POST("/signup", handlers.CreateUserHandler(dbPool))
-	e.POST("/signin", handlers.LoginUserHandler(dbPool))
+	e.POST("/signup", handlers.CreateUserHandler(dbPool, &connRedis))
+	e.POST("/signin", handlers.LoginUserHandler(dbPool, &connRedis))
 	e.GET("/", handlers.GetHomePageHandler())
 	e.Logger.Fatal(e.Start(":1323"))
 }
