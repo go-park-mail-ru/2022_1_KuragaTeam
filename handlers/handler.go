@@ -17,13 +17,13 @@ func CreateUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 			return err
 		}
 
-		if errs := models.ValidateUser(user); errs != nil {
+		if errs := models.ValidateUser(user); len(errs) != 0 {
 			return context.JSON(http.StatusBadRequest, errs)
 		}
 
 		isUnique, err := models.IsUserUnique(dbPool, *user)
 		if err != nil {
-			return err
+			return context.JSON(http.StatusBadRequest, err)
 		}
 
 		if !isUnique {
