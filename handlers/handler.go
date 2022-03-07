@@ -15,16 +15,6 @@ import (
 	_ "myapp/docs"
 )
 
-// CreateUserHandler godoc
-// @Summary Creates new user.
-// @Description Create new user in database with validation.
-// @Tags Signup
-// @Param username formData string true "username"
-// @Param password formData string true "password"
-// @Param email formData string true "email"
-// @Produce json
-// @Success 201 {object} map[string]interface{}
-// @Router /signup [post]
 type Response struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
@@ -35,6 +25,15 @@ type ResponseName struct {
 	Name   string `json:"username"`
 }
 
+// CreateUserHandler godoc
+// @Summary Creates new user.
+// @Description Create new user in database with validation.
+// @Produce json
+// @Param data body models.User true "Data for user"
+// @Success 	201 {object} Response "OK: User created"
+// @Failure		400 {object} Response "Invalid request body"
+// @Failure		500 {object} Response "Internal server error"
+// @Router /signup [post]
 func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		user := models.User{}
@@ -116,6 +115,17 @@ func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.Handler
 	}
 }
 
+// LoginUserHandler godoc
+// @Summary Login in account.
+// @Description Check login and gives session ID.
+// @Produce json
+// @Param data body models.User true "Data for user"
+// @Success 	200 {object} Response "Successful login"
+// @Failure		400 {object} Response "Invalid request body"
+// @Failure		401 {object} Response "Wrong password"
+// @Failure		404 {object} Response "User not found"
+// @Failure		500 {object} Response "Internal server error"
+// @Router /login [post]
 func LoginUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		user := models.User{}
@@ -190,9 +200,10 @@ func LoginUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerF
 // GetHomePageHandler godoc
 // @Summary Get Home Page.
 // @Description Get your home page.
-// @Tags GetHomePage
 // @Produce json
-// @Success 200 {object} map[string]interface{}
+// @Success 	200 {object} Response models.User.name
+// @Failure		401 {object} Response "ERROR: User is unauthorized"
+// @Failure		500 {object} Response "Internal server error"
 // @Router / [get]
 func GetHomePageHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 	return func(context echo.Context) error {
@@ -226,6 +237,13 @@ func GetHomePageHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
+// LogoutHandler godoc
+// @Summary Logout.
+// @Description Delete session from DB.
+// @Produce json
+// @Success 	200 {object} Response "OK: User is logged out"
+// @Failure		500 {object} Response "Internal server error"
+// @Router /logout [delete]
 func LogoutHandler(connRedis *redis.Conn) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("Session_cookie")

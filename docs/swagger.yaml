@@ -1,15 +1,35 @@
 basePath: /api/v1/
-host: localhost:1323
+definitions:
+  handlers.Response:
+    properties:
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      email:
+        example: email
+        type: string
+      id:
+        type: integer
+      password:
+        example: password
+        minLength: 8
+        type: string
+      salt:
+        type: string
+      username:
+        example: name
+        type: string
+    type: object
+host: movie-space.ru:1323
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
+  contact: {}
   description: This is API server for Movie Space website.
   license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
+    name: '""'
   title: Movie Space API
   version: "1.0"
 paths:
@@ -22,41 +42,91 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handlers.Response'
+        "401":
+          description: 'ERROR: User is unauthorized'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
       summary: Get Home Page.
-      tags:
-      - GetHomePage
+  /login:
+    post:
+      description: Check login and gives session ID.
+      parameters:
+      - description: Data for user
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful login
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "401":
+          description: Wrong password
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Login in account.
+  /logout:
+    delete:
+      description: Delete session from DB.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'OK: User is logged out'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Logout.
   /signup:
     post:
       description: Create new user in database with validation.
       parameters:
-      - description: username
-        in: formData
-        name: username
+      - description: Data for user
+        in: body
+        name: data
         required: true
-        type: string
-      - description: password
-        in: formData
-        name: password
-        required: true
-        type: string
-      - description: email
-        in: formData
-        name: email
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/models.User'
       produces:
       - application/json
       responses:
         "201":
-          description: Created
+          description: 'OK: User created'
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
       summary: Creates new user.
-      tags:
-      - Signup
 schemes:
 - http
 swagger: "2.0"
