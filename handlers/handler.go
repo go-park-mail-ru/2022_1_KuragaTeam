@@ -2,10 +2,9 @@ package handlers
 
 import (
 	"errors"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"myapp/models"
 	"net/http"
-
-	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/labstack/echo"
 )
@@ -13,13 +12,18 @@ import (
 func CreateUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		user := new(models.User)
+
 		if err := context.Bind(user); err != nil {
 			return err
 		}
 
+		if errs := models.ValidateUser(user); len(errs) != 0 {
+			return context.JSON(http.StatusBadRequest, errs)
+		}
+
 		isUnique, err := models.IsUserUnique(dbPool, *user)
 		if err != nil {
-			return err
+			return context.JSON(http.StatusBadRequest, err)
 		}
 
 		if !isUnique {
@@ -55,7 +59,7 @@ func LoginUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 			return context.JSON(http.StatusNotFound, "ERROR: User not found")
 		}
 
-		return context.JSON(http.StatusOK, "OK: User can be registered")
+		return context.JSON(http.StatusOK, "OK: User can be logined in")
 	}
 }
 

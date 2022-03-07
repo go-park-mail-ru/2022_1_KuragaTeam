@@ -3,16 +3,19 @@ package models
 import (
 	"context"
 	"errors"
+	"gopkg.in/validator.v2"
 	"myapp/utils"
+	"strings"
+	"unicode"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type User struct {
-	ID       string `json:"id"`
-	Name     string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	ID       string `json:"id"` // validate:"nonzero"`
+	Name     string `json:"username" validate:"nonzero"`
+	Email    string `json:"email" validate:"regexp=^[0-9a-z]+@[0-9a-z]+(\\.[0-9a-z]+)+$"`
+	Password string `json:"password" validate:"min=8"`
 }
 
 var ErrWrongPassword = errors.New("wrong password")
@@ -88,6 +91,58 @@ func CreateUser(dbPool *pgxpool.Pool, user User) error {
 
 	sql := "INSERT INTO users(username, email, password) VALUES($1, $2, $3)"
 	conn.QueryRow(context.Background(), sql, user.Name, user.Email, hashPassword)
+
+	return nil
+}
+
+func ValidateUser(user *User) error {
+	user.Name = strings.TrimSpace(user.Name)
+	if err := validator.Validate(user); err != nil {
+		return err
+	}
+	if err := ValidatePassword(user.Password); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ValidatePassword(pass string) error {
+	var (
+		up, low, num bool
+		symbolsCount uint8
+	)
+
+	for _, char := range pass {
+		switch {
+		case unicode.IsUpper(char):
+			up = true
+			symbolsCount++
+		case unicode.IsLower(char):
+			low = true
+			symbolsCount++
+		case unicode.IsNumber(char):
+			num = true
+			symbolsCount++
+		case unicode.IsPunct(char) || unicode.IsSymbol(char):
+			//sym = true
+			symbolsCount++
+		default:
+			return banErr
+		}
+	}
+
+	if !up {
+		return upErr
+	}
+	if !low {
+		return lowErr
+	}
+	if !num {
+		return numErr
+	}
+	if symbolsCount < 8 {
+		return countErr
+	}
 
 	return nil
 }
