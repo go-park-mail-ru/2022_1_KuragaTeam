@@ -3,10 +3,10 @@ package handlers
 import (
 	"errors"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/labstack/echo"
 	"myapp/models"
 	"net/http"
 
+	"github.com/labstack/echo/v4"
 	_ "myapp/docs"
 )
 
