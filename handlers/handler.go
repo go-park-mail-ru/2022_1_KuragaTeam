@@ -14,7 +14,9 @@ import (
 // @Summary Creates new user.
 // @Description Create new user in database with validation.
 // @Tags Signup
-// @Accept */*
+// @Param username formData string true "username"
+// @Param password formData string true "password"
+// @Param email formData string true "email"
 // @Produce json
 // @Success 201 {object} map[string]interface{}
 // @Router /signup [post]

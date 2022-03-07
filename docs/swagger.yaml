@@ -29,9 +29,23 @@ paths:
       - GetHomePage
   /signup:
     post:
-      consumes:
-      - '*/*'
       description: Create new user in database with validation.
+      parameters:
+      - description: username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: email
+        in: formData
+        name: email
+        required: true
+        type: string
       produces:
       - application/json
       responses:
