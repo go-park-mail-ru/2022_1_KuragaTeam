@@ -3,7 +3,7 @@ package models
 import "errors"
 
 var (
-	uppErr   = errors.New("at least one upper case letter is required")
+	upErr    = errors.New("at least one upper case letter is required")
 	lowErr   = errors.New("at least one lower case letter is required")
 	numErr   = errors.New("at least one digit is required")
 	countErr = errors.New("at least eight characters long is required")

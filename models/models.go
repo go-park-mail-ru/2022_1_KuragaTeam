@@ -95,32 +95,27 @@ func CreateUser(dbPool *pgxpool.Pool, user User) error {
 	return nil
 }
 
-func ValidateUser(user *User) []error {
-	errs := make([]error, 0)
+func ValidateUser(user *User) error {
 	user.Name = strings.TrimSpace(user.Name)
 	if err := validator.Validate(user); err != nil {
-		errs = append(errs, err)
+		return err
 	}
-
-	if passErrs := ValidatePassword(user.Password); passErrs != nil {
-		errs = append(errs, passErrs...)
+	if err := ValidatePassword(user.Password); err != nil {
+		return err
 	}
-
-	return errs
+	return nil
 }
 
-func ValidatePassword(pass string) []error {
+func ValidatePassword(pass string) error {
 	var (
-		upp, low, num bool
-		//sym bool
+		up, low, num bool
 		symbolsCount uint8
-		errs         []error
 	)
 
 	for _, char := range pass {
 		switch {
 		case unicode.IsUpper(char):
-			upp = true
+			up = true
 			symbolsCount++
 		case unicode.IsLower(char):
 			low = true
@@ -132,23 +127,22 @@ func ValidatePassword(pass string) []error {
 			//sym = true
 			symbolsCount++
 		default:
-			errs = append(errs, banErr)
-			return errs
+			return banErr
 		}
 	}
 
-	if !upp {
-		errs = append(errs, uppErr)
+	if !up {
+		return upErr
 	}
 	if !low {
-		errs = append(errs, lowErr)
+		return lowErr
 	}
 	if !num {
-		errs = append(errs, numErr)
+		return numErr
 	}
 	if symbolsCount < 8 {
-		errs = append(errs, countErr)
+		return countErr
 	}
 
-	return errs
+	return nil
 }

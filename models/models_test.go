@@ -9,64 +9,55 @@ func TestPassword(t *testing.T) {
 	tests := []struct {
 		name string
 		pass string
-		errs []error
+		err  error
 	}{
 		{
-			"NoCharacterAtAll",
-			"",
-			[]error{uppErr, lowErr, numErr, countErr},
+			name: "NoCharacterAtAll",
+			pass: "",
+			err:  upErr,
 		},
 		{
-			"JustEmptyStringAndWhitespace",
-			" \n\t\r\v\f ",
-			[]error{banErr},
+			name: "JustEmptyStringAndWhitespace",
+			pass: " \n\t\r\v\f ",
+			err:  banErr,
 		},
 		{
-			"MixtureOfEmptyStringAndWhitespace",
-			"U u\n1\t?\r1\v2\f34",
-			[]error{banErr},
+			name: "MixtureOfEmptyStringAndWhitespace",
+			pass: "U u\n1\t?\r1\v2\f34",
+			err:  banErr,
 		},
 		{
-			"MissingUpperCaseString",
-			"uu1?1234",
-			[]error{uppErr},
+			name: "MissingUpperCaseString",
+			pass: "uu1?1234",
+			err:  upErr,
 		},
 		{
-			"MissingLowerCaseString",
-			"UU1?1234",
-			[]error{lowErr},
+			name: "MissingLowerCaseString",
+			pass: "UU1?1234",
+			err:  lowErr,
 		},
 		{
-			"MissingNumber",
-			"Uua?aaaa",
-			[]error{numErr},
-		},
-		//{
-		//	"MissingSymbol",
-		//	"Uu101234",
-		//	[]error{errors.New("at least eight characters long is required")},
-		//},
-		{
-			"LessThanRequiredMinimumLength",
-			"Uu1?123",
-			[]error{countErr},
+			name: "MissingNumber",
+			pass: "Uua?aaaa",
+			err:  numErr,
 		},
 		{
-			"ValidPassword",
-			"Uu1?1234",
-			nil,
+			name: "LessThanRequiredMinimumLength",
+			pass: "Uu1?123",
+			err:  countErr,
+		},
+		{
+			name: "ValidPassword",
+			pass: "Uu1?1234",
+			err:  nil,
 		},
 	}
 
 	for _, c := range tests {
 		t.Run(c.name, func(t *testing.T) {
-			errs := ValidatePassword(c.pass)
+			err := ValidatePassword(c.pass)
 
-			assert.Equal(t, c.errs, errs)
-
-			for i, err := range errs {
-				assert.Equal(t, err, c.errs[i])
-			}
+			assert.Equal(t, c.err, err)
 		})
 	}
 }
