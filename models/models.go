@@ -132,22 +132,22 @@ func ValidatePassword(pass string) []error {
 			//sym = true
 			symbolsCount++
 		default:
-			errs = append(errs, errors.New("password uses unavailable symbols"))
+			errs = append(errs, banErr)
 			return errs
 		}
 	}
 
 	if !upp {
-		errs = append(errs, errors.New("at least one upper case letter is required"))
+		errs = append(errs, uppErr)
 	}
 	if !low {
-		errs = append(errs, errors.New("at least one lower case letter is required"))
+		errs = append(errs, lowErr)
 	}
 	if !num {
-		errs = append(errs, errors.New("at least one digit is required"))
+		errs = append(errs, numErr)
 	}
 	if symbolsCount < 8 {
-		errs = append(errs, errors.New("at least eight characters long is required"))
+		errs = append(errs, countErr)
 	}
 
 	return errs
