@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"log"
 	"myapp/db"
