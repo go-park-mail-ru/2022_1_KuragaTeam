@@ -3,9 +3,12 @@ module myapp
 go 1.17
 
 require (
+	github.com/garyburd/redigo v1.6.3
+	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo v3.3.10+incompatible
+	github.com/labstack/echo/v4 v4.7.0
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	gopkg.in/validator.v2 v2.0.0-20210331031555-b37d688a7fb0
