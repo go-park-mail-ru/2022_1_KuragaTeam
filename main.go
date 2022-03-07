@@ -41,7 +41,7 @@ func main() {
 	e := echo.New()
 
 	e.Use(middleware.CheckAuthorization(&connRedis))
-
+	e.Use(middleware.CORS())
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.POST("/api/v1/signup", handlers.CreateUserHandler(dbPool, &connRedis))

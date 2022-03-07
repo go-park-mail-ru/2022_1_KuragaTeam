@@ -1,12 +1,21 @@
 package middleware
 
 import (
+	"github.com/labstack/echo/middleware"
 	"net/http"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/labstack/echo/v4"
 )
+
+func CORS() echo.MiddlewareFunc {
+	return middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080"},
+		AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With"},
+		AllowCredentials: true,
+	})
+}
 
 func CheckAuthorization(connRedis *redis.Conn) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
