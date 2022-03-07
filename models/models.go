@@ -1,14 +1,14 @@
 package models
 
 type User struct {
-	ID       uint64 `json:"id"`
-	Name     string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Salt     string `json:"salt"`
+	ID       int64  `json:"id" form:"id"`
+	Name     string `json:"username" form:"username"`
+	Email    string `json:"email" form:"email"`
+	Password string `json:"password" form:"password"`
+	Salt     string `json:"salt" form:"salt"`
 }
 
 type Session struct {
-	UserID  uint64
+	UserID  int64
 	Session string
 }

@@ -3,17 +3,18 @@ package utils
 import (
 	"context"
 	"errors"
+	"myapp/models"
+
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"myapp/models"
 )
 
 var ErrWrongPassword = errors.New("wrong password")
 
 // Используется LoginUserHandler.
 // Проверяет, что пользователь есть в базе данных.
-func IsUserExists(dbPool *pgxpool.Pool, user models.User) (uint64, bool, error) {
-	var userID uint64
+func IsUserExists(dbPool *pgxpool.Pool, user models.User) (int64, bool, error) {
+	var userID int64
 	sql := "SELECT id, email, password, salt FROM USERS WHERE email=$1"
 	rows, err := dbPool.Query(context.Background(), sql, user.Email)
 	if err != nil {
@@ -71,8 +72,8 @@ func IsUserUnique(dbPool *pgxpool.Pool, user models.User) (bool, error) {
 
 // Используется CreateUserHandler.
 // Создает пользователя
-func CreateUser(dbPool *pgxpool.Pool, user models.User) (uint64, error) {
-	var userID uint64
+func CreateUser(dbPool *pgxpool.Pool, user models.User) (int64, error) {
+	var userID int64
 
 	salt, err := uuid.NewV4()
 	if err != nil {
@@ -95,4 +96,16 @@ func CreateUser(dbPool *pgxpool.Pool, user models.User) (uint64, error) {
 	}
 
 	return userID, nil
+}
+
+func GetUserName(dbPool *pgxpool.Pool, userID int64) (string, error) {
+	sql := "SELECT username FROM users WHERE id=$1;"
+
+	var name string
+	err := dbPool.QueryRow(context.Background(), sql, userID).Scan(&name)
+	if err != nil {
+		return "", err
+	}
+
+	return name, nil
 }
