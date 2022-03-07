@@ -1,0 +1,62 @@
+basePath: /api/v1/
+host: localhost:1323
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is API server for Movie Space website.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Movie Space API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Get your home page.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get Home Page.
+      tags:
+      - GetHomePage
+  /signup:
+    post:
+      description: Create new user in database with validation.
+      parameters:
+      - description: username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Creates new user.
+      tags:
+      - Signup
+schemes:
+- http
+swagger: "2.0"

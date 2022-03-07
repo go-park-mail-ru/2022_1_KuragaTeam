@@ -11,9 +11,20 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/gofrs/uuid"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
+	_ "myapp/docs"
 )
 
+// CreateUserHandler godoc
+// @Summary Creates new user.
+// @Description Create new user in database with validation.
+// @Tags Signup
+// @Param username formData string true "username"
+// @Param password formData string true "password"
+// @Param email formData string true "email"
+// @Produce json
+// @Success 201 {object} map[string]interface{}
+// @Router /signup [post]
 type Response struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
@@ -48,6 +59,7 @@ func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.Handler
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
+
 		}
 
 		if !isUnique {
@@ -175,6 +187,13 @@ func LoginUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerF
 	}
 }
 
+// GetHomePageHandler godoc
+// @Summary Get Home Page.
+// @Description Get your home page.
+// @Tags GetHomePage
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router / [get]
 func GetHomePageHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		userID, ok := context.Get("USER_ID").(int64)

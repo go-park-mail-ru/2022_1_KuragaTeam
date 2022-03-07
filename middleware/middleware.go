@@ -1,12 +1,11 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func CheckAuthorization(connRedis *redis.Conn) echo.MiddlewareFunc {
@@ -16,8 +15,6 @@ func CheckAuthorization(connRedis *redis.Conn) echo.MiddlewareFunc {
 			var userID int64
 			userID = -1
 			if err == nil {
-				log.Println(cookie)
-				log.Println(userID)
 				userID, err = redis.Int64((*connRedis).Do("GET", cookie.Value))
 				if err != nil {
 					cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
