@@ -11,8 +11,9 @@ import (
 
 func CORS() echo.MiddlewareFunc {
 	return middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
+		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080"},
+		AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With"},
+		AllowCredentials: true,
 	})
 }
 
