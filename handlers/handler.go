@@ -4,67 +4,272 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"myapp/models"
+	"myapp/utils"
 	"net/http"
+	"time"
 
-	"github.com/labstack/echo"
+	"github.com/garyburd/redigo/redis"
+	"github.com/gofrs/uuid"
+
+	"github.com/labstack/echo/v4"
+	_ "myapp/docs"
 )
 
-func CreateUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
+type Response struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+}
+
+type ResponseName struct {
+	Status int    `json:"status"`
+	Name   string `json:"username"`
+}
+
+// CreateUserHandler godoc
+// @Summary Creates new user.
+// @Description Create new user in database with validation.
+// @Produce json
+// @Param data body models.User true "Data for user"
+// @Success 	201 {object} Response "OK: User created"
+// @Failure		400 {object} Response "Invalid request body"
+// @Failure		500 {object} Response "Internal server error"
+// @Router /signup [post]
+func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerFunc {
 	return func(context echo.Context) error {
-		user := new(models.User)
+		user := models.User{}
 
-		if err := context.Bind(user); err != nil {
-			return err
+		if err := context.Bind(&user); err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
 		}
 
-		if errs := models.ValidateUser(user); len(errs) != 0 {
-			return context.JSON(http.StatusBadRequest, errs)
+		if err := utils.ValidateUser(&user); err != nil {
+			return context.JSON(http.StatusBadRequest, &Response{
+				Status:  http.StatusBadRequest,
+				Message: err.Error(),
+			})
 		}
 
-		isUnique, err := models.IsUserUnique(dbPool, *user)
+		isUnique, err := utils.IsUserUnique(dbPool, user)
 		if err != nil {
-			return context.JSON(http.StatusBadRequest, err)
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+
 		}
 
 		if !isUnique {
-			return context.JSON(http.StatusBadRequest, "ERROR: Email is not unique")
+			return context.JSON(http.StatusBadRequest, &Response{
+				Status:  http.StatusBadRequest,
+				Message: "ERROR: Email is not unique",
+			})
 		}
 
-		err = models.CreateUser(dbPool, *user)
+		userID, err := utils.CreateUser(dbPool, user)
 		if err != nil {
-			return err
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
 		}
 
-		return context.JSON(http.StatusCreated, "OK: User created")
+		value, err := uuid.NewV4()
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		cookie := &http.Cookie{
+			Name:     "Session_cookie",
+			Value:    value.String(),
+			HttpOnly: true,
+			Expires:  time.Now().Add(time.Hour),
+			SameSite: 0,
+		}
+
+		context.SetCookie(cookie)
+
+		_, err = (*connRedis).Do("SET", value, userID, "EX", int64(time.Hour.Seconds()))
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		return context.JSON(http.StatusCreated, &Response{
+			Status:  http.StatusCreated,
+			Message: "OK: User created",
+		})
 	}
 }
 
-func LoginUserHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
+// LoginUserHandler godoc
+// @Summary Login in account.
+// @Description Check login and gives session ID.
+// @Produce json
+// @Param data body models.User true "Data for user"
+// @Success 	200 {object} Response "Successful login"
+// @Failure		400 {object} Response "Invalid request body"
+// @Failure		401 {object} Response "Wrong password"
+// @Failure		404 {object} Response "User not found"
+// @Failure		500 {object} Response "Internal server error"
+// @Router /login [post]
+func LoginUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerFunc {
 	return func(context echo.Context) error {
-		user := new(models.User)
-		if err := context.Bind(user); err != nil {
-			return err
+		user := models.User{}
+		if err := context.Bind(&user); err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
 		}
 
-		userExists, err := models.IsUserExists(dbPool, *user)
+		userID, userExists, err := utils.IsUserExists(dbPool, user)
 		if err != nil {
-			if errors.Is(err, models.ErrWrongPassword) {
-				return context.JSON(http.StatusUnauthorized, "ERROR: Wrong password")
+			if errors.Is(err, utils.ErrWrongPassword) {
+				return context.JSON(http.StatusUnauthorized, &Response{
+					Status:  http.StatusUnauthorized,
+					Message: "ERROR: Wrong password",
+				})
 			}
 
-			return err
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
 		}
 
 		if !userExists {
-			return context.JSON(http.StatusNotFound, "ERROR: User not found")
+			return context.JSON(http.StatusNotFound, &Response{
+				Status:  http.StatusNotFound,
+				Message: "ERROR: User not found",
+			})
 		}
 
-		return context.JSON(http.StatusOK, "OK: User can be logined in")
+		value, err := uuid.NewV4()
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		cookie := http.Cookie{
+			Name:     "Session_cookie",
+			Value:    value.String(),
+			HttpOnly: true,
+			Expires:  time.Now().Add(time.Hour),
+			SameSite: 0,
+		}
+
+		context.SetCookie(&cookie)
+
+		_, err = (*connRedis).Do("SET", value, userID, "EX", int64(time.Hour.Seconds()))
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		return context.JSON(http.StatusOK, &Response{
+			Status:  http.StatusOK,
+			Message: "OK: User can be logged in",
+		})
 	}
 }
 
-func GetHomePageHandler() echo.HandlerFunc {
+// GetHomePageHandler godoc
+// @Summary Get Home Page.
+// @Description Get your home page.
+// @Produce json
+// @Success 	200 {object} Response models.User.name
+// @Failure		401 {object} Response "ERROR: User is unauthorized"
+// @Failure		500 {object} Response "Internal server error"
+// @Router / [get]
+func GetHomePageHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 	return func(context echo.Context) error {
-		return context.JSON(http.StatusOK, "Test: homePageHandler")
+		userID, ok := context.Get("USER_ID").(int64)
+		if !ok {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: "ERROR: Session required",
+			})
+		}
+
+		if userID == -1 {
+			return context.JSON(http.StatusUnauthorized, &Response{
+				Status:  http.StatusUnauthorized,
+				Message: "ERROR: User is unauthorized",
+			})
+		}
+
+		name, err := utils.GetUserName(dbPool, userID)
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		return context.JSON(http.StatusOK, &ResponseName{
+			Status: http.StatusOK,
+			Name:   name,
+		})
+	}
+}
+
+// LogoutHandler godoc
+// @Summary Logout.
+// @Description Delete session from DB.
+// @Produce json
+// @Success 	200 {object} Response "OK: User is logged out"
+// @Failure		500 {object} Response "Internal server error"
+// @Router /logout [delete]
+func LogoutHandler(connRedis *redis.Conn) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		cookie, err := ctx.Cookie("Session_cookie")
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		_, err = (*connRedis).Do("DEL", cookie.Value)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		cookie.Expires = time.Now().AddDate(0, 0, -1)
+		ctx.SetCookie(cookie)
+
+		return ctx.JSON(http.StatusOK, &Response{
+			Status:  http.StatusOK,
+			Message: "OK: User is logged out",
+		})
 	}
 }
