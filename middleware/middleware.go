@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4/middleware"
 	"net/http"
 	"time"
 
@@ -11,9 +11,8 @@ import (
 
 func CORS() echo.MiddlewareFunc {
 	return middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080"},
-		AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With"},
-		AllowCredentials: true,
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
 	})
 }
 
