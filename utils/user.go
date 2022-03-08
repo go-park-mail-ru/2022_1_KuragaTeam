@@ -2,17 +2,15 @@ package utils
 
 import (
 	"context"
-	"errors"
-	"gopkg.in/validator.v2"
 	"myapp/models"
 	"strings"
 	"unicode"
 
+	"gopkg.in/validator.v2"
+
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
-
-var ErrWrongPassword = errors.New("wrong password")
 
 // Используется LoginUserHandler.
 // Проверяет, что пользователь есть в базе данных.
