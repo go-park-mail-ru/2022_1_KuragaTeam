@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
+	"golang.org/x/crypto/acme/autocert"
 	"log"
 	"myapp/db"
 	"myapp/handlers"
@@ -40,6 +41,8 @@ func main() {
 
 	e := echo.New()
 
+	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
+
 	e.Use(middleware.CheckAuthorization(&connRedis))
 	e.Use(middleware.CORS())
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
@@ -49,5 +52,5 @@ func main() {
 	e.DELETE("/api/v1/logout", handlers.LogoutHandler(&connRedis))
 	e.GET("/api/v1/", handlers.GetHomePageHandler(dbPool))
 
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.StartAutoTLS(":443"))
 }
