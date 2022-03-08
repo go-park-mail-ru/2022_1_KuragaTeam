@@ -89,8 +89,7 @@ func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.Handler
 			Value:    value.String(),
 			HttpOnly: true,
 			Expires:  time.Now().Add(time.Hour),
-			SameSite: http.SameSiteNoneMode,
-			Secure:   true,
+			SameSite: 0,
 		}
 
 		context.SetCookie(cookie)
@@ -173,8 +172,7 @@ func LoginUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerF
 			Value:    value.String(),
 			HttpOnly: true,
 			Expires:  time.Now().Add(time.Hour),
-			SameSite: http.SameSiteNoneMode,
-			Secure:   true,
+			SameSite: 0,
 		}
 
 		context.SetCookie(&cookie)
