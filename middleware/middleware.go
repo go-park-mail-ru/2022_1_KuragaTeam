@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -32,6 +33,7 @@ func CheckAuthorization(redisPool *redis.Pool) echo.MiddlewareFunc {
 					cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
 					ctx.SetCookie(cookie)
 					ctx.Set("USER_ID", -1)
+					log.Println(err)
 					return next(ctx)
 				}
 			}
