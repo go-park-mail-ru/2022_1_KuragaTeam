@@ -99,7 +99,7 @@ func (dbPool *UserPool) CreateUser(user models.User) (int64, error) {
 }
 
 func (dbPool *UserPool) GetUserName(userID int64) (string, error) {
-	sql := "SELECT username FROM users WHERE id=$1;"
+	sql := "SELECT username FROM users WHERE id=$1"
 
 	var name string
 	err := dbPool.Pool.QueryRow(context.Background(), sql, userID).Scan(&name)

@@ -2,12 +2,16 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/driftprogramming/pgxpoolmock"
+	"github.com/golang/mock/gomock"
 	"github.com/gomodule/redigo/redis"
 	"github.com/labstack/echo/v4"
 	"github.com/rafaeljusto/redigomock"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"log"
 	"myapp/models"
+	"myapp/utils"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -21,80 +25,73 @@ type TestCase struct {
 	StatusCode int
 }
 
-func TestGetHomePage(t *testing.T) {
-	//t.Parallel()
-	//ctrl := gomock.NewController(t)
-	//defer ctrl.Finish()
-	//
-	//// given
-	//mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	//columns := []string{"id", "email", "password", "salt"}
-	//
-	//salt, _ := uuid.NewV4()
-	//pwd := "Pass123321"
-	//password, _ := utils.HashAndSalt(pwd, salt.String())
-	//
-	//pgxRows := pgxpoolmock.NewRows(columns).AddRow(int64(1), "Ilias@mail.ru", password, salt.String()).ToPgxRows()
-	//
-	//user := models.User{
-	//	ID:       1,
-	//	Name:     "Ilias",
-	//	Email:    "Ilias@mail.ru",
-	//	Password: pwd,
-	//	Salt:     salt.String(),
-	//}
-	//mockPool.EXPECT().Query(gomock.Any(), `SELECT id, email, password, salt FROM users WHERE email=$1`, user.Email).Return(pgxRows, nil)
-	//
-	//// when
-	////actualOrder := orderDao.GetOrderByID(1)
-	//
-	//userPool := &utils.UserPool{
-	//	Pool: mockPool,
-	//}
-	//
-	//userID, result, err := userPool.IsUserExists(user)
-	//
-	//// then
-	//assert.Equal(t, int64(1), userID)
-	//assert.Equal(t, true, result)
-	//assert.Nil(t, err)
-	//
-	//cases := []TestCase{
-	//	TestCase{
-	//		name:       "test1",
-	//		Response:   `"Test: homePageHandler"`,
-	//		StatusCode: http.StatusOK,
-	//	},
-	//}
-	//
-	//for _, item := range cases {
-	//
-	//	server := echo.New()
-	//	response := httptest.NewRequest(echo.GET, "/", nil)
-	//	rec := httptest.NewRecorder()
-	//	ctx := server.NewContext(response, rec)
-	//
-	//	resp := GetHomePageHandler()
-	//
-	//	if assert.NoError(t, resp(ctx)) {
-	//		assert.Equal(t, item.StatusCode, rec.Code)
-	//
-	//		body, _ := ioutil.ReadAll(rec.Result().Body)
-	//		bodyStr := string(body)
-	//		bodyStr = strings.TrimSpace(bodyStr)
-	//
-	//		assert.Equal(t, item.Response, bodyStr)
-	//	}
-	//
-	//}
-}
-
-type TestLoginCase struct {
-	name       string
-	Response   string
-	StatusCode int
-	req        models.User
-}
+//func TestGetHomePage(t *testing.T) {
+//t.Parallel()
+//ctrl := gomock.NewController(t)
+//defer ctrl.Finish()
+//
+//// given
+//mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+//columns := []string{"id", "email", "password", "salt"}
+//
+//salt, _ := uuid.NewV4()
+//pwd := "Pass123321"
+//password, _ := utils.HashAndSalt(pwd, salt.String())
+//
+//pgxRows := pgxpoolmock.NewRows(columns).AddRow(int64(1), "Ilias@mail.ru", password, salt.String()).ToPgxRows()
+//
+//user := models.User{
+//	ID:       1,
+//	Name:     "Ilias",
+//	Email:    "Ilias@mail.ru",
+//	Password: pwd,
+//	Salt:     salt.String(),
+//}
+//mockPool.EXPECT().Query(gomock.Any(), `SELECT id, email, password, salt FROM users WHERE email=$1`, user.Email).Return(pgxRows, nil)
+//
+//// when
+////actualOrder := orderDao.GetOrderByID(1)
+//
+//userPool := &utils.UserPool{
+//	Pool: mockPool,
+//}
+//
+//userID, result, err := userPool.IsUserExists(user)
+//
+//// then
+//assert.Equal(t, int64(1), userID)
+//assert.Equal(t, true, result)
+//assert.Nil(t, err)
+//
+//cases := []TestCase{
+//	TestCase{
+//		name:       "test1",
+//		Response:   `"Test: homePageHandler"`,
+//		StatusCode: http.StatusOK,
+//	},
+//}
+//
+//for _, item := range cases {
+//
+//	server := echo.New()
+//	response := httptest.NewRequest(echo.GET, "/", nil)
+//	rec := httptest.NewRecorder()
+//	ctx := server.NewContext(response, rec)
+//
+//	resp := GetHomePageHandler()
+//
+//	if assert.NoError(t, resp(ctx)) {
+//		assert.Equal(t, item.StatusCode, rec.Code)
+//
+//		body, _ := ioutil.ReadAll(rec.Result().Body)
+//		bodyStr := string(body)
+//		bodyStr = strings.TrimSpace(bodyStr)
+//
+//		assert.Equal(t, item.Response, bodyStr)
+//	}
+//
+//}
+//}
 
 func TestCreateUser(t *testing.T) {
 	//cases := []TestLoginCase{
@@ -335,4 +332,84 @@ func TestGetMovieCompilations(t *testing.T) {
 
 		assert.Equal(t, reqStr, bodyStr)
 	}
+}
+
+type TestGetHomePage struct {
+	name       string
+	StatusCode int
+	Response   ResponseName
+}
+
+func TestGetHomePageHandler(t *testing.T) {
+	cases := []TestGetHomePage{
+		TestGetHomePage{
+			name:       "Default login case",
+			StatusCode: http.StatusOK,
+			Response: ResponseName{
+				Status: http.StatusOK,
+				Name:   "user1",
+			},
+		},
+	}
+
+	server := echo.New()
+	defer func(server *echo.Echo) {
+		err := server.Close()
+		if err != nil {
+
+		}
+	}(server)
+
+	for _, item := range cases {
+
+		req := httptest.NewRequest(echo.DELETE, "/api/v1/logout", nil)
+		rec := httptest.NewRecorder()
+		ctx := server.NewContext(req, rec)
+		ctx.Set("USER_ID", int64(1))
+
+		//cmd := conn.Command("SET", item.cookie.Value).ExpectMap(map[string]string{
+		//	"": "",
+		//})
+		t.Parallel()
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+		columns := []string{"username"}
+
+		pgxRows := pgxpoolmock.NewRows(columns).AddRow(item.Response.Name).ToPgxRows()
+
+		user := models.User{
+			ID:    int64(1),
+			Name:  item.Response.Name,
+			Email: "Ivan@mail.ru",
+		}
+
+		expectedResult := ""
+
+		mockPool.EXPECT().QueryRow(gomock.Any(), `SELECT username FROM users WHERE id=$1`, user.ID).Return(pgxRows)
+
+		if pgxRows.Next() {
+			err := pgxRows.Scan(&expectedResult)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		userPool := &utils.UserPool{
+			Pool: mockPool,
+		}
+
+		resp := GetHomePageHandler(userPool)
+
+		if assert.NoError(t, resp(ctx)) {
+			//assert.Equal(t, conn.Stats(cmd), 1)
+		}
+		assert.Equal(t, rec.Code, item.StatusCode)
+		body, _ := ioutil.ReadAll(rec.Result().Body)
+		var receive ResponseName
+		err := json.Unmarshal(body, &receive)
+		assert.NoError(t, err)
+		assert.Equal(t, item.Response, receive)
+	}
+
 }
