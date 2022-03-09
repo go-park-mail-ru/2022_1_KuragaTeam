@@ -67,7 +67,6 @@ func TestPassword(t *testing.T) {
 	}
 }
 
-
 func TestUserExists(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
@@ -201,38 +200,38 @@ func TestUserNotUnique(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestCreateUser(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	columns := []string{"id"}
-
-	salt, _ := uuid.NewV4()
-	pwd := "Pass123321"
-	password, _ := HashAndSalt(pwd, salt.String())
-
-	pgxRows := pgxpoolmock.NewRows(columns).AddRow(int64(3)).ToPgxRows()
-
-	user := models.User{
-		ID:       3,
-		Name:     "Ivan",
-		Email:    "Ivan@mail.ru",
-		Password: password,
-		Salt:     salt.String(),
-	}
-
-	//var expectedResult int64
-
-	mockPool.EXPECT().Query(gomock.Any(), `INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4) RETURNING id`, user.Name, user.Email, user.Password, user.Salt).Return(pgxRows, nil)
-
-	userPool := &UserPool{
-		Pool: mockPool,
-	}
-
-	result, err := userPool.CreateUser(user)
-
-	assert.Equal(t, user.ID, result)
-	assert.Nil(t, err)
-}
+//func TestCreateUser(t *testing.T) {
+//	t.Parallel()
+//	ctrl := gomock.NewController(t)
+//	defer ctrl.Finish()
+//
+//	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+//	columns := []string{"id"}
+//
+//	salt, _ := uuid.NewV4()
+//	pwd := "Pass123321"
+//	password, _ := HashAndSalt(pwd, salt.String())
+//
+//	pgxRows := pgxpoolmock.NewRows(columns).AddRow(int64(3)).ToPgxRows()
+//
+//	user := models.User{
+//		ID:       3,
+//		Name:     "Ivan",
+//		Email:    "Ivan@mail.ru",
+//		Password: password,
+//		Salt:     salt.String(),
+//	}
+//
+//	//var expectedResult int64
+//
+//	mockPool.EXPECT().Query(gomock.Any(), `INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4) RETURNING id`, user.Name, user.Email, user.Password, user.Salt).Return(pgxRows, nil)
+//
+//	userPool := &UserPool{
+//		Pool: mockPool,
+//	}
+//
+//	result, err := userPool.CreateUser(user)
+//
+//	assert.Equal(t, user.ID, result)
+//	assert.Nil(t, err)
+//}

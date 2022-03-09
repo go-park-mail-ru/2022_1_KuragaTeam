@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.7.0
+	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/echo-swagger v1.3.0
 	github.com/swaggo/swag v1.7.9
