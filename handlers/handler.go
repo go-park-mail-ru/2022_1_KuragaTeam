@@ -309,39 +309,80 @@ func GetMovieCompilations(dbPool *pgxpool.Pool) echo.HandlerFunc {
 				Name: "Популярное",
 				Movies: []models.Movie{
 					{
+						Img:   "star.png",
 						Href:  "/",
 						Name:  "Звездные войны1",
 						Genre: "Фантастика1",
 					},
 					{
+						Img:   "star.png",
 						Href:  "/",
 						Name:  "Звездные войны2",
 						Genre: "Фантастика2",
 					},
 					{
+						Img:   "star.png",
 						Href:  "/",
 						Name:  "Звездные войны3",
 						Genre: "Фантастика3",
 					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны4",
+						Genre: "Фантастика4",
+					},
 				},
 			},
 			{
-				Name: "Комедии",
+				Name: "Топ",
 				Movies: []models.Movie{
 					{
+						Img:   "star.png",
 						Href:  "/",
 						Name:  "Звездные войны#1",
 						Genre: "Фантастика",
 					},
 					{
+						Img:   "star.png",
 						Href:  "/",
 						Name:  "Звездные войны#2",
 						Genre: "Фантастика",
 					},
 					{
+						Img:   "star.png",
 						Href:  "/",
 						Name:  "Звездные войны#3",
 						Genre: "Фантастика",
+					},
+				},
+			},
+			{
+				Name: "Семейное",
+				Movies: []models.Movie{
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#1",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#2",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#3",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны4",
+						Genre: "Фантастика4",
 					},
 				},
 			},

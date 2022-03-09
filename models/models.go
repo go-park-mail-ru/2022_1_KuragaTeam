@@ -9,6 +9,7 @@ type User struct {
 }
 
 type Movie struct {
+	Img   string `json:"img" example:"star.png"`
 	Href  string `json:"href" example:"/"`
 	Name  string `json:"name" example:"StarWars"`
 	Genre string `json:"genre" example:"Comedy"`
