@@ -25,6 +25,11 @@ type ResponseName struct {
 	Name   string `json:"username"`
 }
 
+type ResponseMovieCompilations struct {
+	Status           int                       `json:"status"`
+	MovieCompilation []models.MovieCompilation `json:"moviesCompilation"`
+}
+
 // CreateUserHandler godoc
 // @Summary Creates new user.
 // @Description Create new user in database with validation.
@@ -277,5 +282,122 @@ func LogoutHandler(redisPool *redis.Pool) echo.HandlerFunc {
 			Status:  http.StatusOK,
 			Message: "OK: User is logged out",
 		})
+	}
+}
+
+// GetMovieCompilations godoc
+// @Summary Get Movie Compilations.
+// @Description Get movie compilations for user.
+// @Produce json
+// @Success 	200 {object} Response models.MovieCompilation
+// @Failure		401 {object} Response "ERROR: User is unauthorized"
+// @Failure		500 {object} Response "Internal server error"
+// @Router 		/movieCompilations [get]
+func GetMovieCompilations(dbPool *pgxpool.Pool) echo.HandlerFunc {
+	return func(context echo.Context) error {
+		userID, ok := context.Get("USER_ID").(int64)
+		if !ok {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: "ERROR: Session required",
+			})
+		}
+
+		if userID == -1 {
+			return context.JSON(http.StatusUnauthorized, &Response{
+				Status:  http.StatusUnauthorized,
+				Message: "ERROR: User is unauthorized",
+			})
+		}
+
+		movieCompilations := []models.MovieCompilation{
+			{
+				Name: "Популярное",
+				Movies: []models.Movie{
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны1",
+						Genre: "Фантастика1",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны2",
+						Genre: "Фантастика2",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны3",
+						Genre: "Фантастика3",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны4",
+						Genre: "Фантастика4",
+					},
+				},
+			},
+			{
+				Name: "Топ",
+				Movies: []models.Movie{
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#1",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#2",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#3",
+						Genre: "Фантастика",
+					},
+				},
+			},
+			{
+				Name: "Семейное",
+				Movies: []models.Movie{
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#1",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#2",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#3",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны4",
+						Genre: "Фантастика4",
+					},
+				},
+			},
+		}
+
+		return context.JSON(http.StatusOK, &ResponseMovieCompilations{
+			Status:           http.StatusOK,
+			MovieCompilation: movieCompilations,
+		})
+
 	}
 }

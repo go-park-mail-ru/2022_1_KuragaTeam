@@ -48,6 +48,7 @@ func main() {
 	e.POST("/api/v1/login", handlers.LoginUserHandler(&userPool, redisPool))
 	e.DELETE("/api/v1/logout", handlers.LogoutHandler(redisPool))
 	e.GET("/api/v1/", handlers.GetHomePageHandler(&userPool))
+	e.GET("/api/v1/movieCompilations", handlers.GetMovieCompilations(dbPool))
 
 	e.Logger.Fatal(e.Start(":1323"))
 }

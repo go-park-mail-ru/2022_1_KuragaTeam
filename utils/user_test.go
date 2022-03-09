@@ -67,6 +67,7 @@ func TestPassword(t *testing.T) {
 	}
 }
 
+
 func TestUserExists(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
