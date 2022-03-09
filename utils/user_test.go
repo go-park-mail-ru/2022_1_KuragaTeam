@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"log"
 	"myapp/models"
 	"testing"
 
@@ -66,7 +67,6 @@ func TestPassword(t *testing.T) {
 		})
 	}
 }
-
 
 func TestUserExists(t *testing.T) {
 	t.Parallel()
@@ -201,38 +201,43 @@ func TestUserNotUnique(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestCreateUser(t *testing.T) {
+func TestGetUserName(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	columns := []string{"id"}
+	columns := []string{"username"}
 
 	salt, _ := uuid.NewV4()
 	pwd := "Pass123321"
-	password, _ := HashAndSalt(pwd, salt.String())
 
-	pgxRows := pgxpoolmock.NewRows(columns).AddRow(int64(3)).ToPgxRows()
+	pgxRows := pgxpoolmock.NewRows(columns).AddRow("Ivan").ToPgxRows()
 
 	user := models.User{
 		ID:       3,
 		Name:     "Ivan",
 		Email:    "Ivan@mail.ru",
-		Password: password,
+		Password: pwd,
 		Salt:     salt.String(),
 	}
 
-	//var expectedResult int64
+	expectedResult := ""
 
-	mockPool.EXPECT().Query(gomock.Any(), `INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4) RETURNING id`, user.Name, user.Email, user.Password, user.Salt).Return(pgxRows, nil)
+	mockPool.EXPECT().QueryRow(gomock.Any(), `SELECT username FROM users WHERE id=$1`, user.ID).Return(pgxRows)
 
+	if pgxRows.Next() {
+		err := pgxRows.Scan(&expectedResult)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 	userPool := &UserPool{
 		Pool: mockPool,
 	}
 
-	result, err := userPool.CreateUser(user)
+	result, errFunc := userPool.GetUserName(user.ID)
 
-	assert.Equal(t, user.ID, result)
-	assert.Nil(t, err)
+	assert.Equal(t, user.Name, result)
+	assert.Nil(t, errFunc)
 }
