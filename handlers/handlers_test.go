@@ -10,6 +10,7 @@ import (
 	"myapp/models"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -213,18 +214,125 @@ func TestLogoutHandler(t *testing.T) {
 		resp := LogoutHandler(pool)
 
 		if assert.NoError(t, resp(ctx)) {
-
 			assert.Equal(t, conn.Stats(cmd), 1)
-
-			assert.Equal(t, item.StatusCode, rec.Code)
-
-			body, _ := ioutil.ReadAll(rec.Result().Body)
-
-			var receive Response
-			err := json.Unmarshal(body, &receive)
-			assert.NoError(t, err)
-			assert.Equal(t, item.response, receive)
 		}
+		assert.Equal(t, item.StatusCode, rec.Code)
+		body, _ := ioutil.ReadAll(rec.Result().Body)
+		var receive Response
+		err := json.Unmarshal(body, &receive)
+		assert.NoError(t, err)
+		assert.Equal(t, item.response, receive)
 	}
 
+}
+
+func TestGetMovieCompilations(t *testing.T) {
+	server := echo.New()
+	response := httptest.NewRequest(echo.GET, "/api/v1/movieCompilations", nil)
+	rec := httptest.NewRecorder()
+	ctx := server.NewContext(response, rec)
+	ctx.Set("USER_ID", int64(1))
+
+	resp := GetMovieCompilations()
+
+	if assert.NoError(t, resp(ctx)) {
+		assert.Equal(t, http.StatusOK, rec.Code)
+
+		body, _ := ioutil.ReadAll(rec.Result().Body)
+
+		movies := []models.MovieCompilation{
+			{
+				Name: "Популярное",
+				Movies: []models.Movie{
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны1",
+						Genre: "Фантастика1",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны2",
+						Genre: "Фантастика2",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны3",
+						Genre: "Фантастика3",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны4",
+						Genre: "Фантастика4",
+					},
+				},
+			},
+			{
+				Name: "Топ",
+				Movies: []models.Movie{
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#1",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#2",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#3",
+						Genre: "Фантастика",
+					},
+				},
+			},
+			{
+				Name: "Семейное",
+				Movies: []models.Movie{
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#1",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#2",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны#3",
+						Genre: "Фантастика",
+					},
+					{
+						Img:   "star.png",
+						Href:  "/",
+						Name:  "Звездные войны4",
+						Genre: "Фантастика4",
+					},
+				},
+			},
+		}
+		movieCompilations := ResponseMovieCompilations{
+			Status:           http.StatusOK,
+			MovieCompilation: movies,
+		}
+		bodyStr := string(body)
+		bodyStr = strings.TrimSpace(bodyStr)
+		req, _ := json.Marshal(movieCompilations)
+		reqStr := string(req)
+		reqStr = strings.TrimSpace(reqStr)
+
+		assert.Equal(t, reqStr, bodyStr)
+	}
 }
