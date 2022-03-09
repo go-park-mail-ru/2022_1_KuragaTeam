@@ -150,7 +150,7 @@ type TestLogoutCase struct {
 func TestLogoutHandler(t *testing.T) {
 	cases := []TestLogoutCase{
 		TestLogoutCase{
-			name:       "Logout",
+			name:       "Default logout",
 			StatusCode: http.StatusOK,
 			cookie: &http.Cookie{
 				Name:     "Session_cookie",
@@ -165,6 +165,22 @@ func TestLogoutHandler(t *testing.T) {
 				Message: "OK: User is logged out",
 			},
 		},
+		TestLogoutCase{
+			name:       "Logout without cookie",
+			StatusCode: http.StatusInternalServerError,
+			cookie: &http.Cookie{
+				Name:     "Cookie",
+				Value:    "okdg0wrijifoi",
+				HttpOnly: true,
+				Expires:  time.Now().Add(time.Hour),
+				SameSite: 0,
+				Secure:   false,
+			},
+			response: Response{
+				Status:  http.StatusInternalServerError,
+				Message: "http: named cookie not present",
+			},
+		},
 	}
 
 	server := echo.New()
@@ -175,9 +191,6 @@ func TestLogoutHandler(t *testing.T) {
 		}
 	}(server)
 
-	req := httptest.NewRequest(echo.DELETE, "/api/v1/logout", nil)
-	rec := httptest.NewRecorder()
-	ctx := server.NewContext(req, rec)
 	conn := redigomock.NewConn()
 	pool := &redis.Pool{
 		// Return the same connection mock for each Get() call.
@@ -188,6 +201,9 @@ func TestLogoutHandler(t *testing.T) {
 
 	for _, item := range cases {
 
+		req := httptest.NewRequest(echo.DELETE, "/api/v1/logout", nil)
+		rec := httptest.NewRecorder()
+		ctx := server.NewContext(req, rec)
 		ctx.Request().AddCookie(item.cookie)
 
 		cmd := conn.Command("DEL", item.cookie.Value).ExpectMap(map[string]string{
