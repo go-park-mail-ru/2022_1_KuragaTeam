@@ -123,6 +123,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/movieCompilations": {
+            "get": {
+                "description": "Get movie compilations for user.",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get Movie Compilations.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "ERROR: User is unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/signup": {
             "post": {
                 "description": "Create new user in database with validation.",

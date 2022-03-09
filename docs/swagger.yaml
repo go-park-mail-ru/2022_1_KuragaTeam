@@ -101,6 +101,25 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Response'
       summary: Logout.
+  /movieCompilations:
+    get:
+      description: Get movie compilations for user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "401":
+          description: 'ERROR: User is unauthorized'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Get Movie Compilations.
   /signup:
     post:
       description: Create new user in database with validation.

@@ -8,6 +8,17 @@ type User struct {
 	Salt     string `json:"salt" form:"salt"`
 }
 
+type Movie struct {
+	Href  string `json:"href" example:"/"`
+	Name  string `json:"name" example:"StarWars"`
+	Genre string `json:"genre" example:"Comedy"`
+}
+
+type MovieCompilation struct {
+	Name   string  `json:"compilationName"`
+	Movies []Movie `json:"movies"`
+}
+
 type Session struct {
 	UserID  int64
 	Session string

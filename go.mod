@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/garyburd/redigo v1.6.3
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/jackc/pgconn v1.11.0
 	github.com/jackc/pgmock v0.0.0-20210724152146-4ad1a8207f65
@@ -41,6 +42,8 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/onsi/ginkgo v1.16.5 // indirect
+	github.com/onsi/gomega v1.18.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
