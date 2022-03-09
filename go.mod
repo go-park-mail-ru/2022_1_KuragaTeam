@@ -6,6 +6,9 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/garyburd/redigo v1.6.3
 	github.com/gofrs/uuid v4.2.0+incompatible
+	github.com/jackc/pgconn v1.11.0
+	github.com/jackc/pgmock v0.0.0-20210724152146-4ad1a8207f65
+	github.com/jackc/pgproto3/v2 v2.2.0
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.7.0
@@ -27,10 +30,8 @@ require (
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.10.0 // indirect
 	github.com/jackc/puddle v1.2.1 // indirect

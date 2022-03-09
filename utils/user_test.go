@@ -1,11 +1,17 @@
 package utils
 
 import (
+	"context"
+	"fmt"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgmock"
+	"github.com/jackc/pgproto3/v2"
 	"github.com/stretchr/testify/assert"
-	"myapp/db"
-	"myapp/mockDB"
-	"myapp/models"
+	"github.com/stretchr/testify/require"
+	"net"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestPassword(t *testing.T) {
@@ -66,34 +72,77 @@ func TestPassword(t *testing.T) {
 }
 
 func TestAddUsers(t *testing.T) {
-	mockDB.MockedDB(mockDB.CREATE)
-	defer mockDB.MockedDB(mockDB.DROP)
-
-	//newUser := "fooo"
-	//database.AddUser(newUser)
-
-	/*
-	   As we know ConnectDB() will connect database named DATABASE_NAME defined in .env,
-	   make sure to change that before running tests.
-	*/
-
-	database, err := db.ConnectDB()
-	if err != nil {
-		t.Errorf("Error connecting database in %v\n%v", t.Name(), err)
+	script := &pgmock.Script{
+		Steps: pgmock.AcceptUnauthenticatedConnRequestSteps(),
 	}
-	defer database.Close()
+	script.Steps = append(script.Steps, pgmock.ExpectMessage(&pgproto3.Query{String: "select 42"}))
+	script.Steps = append(script.Steps, pgmock.SendMessage(&pgproto3.RowDescription{
+		Fields: []pgproto3.FieldDescription{
+			pgproto3.FieldDescription{
+				Name:                 []byte("?column?"),
+				TableOID:             0,
+				TableAttributeNumber: 0,
+				DataTypeOID:          23,
+				DataTypeSize:         4,
+				TypeModifier:         -1,
+				Format:               0,
+			},
+		},
+	}))
+	script.Steps = append(script.Steps, pgmock.SendMessage(&pgproto3.DataRow{
+		Values: [][]byte{[]byte("42")},
+	}))
+	script.Steps = append(script.Steps, pgmock.SendMessage(&pgproto3.CommandComplete{CommandTag: []byte("SELECT 1")}))
+	script.Steps = append(script.Steps, pgmock.SendMessage(&pgproto3.ReadyForQuery{TxStatus: 'I'}))
+	script.Steps = append(script.Steps, pgmock.ExpectMessage(&pgproto3.Terminate{}))
 
-	newUserInDB := models.User{
-		Name:     "user1",
-		Email:    "mail@mai.ru",
-		Password: "passwordAZAZA123",
-	}
+	ln, err := net.Listen("tcp", "127.0.0.1:")
+	require.NoError(t, err)
+	defer ln.Close()
 
-	if _, err = CreateUser(database, newUserInDB); err != nil {
-		t.Errorf("%v wasn't added.", newUserInDB)
-	}
+	serverErrChan := make(chan error, 1)
+	go func() {
+		defer close(serverErrChan)
 
-	//if notFound {
-	//	t.Errorf("%v was added but was not retrieved.", newUser)
-	//}
+		conn, err := ln.Accept()
+		if err != nil {
+			serverErrChan <- err
+			return
+		}
+		defer conn.Close()
+
+		err = conn.SetDeadline(time.Now().Add(time.Second))
+		if err != nil {
+			serverErrChan <- err
+			return
+		}
+
+		err = script.Run(pgproto3.NewBackend(pgproto3.NewChunkReader(conn), conn))
+		if err != nil {
+			serverErrChan <- err
+			return
+		}
+	}()
+
+	parts := strings.Split(ln.Addr().String(), ":")
+	host := parts[0]
+	port := parts[1]
+	connStr := fmt.Sprintf("sslmode=disable host=%s port=%s", host, port)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	pgConn, err := pgconn.Connect(ctx, connStr)
+	require.NoError(t, err)
+	results, err := pgConn.Exec(ctx, "select 42").ReadAll()
+	assert.NoError(t, err)
+
+	assert.Len(t, results, 1)
+	assert.Nil(t, results[0].Err)
+	assert.Equal(t, "SELECT 1", string(results[0].CommandTag))
+	assert.Len(t, results[0].Rows, 1)
+	assert.Equal(t, "42", string(results[0].Rows[0][0]))
+
+	pgConn.Close(ctx)
+
+	assert.NoError(t, <-serverErrChan)
 }
