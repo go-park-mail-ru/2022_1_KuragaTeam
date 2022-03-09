@@ -5,6 +5,7 @@ import (
 	"myapp/db"
 	"myapp/handlers"
 	"myapp/middleware"
+	"myapp/utils"
 
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -31,6 +32,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	userPool := utils.UserPool{
+		Pool: dbPool,
+	}
+
 	defer dbPool.Close()
 
 	e := echo.New()
@@ -39,10 +44,10 @@ func main() {
 	e.Use(middleware.CORS())
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	e.POST("/api/v1/signup", handlers.CreateUserHandler(dbPool, redisPool))
-	e.POST("/api/v1/login", handlers.LoginUserHandler(dbPool, redisPool))
+	e.POST("/api/v1/signup", handlers.CreateUserHandler(&userPool, redisPool))
+	e.POST("/api/v1/login", handlers.LoginUserHandler(&userPool, redisPool))
 	e.DELETE("/api/v1/logout", handlers.LogoutHandler(redisPool))
-	e.GET("/api/v1/", handlers.GetHomePageHandler(dbPool))
+	e.GET("/api/v1/", handlers.GetHomePageHandler(&userPool))
 	e.GET("/api/v1/movieCompilations", handlers.GetMovieCompilations(dbPool))
 
 	e.Logger.Fatal(e.Start(":1323"))
