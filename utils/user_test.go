@@ -3,11 +3,12 @@ package utils
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgmock"
 	"github.com/jackc/pgproto3/v2"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"myapp/models"
 	"net"
 	"strings"
 	"testing"
@@ -75,11 +76,38 @@ func TestAddUsers(t *testing.T) {
 	script := &pgmock.Script{
 		Steps: pgmock.AcceptUnauthenticatedConnRequestSteps(),
 	}
-	script.Steps = append(script.Steps, pgmock.ExpectMessage(&pgproto3.Query{String: "select 42"}))
+	script.Steps = append(script.Steps, pgmock.ExpectMessage(&pgproto3.Query{String: "SELECT * FROM users WHERE email=$1;"}))
 	script.Steps = append(script.Steps, pgmock.SendMessage(&pgproto3.RowDescription{
 		Fields: []pgproto3.FieldDescription{
 			pgproto3.FieldDescription{
-				Name:                 []byte("?column?"),
+				Name:                 []byte("id"),
+				TableOID:             0,
+				TableAttributeNumber: 0,
+				DataTypeOID:          23,
+				DataTypeSize:         4,
+				TypeModifier:         -1,
+				Format:               0,
+			},
+			pgproto3.FieldDescription{
+				Name:                 []byte("username"),
+				TableOID:             0,
+				TableAttributeNumber: 0,
+				DataTypeOID:          23,
+				DataTypeSize:         4,
+				TypeModifier:         -1,
+				Format:               0,
+			},
+			pgproto3.FieldDescription{
+				Name:                 []byte("password"),
+				TableOID:             0,
+				TableAttributeNumber: 0,
+				DataTypeOID:          23,
+				DataTypeSize:         4,
+				TypeModifier:         -1,
+				Format:               0,
+			},
+			pgproto3.FieldDescription{
+				Name:                 []byte("salt"),
 				TableOID:             0,
 				TableAttributeNumber: 0,
 				DataTypeOID:          23,
@@ -90,9 +118,9 @@ func TestAddUsers(t *testing.T) {
 		},
 	}))
 	script.Steps = append(script.Steps, pgmock.SendMessage(&pgproto3.DataRow{
-		Values: [][]byte{[]byte("42")},
+		Values: [][]byte{[]byte("0"), []byte("name1"), []byte("email1@email.net"), []byte("password"), []byte("salt")},
 	}))
-	script.Steps = append(script.Steps, pgmock.SendMessage(&pgproto3.CommandComplete{CommandTag: []byte("SELECT 1")}))
+	script.Steps = append(script.Steps, pgmock.SendMessage(&pgproto3.CommandComplete{CommandTag: []byte("SELECT * FROM users WHERE email=$1;")}))
 	script.Steps = append(script.Steps, pgmock.SendMessage(&pgproto3.ReadyForQuery{TxStatus: 'I'}))
 	script.Steps = append(script.Steps, pgmock.ExpectMessage(&pgproto3.Terminate{}))
 
@@ -131,18 +159,26 @@ func TestAddUsers(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	pgConn, err := pgconn.Connect(ctx, connStr)
-	require.NoError(t, err)
-	results, err := pgConn.Exec(ctx, "select 42").ReadAll()
+
+	dbPool, err := pgxpool.Connect(ctx, connStr)
+	defer dbPool.Close()
+
+	//pgConn, err := pgconn.Connect(ctx, connStr)
+	//require.NoError(t, err)
+
+	results, err := IsUserUnique(dbPool, models.User{Email: "email1@email.com"})
+
+	//results, err := pgConn.Exec(ctx, "select 42").ReadAll()
+
 	assert.NoError(t, err)
 
 	assert.Len(t, results, 1)
-	assert.Nil(t, results[0].Err)
-	assert.Equal(t, "SELECT 1", string(results[0].CommandTag))
-	assert.Len(t, results[0].Rows, 1)
-	assert.Equal(t, "42", string(results[0].Rows[0][0]))
+	//assert.Nil(t, results[0].Err)
+	//assert.Equal(t, "SELECT 1", string(results[0].CommandTag))
+	//assert.Len(t, results[0].Rows, 1)
+	//assert.Equal(t, "42", string(results[0].Rows[0][0]))
 
-	pgConn.Close(ctx)
+	//pgConn.Close(ctx)
 
 	assert.NoError(t, <-serverErrChan)
 }
