@@ -339,6 +339,7 @@ type TestGetHomePage struct {
 	StatusCode int
 	Response   ResponseName
 	UserID     int64
+	UserIDKey  string
 }
 
 func TestGetHomePageHandler(t *testing.T) {
@@ -350,16 +351,28 @@ func TestGetHomePageHandler(t *testing.T) {
 				Status: http.StatusOK,
 				Name:   "user1",
 			},
-			UserID: 1,
+			UserID:    1,
+			UserIDKey: "USER_ID",
 		},
 		TestGetHomePage{
-			name:       "User Unauthorized",
+			name:       "User unauthorized",
 			StatusCode: http.StatusUnauthorized,
 			Response: ResponseName{
 				Status: http.StatusUnauthorized,
 				Name:   "",
 			},
-			UserID: -1,
+			UserID:    -1,
+			UserIDKey: "USER_ID",
+		},
+		TestGetHomePage{
+			name:       "No user_id",
+			StatusCode: http.StatusInternalServerError,
+			Response: ResponseName{
+				Status: http.StatusInternalServerError,
+				Name:   "",
+			},
+			UserID:    5,
+			UserIDKey: "ID",
 		},
 		//TestGetHomePage{
 		//	name:       "Wrong username",
@@ -389,7 +402,7 @@ func TestGetHomePageHandler(t *testing.T) {
 		req := httptest.NewRequest(echo.GET, "/api/v1/", nil)
 		rec := httptest.NewRecorder()
 		ctx := server.NewContext(req, rec)
-		ctx.Set("USER_ID", item.UserID)
+		ctx.Set(item.UserIDKey, item.UserID)
 
 		defer ctrl.Finish()
 
