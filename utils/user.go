@@ -2,24 +2,26 @@ package utils
 
 import (
 	"context"
-	"errors"
-	"gopkg.in/validator.v2"
 	"myapp/models"
 	"strings"
 	"unicode"
 
+	"github.com/driftprogramming/pgxpoolmock"
+	"gopkg.in/validator.v2"
+
 	"github.com/gofrs/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-var ErrWrongPassword = errors.New("wrong password")
+type UserPool struct {
+	Pool pgxpoolmock.PgxPool
+}
 
 // Используется LoginUserHandler.
 // Проверяет, что пользователь есть в базе данных.
-func IsUserExists(dbPool *pgxpool.Pool, user models.User) (int64, bool, error) {
+func (dbPool *UserPool) IsUserExists(user models.User) (int64, bool, error) {
 	var userID int64
-	sql := "SELECT id, email, password, salt FROM USERS WHERE email=$1"
-	rows, err := dbPool.Query(context.Background(), sql, user.Email)
+	sql := "SELECT id, email, password, salt FROM users WHERE email=$1"
+	rows, err := dbPool.Pool.Query(context.Background(), sql, user.Email)
 	if err != nil {
 		return userID, false, err
 	}
@@ -55,9 +57,9 @@ func IsUserExists(dbPool *pgxpool.Pool, user models.User) (int64, bool, error) {
 
 // Используется CreateUserHandler.
 // email должен быть уникален
-func IsUserUnique(dbPool *pgxpool.Pool, user models.User) (bool, error) {
-	sql := "SELECT * FROM users WHERE email=$1;"
-	rows, err := dbPool.Query(context.Background(), sql, user.Email)
+func (dbPool *UserPool) IsUserUnique(user models.User) (bool, error) {
+	sql := "SELECT * FROM users WHERE email=$1"
+	rows, err := dbPool.Pool.Query(context.Background(), sql, user.Email)
 
 	if err != nil {
 		return false, err
@@ -75,7 +77,7 @@ func IsUserUnique(dbPool *pgxpool.Pool, user models.User) (bool, error) {
 
 // Используется CreateUserHandler.
 // Создает пользователя
-func CreateUser(dbPool *pgxpool.Pool, user models.User) (int64, error) {
+func (dbPool *UserPool) CreateUser(user models.User) (int64, error) {
 	var userID int64
 
 	salt, err := uuid.NewV4()
@@ -88,24 +90,19 @@ func CreateUser(dbPool *pgxpool.Pool, user models.User) (int64, error) {
 		return userID, err
 	}
 
-	conn, err := dbPool.Acquire(context.Background())
-	if err != nil {
-		return userID, err
-	}
-
-	sql := "INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4) RETURNING id;"
-	if err = conn.QueryRow(context.Background(), sql, user.Name, user.Email, hashPassword, salt).Scan(&userID); err != nil {
+	sql := "INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4) RETURNING id"
+	if err = dbPool.Pool.QueryRow(context.Background(), sql, user.Name, user.Email, hashPassword, salt).Scan(&userID); err != nil {
 		return userID, err
 	}
 
 	return userID, nil
 }
 
-func GetUserName(dbPool *pgxpool.Pool, userID int64) (string, error) {
+func (dbPool *UserPool) GetUserName(userID int64) (string, error) {
 	sql := "SELECT username FROM users WHERE id=$1;"
 
 	var name string
-	err := dbPool.QueryRow(context.Background(), sql, userID).Scan(&name)
+	err := dbPool.Pool.QueryRow(context.Background(), sql, userID).Scan(&name)
 	if err != nil {
 		return "", err
 	}

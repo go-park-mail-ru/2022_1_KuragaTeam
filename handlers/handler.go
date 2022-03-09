@@ -2,17 +2,17 @@ package handlers
 
 import (
 	"errors"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"myapp/models"
 	"myapp/utils"
 	"net/http"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
 	"github.com/gofrs/uuid"
+	"github.com/gomodule/redigo/redis"
+
+	_ "myapp/docs"
 
 	"github.com/labstack/echo/v4"
-	_ "myapp/docs"
 )
 
 type Response struct {
@@ -39,7 +39,7 @@ type ResponseMovieCompilations struct {
 // @Failure		400 {object} Response "Invalid request body"
 // @Failure		500 {object} Response "Internal server error"
 // @Router /signup [post]
-func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerFunc {
+func CreateUserHandler(dbPool *utils.UserPool, redisPool *redis.Pool) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		user := models.User{}
 
@@ -57,7 +57,7 @@ func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.Handler
 			})
 		}
 
-		isUnique, err := utils.IsUserUnique(dbPool, user)
+		isUnique, err := dbPool.IsUserUnique(user)
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
@@ -73,7 +73,7 @@ func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.Handler
 			})
 		}
 
-		userID, err := utils.CreateUser(dbPool, user)
+		userID, err := dbPool.CreateUser(user)
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
@@ -99,7 +99,9 @@ func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.Handler
 
 		context.SetCookie(cookie)
 
-		_, err = (*connRedis).Do("SET", value, userID, "EX", int64(time.Hour.Seconds()))
+		connRedis := redisPool.Get()
+		defer connRedis.Close()
+		_, err = connRedis.Do("SET", value, userID, "EX", int64(time.Hour.Seconds()))
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
@@ -132,7 +134,7 @@ func CreateUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.Handler
 // @Failure		404 {object} Response "User not found"
 // @Failure		500 {object} Response "Internal server error"
 // @Router /login [post]
-func LoginUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerFunc {
+func LoginUserHandler(dbPool *utils.UserPool, redisPool *redis.Pool) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		user := models.User{}
 		if err := context.Bind(&user); err != nil {
@@ -142,7 +144,7 @@ func LoginUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerF
 			})
 		}
 
-		userID, userExists, err := utils.IsUserExists(dbPool, user)
+		userID, userExists, err := dbPool.IsUserExists(user)
 		if err != nil {
 			if errors.Is(err, utils.ErrWrongPassword) {
 				return context.JSON(http.StatusUnauthorized, &Response{
@@ -182,7 +184,9 @@ func LoginUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerF
 
 		context.SetCookie(&cookie)
 
-		_, err = (*connRedis).Do("SET", value, userID, "EX", int64(time.Hour.Seconds()))
+		connRedis := redisPool.Get()
+		defer connRedis.Close()
+		_, err = connRedis.Do("SET", value, userID, "EX", int64(time.Hour.Seconds()))
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
@@ -212,7 +216,7 @@ func LoginUserHandler(dbPool *pgxpool.Pool, connRedis *redis.Conn) echo.HandlerF
 // @Failure		401 {object} Response "ERROR: User is unauthorized"
 // @Failure		500 {object} Response "Internal server error"
 // @Router / [get]
-func GetHomePageHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
+func GetHomePageHandler(dbPool *utils.UserPool) echo.HandlerFunc {
 	return func(context echo.Context) error {
 		userID, ok := context.Get("USER_ID").(int64)
 		if !ok {
@@ -229,7 +233,7 @@ func GetHomePageHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 			})
 		}
 
-		name, err := utils.GetUserName(dbPool, userID)
+		name, err := dbPool.GetUserName(userID)
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
@@ -251,7 +255,7 @@ func GetHomePageHandler(dbPool *pgxpool.Pool) echo.HandlerFunc {
 // @Success 	200 {object} Response "OK: User is logged out"
 // @Failure		500 {object} Response "Internal server error"
 // @Router /logout [delete]
-func LogoutHandler(connRedis *redis.Conn) echo.HandlerFunc {
+func LogoutHandler(redisPool *redis.Pool) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("Session_cookie")
 		if err != nil {
@@ -261,7 +265,9 @@ func LogoutHandler(connRedis *redis.Conn) echo.HandlerFunc {
 			})
 		}
 
-		_, err = (*connRedis).Do("DEL", cookie.Value)
+		connRedis := redisPool.Get()
+		defer connRedis.Close()
+		_, err = connRedis.Do("DEL", cookie.Value)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,

@@ -1,12 +1,14 @@
 package main
 
 import (
-	"github.com/labstack/echo/v4"
-	echoSwagger "github.com/swaggo/echo-swagger"
 	"log"
 	"myapp/db"
 	"myapp/handlers"
 	"myapp/middleware"
+	"myapp/utils"
+
+	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 
 	_ "github.com/jackc/pgx/v4"
 )
@@ -25,29 +27,27 @@ func main() {
 		log.Fatal(err)
 	}
 
-	connRedis, err := db.ConnectRedis()
+	redisPool, err := db.ConnectRedis()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer func() {
-		err = connRedis.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-		dbPool.Close()
-	}()
+	userPool := utils.UserPool{
+		Pool: dbPool,
+	}
+
+	defer dbPool.Close()
 
 	e := echo.New()
 
-	e.Use(middleware.CheckAuthorization(&connRedis))
+	e.Use(middleware.CheckAuthorization(redisPool))
 	e.Use(middleware.CORS())
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	e.POST("/api/v1/signup", handlers.CreateUserHandler(dbPool, &connRedis))
-	e.POST("/api/v1/login", handlers.LoginUserHandler(dbPool, &connRedis))
-	e.DELETE("/api/v1/logout", handlers.LogoutHandler(&connRedis))
-	e.GET("/api/v1/", handlers.GetHomePageHandler(dbPool))
+	e.POST("/api/v1/signup", handlers.CreateUserHandler(&userPool, redisPool))
+	e.POST("/api/v1/login", handlers.LoginUserHandler(&userPool, redisPool))
+	e.DELETE("/api/v1/logout", handlers.LogoutHandler(redisPool))
+	e.GET("/api/v1/", handlers.GetHomePageHandler(&userPool))
 	e.GET("/api/v1/movieCompilations", handlers.GetMovieCompilations(dbPool))
 
 	e.Logger.Fatal(e.Start(":1323"))
