@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"log"
 	"myapp/models"
 	"myapp/utils"
 	"net/http"
@@ -40,13 +39,11 @@ func CreateUserHandler(dbPool *utils.UserPool, redisPool *redis.Pool) echo.Handl
 		user := models.User{}
 
 		if err := context.Bind(&user); err != nil {
-			log.Println(1)
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
-		log.Println(2)
 
 		if err := utils.ValidateUser(&user); err != nil {
 			return context.JSON(http.StatusBadRequest, &Response{
