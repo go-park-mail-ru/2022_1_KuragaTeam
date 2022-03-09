@@ -338,6 +338,7 @@ type TestGetHomePage struct {
 	name       string
 	StatusCode int
 	Response   ResponseName
+	UserID     int64
 }
 
 func TestGetHomePageHandler(t *testing.T) {
@@ -349,7 +350,25 @@ func TestGetHomePageHandler(t *testing.T) {
 				Status: http.StatusOK,
 				Name:   "user1",
 			},
+			UserID: 1,
 		},
+		TestGetHomePage{
+			name:       "User Unauthorized",
+			StatusCode: http.StatusUnauthorized,
+			Response: ResponseName{
+				Status: http.StatusUnauthorized,
+				Name:   "",
+			},
+			UserID: -1,
+		},
+		//TestGetHomePage{
+		//	name:       "Wrong username",
+		//	StatusCode: http.StatusOK,
+		//	Response: ResponseName{
+		//		Status: http.StatusOK,
+		//		Name:   "user2",
+		//	},
+		//},
 	}
 
 	server := echo.New()
@@ -360,34 +379,29 @@ func TestGetHomePageHandler(t *testing.T) {
 		}
 	}(server)
 
+	ctrl := gomock.NewController(t)
+	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+	columns := []string{"username"}
+	pgxRows := pgxpoolmock.NewRows(columns).AddRow("user1").ToPgxRows()
+
 	for _, item := range cases {
 
-		req := httptest.NewRequest(echo.DELETE, "/api/v1/logout", nil)
+		req := httptest.NewRequest(echo.GET, "/api/v1/", nil)
 		rec := httptest.NewRecorder()
 		ctx := server.NewContext(req, rec)
-		ctx.Set("USER_ID", int64(1))
+		ctx.Set("USER_ID", item.UserID)
 
-		//cmd := conn.Command("SET", item.cookie.Value).ExpectMap(map[string]string{
-		//	"": "",
-		//})
-		t.Parallel()
-		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-		columns := []string{"username"}
-
-		pgxRows := pgxpoolmock.NewRows(columns).AddRow(item.Response.Name).ToPgxRows()
-
 		user := models.User{
-			ID:    int64(1),
-			Name:  item.Response.Name,
-			Email: "Ivan@mail.ru",
+			ID:   int64(1),
+			Name: item.Response.Name,
 		}
 
 		expectedResult := ""
-
-		mockPool.EXPECT().QueryRow(gomock.Any(), `SELECT username FROM users WHERE id=$1`, user.ID).Return(pgxRows)
+		if item.StatusCode == http.StatusOK {
+			mockPool.EXPECT().QueryRow(gomock.Any(), `SELECT username FROM users WHERE id=$1`, user.ID).Return(pgxRows)
+		}
 
 		if pgxRows.Next() {
 			err := pgxRows.Scan(&expectedResult)
@@ -401,9 +415,8 @@ func TestGetHomePageHandler(t *testing.T) {
 
 		resp := GetHomePageHandler(userPool)
 
-		if assert.NoError(t, resp(ctx)) {
-			//assert.Equal(t, conn.Stats(cmd), 1)
-		}
+		assert.NoError(t, resp(ctx))
+
 		assert.Equal(t, rec.Code, item.StatusCode)
 		body, _ := ioutil.ReadAll(rec.Result().Body)
 		var receive ResponseName
