@@ -70,6 +70,7 @@ func TestPassword(t *testing.T) {
 	}
 }
 
+
 func TestUser(t *testing.T) {
 	tests := []struct {
 		name string
