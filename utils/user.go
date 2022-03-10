@@ -97,7 +97,7 @@ func (dbPool *UserPool) IsUserExists(user models.User) (int64, bool, error) {
 // Используется CreateUserHandler.
 // email должен быть уникален
 func (dbPool *UserPool) IsUserUnique(user models.User) (bool, error) {
-	sql := "SELECT * FROM users WHERE email=$1;"
+	sql := "SELECT * FROM users WHERE email=$1"
 	rows, err := dbPool.Pool.Query(context.Background(), sql, user.Email)
 
 	if err != nil {
@@ -147,7 +147,8 @@ func (dbPool *UserPool) CreateUser(user models.User) (int64, error) {
 		return userID, err
 	}
 
-	sql := "INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4) RETURNING id;"
+	sql := "INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4) RETURNING id"
+
 	if err = dbPool.Pool.QueryRow(context.Background(), sql, user.Name, user.Email, hashPassword, salt).Scan(&userID); err != nil {
 		return userID, err
 	}
@@ -155,29 +156,8 @@ func (dbPool *UserPool) CreateUser(user models.User) (int64, error) {
 	return userID, nil
 }
 
-//func CreateUser(dbPool *UserPool, user models.User) (int64, error) {
-//	var userID int64
-//
-//	salt, err := uuid.NewV4()
-//	if err != nil {
-//		return userID, err
-//	}
-//
-//	hashPassword, err := HashAndSalt(user.Password, salt.String())
-//	if err != nil {
-//		return userID, err
-//	}
-//
-//	sql := "INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4) RETURNING id;"
-//	if err = dbPool.Pool.QueryRow(context.Background(), sql, user.Name, user.Email, hashPassword, salt).Scan(&userID); err != nil {
-//		return userID, err
-//	}
-//
-//	return userID, nil
-//}
-
 func (dbPool *UserPool) GetUserName(userID int64) (string, error) {
-	sql := "SELECT username FROM users WHERE id=$1;"
+	sql := "SELECT username FROM users WHERE id=$1"
 
 	var name string
 	err := dbPool.Pool.QueryRow(context.Background(), sql, userID).Scan(&name)

@@ -3,16 +3,14 @@ module myapp
 go 1.17
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/garyburd/redigo v1.6.3
-	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/driftprogramming/pgxpoolmock v1.1.0
 	github.com/gofrs/uuid v4.2.0+incompatible
-	github.com/jackc/pgconn v1.11.0
-	github.com/jackc/pgmock v0.0.0-20210724152146-4ad1a8207f65
-	github.com/jackc/pgproto3/v2 v2.2.0
+	github.com/golang/mock v1.6.0
+	github.com/gomodule/redigo v1.8.8
 	github.com/jackc/pgx/v4 v4.15.0
 	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.7.0
+	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/echo-swagger v1.3.0
 	github.com/swaggo/swag v1.7.9
@@ -33,8 +31,10 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
+	github.com/jackc/pgconn v1.11.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.10.0 // indirect
 	github.com/jackc/puddle v1.2.1 // indirect
@@ -44,8 +44,6 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/onsi/ginkgo v1.16.5 // indirect
-	github.com/onsi/gomega v1.18.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

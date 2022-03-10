@@ -5,8 +5,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4/middleware"
-
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
 	"github.com/labstack/echo/v4"
 )
 
@@ -15,6 +14,7 @@ func CORS() echo.MiddlewareFunc {
 		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080"},
 		AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With"},
 		AllowCredentials: true,
+		MaxAge:           84600,
 	})
 }
 

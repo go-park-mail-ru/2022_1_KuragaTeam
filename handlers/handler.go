@@ -2,14 +2,13 @@ package handlers
 
 import (
 	"errors"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"myapp/models"
 	"myapp/utils"
 	"net/http"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
 	"github.com/gofrs/uuid"
+	"github.com/gomodule/redigo/redis"
 
 	_ "myapp/docs"
 
@@ -294,7 +293,7 @@ func LogoutHandler(redisPool *redis.Pool) echo.HandlerFunc {
 // @Failure		401 {object} Response "ERROR: User is unauthorized"
 // @Failure		500 {object} Response "Internal server error"
 // @Router 		/movieCompilations [get]
-func GetMovieCompilations(dbPool *pgxpool.Pool) echo.HandlerFunc {
+func GetMovieCompilations() echo.HandlerFunc {
 	return func(context echo.Context) error {
 		userID, ok := context.Get("USER_ID").(int64)
 		if !ok {
