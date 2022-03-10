@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
-
 	"github.com/joho/godotenv"
 )
 

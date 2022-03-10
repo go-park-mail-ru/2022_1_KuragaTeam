@@ -13,6 +13,36 @@ import (
 	"gopkg.in/validator.v2"
 )
 
+func TestUser(t *testing.T) {
+	tests := []struct {
+		name string
+		pass models.User
+		err  error
+	}{
+		{
+			name: "NoFieldsAtAll",
+			pass: models.User{
+				ID:       0,
+				Name:     "",
+				Email:    "",
+				Password: "",
+				Salt:     "",
+			},
+			err: validator.ErrorMap{"Email": validator.ErrorArray{validator.TextErr{Err: errors.New("regular expression mismatch")}},
+				"Name":     validator.ErrorArray{validator.TextErr{Err: errors.New("zero value")}},
+				"Password": validator.ErrorArray{validator.TextErr{Err: errors.New("less than min")}}},
+		},
+	}
+
+	for _, c := range tests {
+		t.Run(c.name, func(t *testing.T) {
+			err := ValidateUser(&c.pass)
+
+			assert.Equal(t, c.err, err)
+		})
+	}
+}
+
 func TestPassword(t *testing.T) {
 	tests := []struct {
 		name string
@@ -69,7 +99,6 @@ func TestPassword(t *testing.T) {
 		})
 	}
 }
-
 
 func TestUser(t *testing.T) {
 	tests := []struct {

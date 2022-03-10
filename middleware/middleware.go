@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4/middleware"
-
 	"github.com/gomodule/redigo/redis"
 	"github.com/labstack/echo/v4"
 )
