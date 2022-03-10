@@ -31,6 +31,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer redisPool.Close()
 
 	userPool := utils.UserPool{
 		Pool: dbPool,
