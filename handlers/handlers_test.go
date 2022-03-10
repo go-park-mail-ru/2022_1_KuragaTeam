@@ -25,119 +25,6 @@ type TestCase struct {
 	StatusCode int
 }
 
-//func TestGetHomePage(t *testing.T) {
-//t.Parallel()
-//ctrl := gomock.NewController(t)
-//defer ctrl.Finish()
-//
-//// given
-//mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-//columns := []string{"id", "email", "password", "salt"}
-//
-//salt, _ := uuid.NewV4()
-//pwd := "Pass123321"
-//password, _ := utils.HashAndSalt(pwd, salt.String())
-//
-//pgxRows := pgxpoolmock.NewRows(columns).AddRow(int64(1), "Ilias@mail.ru", password, salt.String()).ToPgxRows()
-//
-//user := models.User{
-//	ID:       1,
-//	Name:     "Ilias",
-//	Email:    "Ilias@mail.ru",
-//	Password: pwd,
-//	Salt:     salt.String(),
-//}
-//mockPool.EXPECT().Query(gomock.Any(), `SELECT id, email, password, salt FROM users WHERE email=$1`, user.Email).Return(pgxRows, nil)
-//
-//// when
-////actualOrder := orderDao.GetOrderByID(1)
-//
-//userPool := &utils.UserPool{
-//	Pool: mockPool,
-//}
-//
-//userID, result, err := userPool.IsUserExists(user)
-//
-//// then
-//assert.Equal(t, int64(1), userID)
-//assert.Equal(t, true, result)
-//assert.Nil(t, err)
-//
-//cases := []TestCase{
-//	TestCase{
-//		name:       "test1",
-//		Response:   `"Test: homePageHandler"`,
-//		StatusCode: http.StatusOK,
-//	},
-//}
-//
-//for _, item := range cases {
-//
-//	server := echo.New()
-//	response := httptest.NewRequest(echo.GET, "/", nil)
-//	rec := httptest.NewRecorder()
-//	ctx := server.NewContext(response, rec)
-//
-//	resp := GetHomePageHandler()
-//
-//	if assert.NoError(t, resp(ctx)) {
-//		assert.Equal(t, item.StatusCode, rec.Code)
-//
-//		body, _ := ioutil.ReadAll(rec.Result().Body)
-//		bodyStr := string(body)
-//		bodyStr = strings.TrimSpace(bodyStr)
-//
-//		assert.Equal(t, item.Response, bodyStr)
-//	}
-//
-//}
-//}
-
-func TestCreateUser(t *testing.T) {
-	//cases := []TestLoginCase{
-	//	TestLoginCase{
-	//		name:       "test1",
-	//		Response:   `"OK: User created"`,
-	//		StatusCode: http.StatusCreated,
-	//		response: models.User{
-	//			ID:       115,
-	//			Name:     "Lol1",
-	//			Password: "Lol1Password",
-	//			Email:    "lol@lol.com",
-	//		},
-	//	},
-	//}
-	//
-	//dbPool, err := db.ConnectDB()
-	//if err != nil {
-	//	return
-	//}
-	//
-	//for _, item := range cases {
-	//
-	//	server := echo.New()
-	//	d, _ := json.Marshal(item.response)
-	//	response := httptest.NewRequest(echo.POST, "/signup", bytes.NewBuffer(d))
-	//	rec := httptest.NewRecorder()
-	//	response.Header.Set("Content-Type", "application/json")
-	//	ctx := server.NewContext(response, rec)
-	//
-	//	resp := CreateUserHandler(dbPool)
-	//
-	//	if assert.NoError(t, resp(ctx)) {
-	//		assert.Equal(t, item.StatusCode, rec.Code)
-	//
-	//		body, _ := ioutil.ReadAll(rec.Result().Body)
-	//		bodyStr := string(body)
-	//		bodyStr = strings.TrimSpace(bodyStr)
-	//
-	//		assert.Equal(t, item.Response, bodyStr)
-	//	}
-	//	_ = server.Close()
-	//}
-	//dbPool.Close()
-}
-
 type TestLogoutCase struct {
 	name       string
 	StatusCode int
@@ -339,6 +226,7 @@ type TestGetHomePage struct {
 	StatusCode int
 	Response   ResponseName
 	UserID     int64
+	UserIDKey  string
 }
 
 func TestGetHomePageHandler(t *testing.T) {
@@ -350,16 +238,28 @@ func TestGetHomePageHandler(t *testing.T) {
 				Status: http.StatusOK,
 				Name:   "user1",
 			},
-			UserID: 1,
+			UserID:    1,
+			UserIDKey: "USER_ID",
 		},
 		TestGetHomePage{
-			name:       "User Unauthorized",
+			name:       "User unauthorized",
 			StatusCode: http.StatusUnauthorized,
 			Response: ResponseName{
 				Status: http.StatusUnauthorized,
 				Name:   "",
 			},
-			UserID: -1,
+			UserID:    -1,
+			UserIDKey: "USER_ID",
+		},
+		TestGetHomePage{
+			name:       "No user_id",
+			StatusCode: http.StatusInternalServerError,
+			Response: ResponseName{
+				Status: http.StatusInternalServerError,
+				Name:   "",
+			},
+			UserID:    5,
+			UserIDKey: "ID",
 		},
 		//TestGetHomePage{
 		//	name:       "Wrong username",
@@ -389,7 +289,7 @@ func TestGetHomePageHandler(t *testing.T) {
 		req := httptest.NewRequest(echo.GET, "/api/v1/", nil)
 		rec := httptest.NewRecorder()
 		ctx := server.NewContext(req, rec)
-		ctx.Set("USER_ID", item.UserID)
+		ctx.Set(item.UserIDKey, item.UserID)
 
 		defer ctrl.Finish()
 
