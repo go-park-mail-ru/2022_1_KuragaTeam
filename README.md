@@ -1,5 +1,9 @@
 # 2022_1_KuragaTeam
 
+## Ссылка на деплой
+
+http://movie-space.ru:8080/
+
 ## Авторы
 
 * [**Воронова Ольга**](https://github.com/vorolga) - *Backend developer*
