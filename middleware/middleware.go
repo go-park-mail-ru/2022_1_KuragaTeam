@@ -15,6 +15,7 @@ func CORS() echo.MiddlewareFunc {
 		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080"},
 		AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With"},
 		AllowCredentials: true,
+		MaxAge:           84600,
 	})
 }
 
