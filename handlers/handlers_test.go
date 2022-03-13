@@ -2,14 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/driftprogramming/pgxpoolmock"
-	"github.com/golang/mock/gomock"
-	"github.com/gomodule/redigo/redis"
-	"github.com/labstack/echo/v4"
-	"github.com/rafaeljusto/redigomock"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
-	"log"
 	"myapp/models"
 	"myapp/utils"
 	"net/http"
@@ -17,13 +10,14 @@ import (
 	"strings"
 	"testing"
 	"time"
-)
 
-type TestCase struct {
-	name       string
-	Response   string
-	StatusCode int
-}
+	"github.com/driftprogramming/pgxpoolmock"
+	"github.com/golang/mock/gomock"
+	"github.com/gomodule/redigo/redis"
+	"github.com/labstack/echo/v4"
+	"github.com/rafaeljusto/redigomock"
+	"github.com/stretchr/testify/assert"
+)
 
 type TestLogoutCase struct {
 	name       string
@@ -101,10 +95,15 @@ func TestLogoutHandler(t *testing.T) {
 			assert.Equal(t, conn.Stats(cmd), 1)
 		}
 		assert.Equal(t, item.StatusCode, rec.Code)
+
 		body, _ := ioutil.ReadAll(rec.Result().Body)
-		var receive Response
-		err := json.Unmarshal(body, &receive)
+		err := rec.Result().Body.Close()
 		assert.NoError(t, err)
+
+		var receive Response
+		err = json.Unmarshal(body, &receive)
+		assert.NoError(t, err)
+
 		assert.Equal(t, item.response, receive)
 	}
 
@@ -123,6 +122,8 @@ func TestGetMovieCompilations(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 
 		body, _ := ioutil.ReadAll(rec.Result().Body)
+		err := rec.Result().Body.Close()
+		assert.NoError(t, err)
 
 		movies := []models.MovieCompilation{
 			{
@@ -213,7 +214,8 @@ func TestGetMovieCompilations(t *testing.T) {
 		}
 		bodyStr := string(body)
 		bodyStr = strings.TrimSpace(bodyStr)
-		req, _ := json.Marshal(movieCompilations)
+		req, err := json.Marshal(movieCompilations)
+		assert.NoError(t, err)
 		reqStr := string(req)
 		reqStr = strings.TrimSpace(reqStr)
 
@@ -305,9 +307,7 @@ func TestGetHomePageHandler(t *testing.T) {
 
 		if pgxRows.Next() {
 			err := pgxRows.Scan(&expectedResult)
-			if err != nil {
-				log.Fatal(err)
-			}
+			assert.NoError(t, err)
 		}
 		userPool := &utils.UserPool{
 			Pool: mockPool,
@@ -318,10 +318,15 @@ func TestGetHomePageHandler(t *testing.T) {
 		assert.NoError(t, resp(ctx))
 
 		assert.Equal(t, rec.Code, item.StatusCode)
+
 		body, _ := ioutil.ReadAll(rec.Result().Body)
-		var receive ResponseName
-		err := json.Unmarshal(body, &receive)
+		err := rec.Result().Body.Close()
 		assert.NoError(t, err)
+
+		var receive ResponseName
+		err = json.Unmarshal(body, &receive)
+		assert.NoError(t, err)
+
 		assert.Equal(t, item.Response, receive)
 	}
 

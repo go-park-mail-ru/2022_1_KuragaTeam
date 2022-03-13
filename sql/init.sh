@@ -20,3 +20,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
         on users (email);
   COMMIT;
 EOSQL
+
+# CREATE TABLE movies(
+# id serial constraint movies_pk primary key,
+# name varchar(255) not null,
+# description varchar(1024) not null,
+# picture varchar(255) not null,
+# video varchar(255) not null,
+# trailer varchar(255) not null
+# );

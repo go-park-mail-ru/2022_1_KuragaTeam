@@ -91,41 +91,11 @@ func TestPassword(t *testing.T) {
 		},
 	}
 
-	for _, c := range tests {
-		t.Run(c.name, func(t *testing.T) {
-			err := ValidatePassword(c.pass)
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := ValidatePassword(testCase.pass)
 
-			assert.Equal(t, c.err, err)
-		})
-	}
-}
-
-func TestUser(t *testing.T) {
-	tests := []struct {
-		name string
-		pass models.User
-		err  error
-	}{
-		{
-			name: "NoFieldsAtAll",
-			pass: models.User{
-				ID:       0,
-				Name:     "",
-				Email:    "",
-				Password: "",
-				Salt:     "",
-			},
-			err: validator.ErrorMap{"Email": validator.ErrorArray{validator.TextErr{Err: errors.New("regular expression mismatch")}},
-				"Name":     validator.ErrorArray{validator.TextErr{Err: errors.New("zero value")}},
-				"Password": validator.ErrorArray{validator.TextErr{Err: errors.New("less than min")}}},
-		},
-	}
-
-	for _, c := range tests {
-		t.Run(c.name, func(t *testing.T) {
-			err := ValidateUser(&c.pass)
-
-			assert.Equal(t, c.err, err)
+			assert.Equal(t, testCase.err, err)
 		})
 	}
 }
@@ -139,7 +109,7 @@ func TestUserExists(t *testing.T) {
 	columns := []string{"id", "email", "password", "salt"}
 
 	salt, _ := uuid.NewV4()
-	pwd := "Pass123321"
+	const pwd = "Pass123321"
 	password, _ := HashAndSalt(pwd, salt.String())
 
 	pgxRows := pgxpoolmock.NewRows(columns).AddRow(int64(1), "Ilias@mail.ru", password, salt.String()).ToPgxRows()
