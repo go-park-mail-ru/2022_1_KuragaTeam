@@ -109,13 +109,6 @@ func CreateUserHandler(dbPool *utils.UserPool, redisPool *redis.Pool) echo.Handl
 			})
 		}
 
-		if err != nil {
-			return context.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-		}
-
 		return context.JSON(http.StatusCreated, &Response{
 			Status:  http.StatusCreated,
 			Message: "OK: User created",
@@ -187,13 +180,6 @@ func LoginUserHandler(dbPool *utils.UserPool, redisPool *redis.Pool) echo.Handle
 		connRedis := redisPool.Get()
 		defer connRedis.Close()
 		_, err = connRedis.Do("SET", value, userID, "EX", int64(time.Hour.Seconds()))
-		if err != nil {
-			return context.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-		}
-
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
