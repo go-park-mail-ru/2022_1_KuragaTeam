@@ -17,11 +17,12 @@ func NewStorage(db *pgxpool.Pool) movie.Storage {
 }
 
 func (ms *movieStorage) GetOne(id int) (*domain.Movie, error) {
-	sql := "SELECT name, description, picture, video, trailer FROM movies WHERE id=$1"
+	sql := "SELECT id, name, year, description, picture, video, trailer FROM movies WHERE id=$1"
 
 	var selectedMovie domain.Movie
-
-	err := ms.db.QueryRow(context.Background(), sql, id).Scan(&selectedMovie)
+	err := ms.db.QueryRow(context.Background(), sql, id).Scan(&selectedMovie.ID, &selectedMovie.Name,
+		&selectedMovie.Year, &selectedMovie.Description, &selectedMovie.Picture,
+		&selectedMovie.Video, &selectedMovie.Trailer)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func (ms *movieStorage) GetOne(id int) (*domain.Movie, error) {
 }
 
 func (ms *movieStorage) GetRandom(limit int) ([]domain.Movie, error) {
-	sql := "SELECT id, name, description, picture, video, trailer FROM movies " +
+	sql := "SELECT id, name, year, description, picture, video, trailer FROM movies " +
 		"ORDER BY RANDOM() LIMIT $1"
 
 	selectedMovies := make([]domain.Movie, 0, limit)
@@ -42,8 +43,8 @@ func (ms *movieStorage) GetRandom(limit int) ([]domain.Movie, error) {
 	}
 	for rows.Next() {
 		var singleMovie domain.Movie
-		if err = rows.Scan(&singleMovie.ID, &singleMovie.Name, &singleMovie.Description, &singleMovie.Picture,
-			&singleMovie.Video, &singleMovie.Trailer); err != nil {
+		if err = rows.Scan(&singleMovie.ID, &singleMovie.Name, &singleMovie.Year, &singleMovie.Description,
+			&singleMovie.Picture, &singleMovie.Video, &singleMovie.Trailer); err != nil {
 			return nil, err
 		}
 		sql2 := "SELECT g.name FROM genre AS g JOIN movies_genre mv_g ON mv_g.genre_id = g.id " +
