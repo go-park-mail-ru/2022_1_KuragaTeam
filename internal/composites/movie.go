@@ -3,6 +3,7 @@ package composites
 import (
 	"myapp/internal/adapters/api"
 	"myapp/internal/adapters/api/movie"
+	"myapp/internal/adapters/db/genre"
 	movie3 "myapp/internal/adapters/db/movie"
 	movie2 "myapp/internal/domain/movie"
 )
@@ -14,11 +15,12 @@ type MovieComposite struct {
 }
 
 func NewMovieComposite(postgresComposite *PostgresDBComposite) (*MovieComposite, error) {
-	storage := movie3.NewStorage(postgresComposite.db)
-	service := movie2.NewService(storage)
+	movieStorage := movie3.NewStorage(postgresComposite.db)
+	genreStorage := genre.NewStorage(postgresComposite.db)
+	service := movie2.NewService(movieStorage, genreStorage)
 	handler := movie.NewHandler(service)
 	return &MovieComposite{
-		Storage: storage,
+		Storage: movieStorage,
 		Service: service,
 		Handler: handler,
 	}, nil

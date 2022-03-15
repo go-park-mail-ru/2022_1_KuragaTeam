@@ -9,3 +9,8 @@ type Movie struct {
 	Trailer     string   `json:"trailer" form:"trailer"`
 	Genre       []string `json:"genre"`
 }
+
+type MovieCompilation struct {
+	Name   string  `json:"compilationName"`
+	Movies []Movie `json:"movies"`
+}

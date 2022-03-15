@@ -45,6 +45,9 @@ func main() {
 	}
 	movieComposite.Handler.Register(echoServ)
 
+	moviesCompilationsComposite, err := composites.NewMoviesCompilationsComposite(postgresDBC)
+	moviesCompilationsComposite.Handler.Register(echoServ)
+
 	//echoServ.Use(middleware.CheckAuthorization(redisPool))
 	//echoServ.Use(middleware.CORS())
 	//echoServ.GET("/swagger/*", echoSwagger.WrapHandler)
