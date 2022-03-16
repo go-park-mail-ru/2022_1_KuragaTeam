@@ -6,5 +6,6 @@ import (
 
 type Service interface {
 	GetByID(id int) (*domain.Movie, error)
-	GetRandom(limit int) ([]domain.Movie, error)
+	GetRandom(limit, offset int) ([]domain.Movie, error)
+	GetMainMovie() (*domain.MainMovieInfoDTO, error)
 }

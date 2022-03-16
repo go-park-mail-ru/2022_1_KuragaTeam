@@ -34,8 +34,8 @@ func (s *service) GetByID(id int) (*domain.Movie, error) {
 
 	return selectedMovie, nil
 }
-func (s *service) GetRandom(limit int) ([]domain.Movie, error) {
-	movies, err := s.movieStorage.GetRandom(limit)
+func (s *service) GetRandom(limit, offset int) ([]domain.Movie, error) {
+	movies, err := s.movieStorage.GetRandomMovies(limit, offset)
 	for i := 0; i < len(movies); i++ {
 		movies[i].Genre, err = s.genreStorage.GetByMovieID(movies[i].ID)
 		if err != nil {
@@ -47,4 +47,8 @@ func (s *service) GetRandom(limit int) ([]domain.Movie, error) {
 		}
 	}
 	return movies, err
+}
+
+func (s *service) GetMainMovie() (*domain.MainMovieInfoDTO, error) {
+	return s.movieStorage.GetRandomMovie()
 }
