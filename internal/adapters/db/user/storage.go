@@ -76,7 +76,7 @@ func (us *userStorage) IsUserExists(userModel *user.User) (int64, bool, error) {
 
 	result, err := ComparePasswords(signInUser.Password, signInUser.Salt, userModel.Password)
 	if err != nil {
-		return userID, false, constants.ErrWrongPassword
+		return userID, false, constants.ErrWrongData
 	}
 
 	return userID, result, nil
@@ -113,13 +113,31 @@ func (us *userStorage) CreateUser(userModel *user.User) (int64, error) {
 		return userID, err
 	}
 
-	sql := "INSERT INTO users(username, email, password, salt) VALUES($1, $2, $3, $4) RETURNING id"
+	sql := "INSERT INTO users(username, email, password, salt, avatar, subscription_expires) VALUES($1, $2, $3, $4, '/avatars/default_avatar.png', LOCALTIMESTAMP) RETURNING id"
 
 	if err = us.db.QueryRow(context.Background(), sql, userModel.Name, userModel.Email, hashPassword, salt).Scan(&userID); err != nil {
 		return userID, err
 	}
 
 	return userID, nil
+}
+
+func (us *userStorage) GetUserMainPage(userID int64) (*user.User, error) {
+	sql := "SELECT username, avatar FROM users WHERE id=$1"
+
+	var name, avatar string
+	err := us.db.QueryRow(context.Background(), sql, userID).Scan(&name, &avatar)
+
+	if err != nil {
+		return nil, err
+	}
+
+	userData := user.User{
+		Name:   name,
+		Avatar: avatar,
+	}
+
+	return &userData, nil
 }
 
 func (r *redisStore) StoreSession(userID int64) (string, error) {
@@ -157,6 +175,59 @@ func (r *redisStore) DeleteSession(session string) error {
 	defer connRedis.Close()
 
 	_, err := connRedis.Do("DEL", session)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (us *userStorage) GetUserProfile(userID int64) (*user.User, error) {
+	sql := "SELECT username, email FROM users WHERE id=$1"
+
+	var name, email string
+	err := us.db.QueryRow(context.Background(), sql, userID).Scan(&name, &email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	userData := user.User{
+		Name:  name,
+		Email: email,
+	}
+
+	return &userData, nil
+}
+
+func (us *userStorage) EditProfile(user *user.User) error {
+	//sql := "SELECT password, salt FROM users WHERE id=$1"
+	//
+	//var password, salt string
+	//err := us.db.QueryRow(context.Background(), sql, user.ID).Scan(&password, &salt)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//_, err = ComparePasswords(user.Password, salt, password)
+	//
+	//if err != nil {
+	//	return err
+	//}
+
+	salt, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
+	hashPassword, err := HashAndSalt(user.Password, salt.String())
+	if err != nil {
+		return err
+	}
+
+	sql := "UPDATE users SET username = $2, password = $3, salt = $4 WHERE id = $1"
+
+	_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name, hashPassword, salt)
 	if err != nil {
 		return err
 	}

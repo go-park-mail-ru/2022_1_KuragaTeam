@@ -137,3 +137,46 @@ func (s *service) CheckAuthorization(session string) (int64, error) {
 
 	return userID, nil
 }
+
+func (s *service) GetUserMainPage(userID int64) (*user.MainPageUserDTO, error) {
+	userData, err := s.storage.GetUserMainPage(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	userDTO := user.MainPageUserDTO{
+		Name:   userData.Name,
+		Avatar: userData.Avatar,
+	}
+
+	return &userDTO, nil
+}
+
+func (s *service) GetUserProfile(userID int64) (*user.ProfileUserDTO, error) {
+	userData, err := s.storage.GetUserProfile(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	userDTO := user.ProfileUserDTO{
+		Name:  userData.Name,
+		Email: userData.Email,
+	}
+
+	return &userDTO, nil
+}
+
+func (s *service) EditProfile(dto *user.EditProfileDTO) error {
+	userModel := &User{
+		ID:       dto.ID,
+		Name:     dto.Name,
+		Password: dto.Password,
+	}
+
+	err := s.storage.EditProfile(userModel)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
