@@ -70,6 +70,6 @@ func (h *handler) GetMainMovie() echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
-		return context.JSON(http.StatusBadRequest, &mainMovie)
+		return context.JSON(http.StatusOK, &mainMovie)
 	}
 }
