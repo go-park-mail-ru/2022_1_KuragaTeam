@@ -32,6 +32,7 @@ func (s *service) GetByID(id int) (*domain.Movie, error) {
 		return nil, err
 	}
 
+	selectedMovie.Rating = 8.1 // пока что просто замокано
 	return selectedMovie, nil
 }
 func (s *service) GetRandom(limit, offset int) ([]domain.Movie, error) {
@@ -45,6 +46,8 @@ func (s *service) GetRandom(limit, offset int) ([]domain.Movie, error) {
 		if err != nil {
 			movies[i].Country = append(movies[i].Country, err.Error())
 		}
+
+		movies[i].Rating = 8.1 // пока что просто замокано
 	}
 	return movies, err
 }
