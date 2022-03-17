@@ -5,16 +5,20 @@ import (
 	"myapp/internal/domain"
 	"myapp/internal/domain/country"
 	"myapp/internal/domain/genre"
+	"myapp/internal/domain/staff"
 )
 
 type service struct {
 	movieStorage   Storage
 	genreStorage   genre.Storage
 	countryStorage country.Storage
+	staffStorage   staff.Storage
 }
 
-func NewService(movieStorage Storage, genreStorage genre.Storage, countryStorage country.Storage) movie.Service {
-	return &service{movieStorage: movieStorage, genreStorage: genreStorage, countryStorage: countryStorage}
+func NewService(movieStorage Storage, genreStorage genre.Storage,
+	countryStorage country.Storage, staffStorage staff.Storage) movie.Service {
+	return &service{movieStorage: movieStorage, genreStorage: genreStorage,
+		countryStorage: countryStorage, staffStorage: staffStorage}
 }
 
 func (s *service) GetByID(id int) (*domain.Movie, error) {
@@ -28,6 +32,11 @@ func (s *service) GetByID(id int) (*domain.Movie, error) {
 	}
 
 	selectedMovie.Country, err = s.countryStorage.GetByMovieID(selectedMovie.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	selectedMovie.Staff, err = s.staffStorage.GetByMovieID(selectedMovie.ID)
 	if err != nil {
 		return nil, err
 	}
