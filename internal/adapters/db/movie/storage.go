@@ -57,10 +57,11 @@ func (ms *movieStorage) GetRandomMovies(limit, offset int) ([]domain.Movie, erro
 }
 
 func (ms *movieStorage) GetRandomMovie() (*domain.MainMovieInfoDTO, error) {
-	sql := "SELECT id, name, picture FROM movies ORDER BY RANDOM() LIMIT 1"
+	sql := "SELECT id, name, tagline, picture FROM movies ORDER BY RANDOM() LIMIT 1"
 
 	var mainMovie domain.MainMovieInfoDTO
-	err := ms.db.QueryRow(context.Background(), sql).Scan(&(mainMovie.ID), &(mainMovie.Name), &(mainMovie.Picture))
+	err := ms.db.QueryRow(context.Background(), sql).Scan(&(mainMovie.ID), &(mainMovie.Name),
+		&(mainMovie.Tagline), &(mainMovie.Picture))
 	if err != nil {
 		return nil, err
 	}
