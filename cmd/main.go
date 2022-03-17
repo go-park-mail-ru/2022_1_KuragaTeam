@@ -1,10 +1,11 @@
 package main
 
 import (
-	_ "github.com/jackc/pgx/v4"
-	"github.com/labstack/echo/v4"
 	"log"
 	"myapp/internal/composites"
+
+	_ "github.com/jackc/pgx/v4"
+	"github.com/labstack/echo/v4"
 )
 
 // @title Movie Space API
@@ -16,45 +17,29 @@ import (
 // @BasePath /api/v1/
 // @schemes http
 func main() {
-	//dbPool, err := db.ConnectDB()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//redisPool, err := db.ConnectRedis()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//defer redisPool.Close()
-	//
-	//userPool := utils.UserPool{
-	//	Pool: dbPool,
-	//}
-
-	//defer dbPool.Close()
-
-	echoServ := echo.New()
+	echoServer := echo.New()
 	postgresDBC, err := composites.NewPostgresDBComposite()
 	if err != nil {
 		log.Fatal("postgresdb composite failed")
+	}
+
+	redisComposite, err := composites.NewRedisComposite()
+	if err != nil {
+		log.Fatal("redis composite failed")
 	}
 
 	movieComposite, err := composites.NewMovieComposite(postgresDBC)
 	if err != nil {
 		log.Fatal("author composite failed")
 	}
-	movieComposite.Handler.Register(echoServ)
+	movieComposite.Handler.Register(echoServer)
 
-	//echoServ.Use(middleware.CheckAuthorization(redisPool))
-	//echoServ.Use(middleware.CORS())
-	//echoServ.GET("/swagger/*", echoSwagger.WrapHandler)
-	//
-	//echoServ.POST("/api/v1/signup", handlers.CreateUserHandler(&userPool, redisPool))
-	//echoServ.POST("/api/v1/login", handlers.LoginUserHandler(&userPool, redisPool))
-	//echoServ.DELETE("/api/v1/logout", handlers.LogoutHandler(redisPool))
-	//echoServ.GET("/api/v1/", handlers.GetHomePageHandler(&userPool))
-	//
-	//echoServ.GET("/api/v1/movieCompilations", handlers.GetMovieCompilations())
+	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite)
+	if err != nil {
+		log.Fatal("user composite failed")
+	}
+	userComposite.Middleware.Register(echoServer)
+	userComposite.Handler.Register(echoServer)
 
-	echoServ.Logger.Fatal(echoServ.Start(":1323"))
+	echoServer.Logger.Fatal(echoServer.Start(":1323"))
 }
