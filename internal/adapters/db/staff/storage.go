@@ -18,8 +18,9 @@ func NewStorage(db *pgxpool.Pool) staff.Storage {
 func (ss *staffStorage) GetByMovieID(id int) ([]domain.Person, error) {
 	movieStaff := make([]domain.Person, 0)
 
-	sql := "SELECT p.id, p.name, p.photo, mv_s.position FROM person AS p JOIN movies_staff mv_s ON mv_s.person_id = p.id " +
-		"WHERE mv_s.movie_id = $1"
+	sql := "SELECT p.id, p.name, p.photo, pos.name FROM person AS p JOIN movies_staff mv_s ON mv_s.person_id = p.id " +
+		"JOIN position pos ON mv_s.position_id = pos.id " +
+		"WHERE mv_s.movie_id = $1 ORDER BY pos.id"
 	rows, err := ss.db.Query(context.Background(), sql, id)
 	if err != nil {
 		return nil, err
