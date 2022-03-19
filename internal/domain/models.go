@@ -8,10 +8,11 @@ type MainMovieInfoDTO struct {
 }
 
 type Person struct {
-	ID       int    `json:"id" form:"id"`
-	Name     string `json:"name" form:"name"`
-	Photo    string `json:"photo" form:"photo"`
-	Position string `json:"position" form:"position"`
+	ID          int      `json:"id" form:"id"`
+	Name        string   `json:"name" form:"name"`
+	Photo       string   `json:"photo" form:"photo"`
+	Description string   `json:"description" form:"description"`
+	Position    []string `json:"position" form:"position"`
 }
 
 type Movie struct {

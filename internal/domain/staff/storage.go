@@ -4,5 +4,5 @@ import "myapp/internal/domain"
 
 type Storage interface {
 	GetByMovieID(id int) ([]domain.Person, error)
-	//GetRandomMovies() (string, error)
+	GetByPersonID(id int) (*domain.Person, error)
 }

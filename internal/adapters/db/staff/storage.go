@@ -35,3 +35,17 @@ func (ss *staffStorage) GetByMovieID(id int) ([]domain.Person, error) {
 
 	return movieStaff, nil
 }
+
+func (ss *staffStorage) GetByPersonID(id int) (*domain.Person, error) {
+	var selectedPerson domain.Person
+
+	sql := "SELECT p.id, p.name, p.photo, p.description FROM person AS p " +
+		"WHERE p.id = $1"
+	err := ss.db.QueryRow(context.Background(), sql, id).Scan(&selectedPerson.ID, &selectedPerson.Name,
+		&selectedPerson.Photo, &selectedPerson.Description)
+	if err != nil {
+		return nil, err
+	}
+
+	return &selectedPerson, nil
+}

@@ -37,6 +37,12 @@ func (h *handler) Register(router *echo.Echo) {
 func (h *handler) GetMovie() echo.HandlerFunc {
 	return func(context echo.Context) error {
 		movieID, err := strconv.Atoi(context.Param("movie_id"))
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
 		selectedMovie, err := h.movieService.GetByID(movieID)
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
