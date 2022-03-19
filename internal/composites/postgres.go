@@ -2,10 +2,11 @@ package composites
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 	"golang.org/x/net/context"
-	"os"
 )
 
 type PostgresDBComposite struct {

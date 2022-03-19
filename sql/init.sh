@@ -13,7 +13,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
         username varchar(50)  not null,
         email    varchar(50)  not null,
         password varchar(250) not null,
-        salt     varchar(50)  not null
+        salt     varchar(50)  not null,
+        avatar varchar(100),
+        subscription_expires timestamp
     );
 
     create unique index users_email_uindex
