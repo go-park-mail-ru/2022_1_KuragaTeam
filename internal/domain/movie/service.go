@@ -1,22 +1,66 @@
 package movie
 
 import (
-	"github.com/labstack/echo/v4"
 	"myapp/internal/adapters/api/movie"
 	"myapp/internal/domain"
+	"myapp/internal/domain/country"
+	"myapp/internal/domain/genre"
+	"myapp/internal/domain/staff"
 )
 
 type service struct {
-	storage Storage
+	movieStorage   Storage
+	genreStorage   genre.Storage
+	countryStorage country.Storage
+	staffStorage   staff.Storage
 }
 
-func NewService(storage Storage) movie.Service {
-	return &service{storage: storage}
+func NewService(movieStorage Storage, genreStorage genre.Storage,
+	countryStorage country.Storage, staffStorage staff.Storage) movie.Service {
+	return &service{movieStorage: movieStorage, genreStorage: genreStorage,
+		countryStorage: countryStorage, staffStorage: staffStorage}
 }
 
-func (s *service) GetByID(context echo.Context, id int) (*domain.Movie, error) {
-	return nil, nil
+func (s *service) GetByID(id int) (*domain.Movie, error) {
+	selectedMovie, err := s.movieStorage.GetOne(id)
+	if err != nil {
+		return nil, err
+	}
+	selectedMovie.Genre, err = s.genreStorage.GetByMovieID(selectedMovie.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	selectedMovie.Country, err = s.countryStorage.GetByMovieID(selectedMovie.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	selectedMovie.Staff, err = s.staffStorage.GetByMovieID(selectedMovie.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	selectedMovie.Rating = 8.1 // пока что просто замокано
+	return selectedMovie, nil
 }
-func (s *service) GetRandom(context echo.Context, limit int) ([]domain.Movie, error) {
-	return s.storage.GetRandom(limit)
+func (s *service) GetRandom(limit, offset int) ([]domain.Movie, error) {
+	movies, err := s.movieStorage.GetRandomMovies(limit, offset)
+	for i := 0; i < len(movies); i++ {
+		movies[i].Genre, err = s.genreStorage.GetByMovieID(movies[i].ID)
+		if err != nil {
+			movies[i].Genre = append(movies[i].Genre, err.Error())
+		}
+		movies[i].Country, err = s.countryStorage.GetByMovieID(movies[i].ID)
+		if err != nil {
+			movies[i].Country = append(movies[i].Country, err.Error())
+		}
+
+		movies[i].Rating = 8.1 // пока что просто замокано
+	}
+	return movies, err
+}
+
+func (s *service) GetMainMovie() (*domain.MainMovieInfoDTO, error) {
+	return s.movieStorage.GetRandomMovie()
 }
