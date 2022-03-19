@@ -14,6 +14,12 @@ type Person struct {
 	Description string   `json:"description" form:"description"`
 	Position    []string `json:"position" form:"position"`
 }
+type PersonInMovieDTO struct {
+	ID       int    `json:"id" form:"id"`
+	Name     string `json:"name" form:"name"`
+	Photo    string `json:"photo" form:"photo"`
+	Position string `json:"position" form:"position"`
+}
 
 type Movie struct {
 	ID              int     `json:"id" form:"id"`
@@ -30,9 +36,9 @@ type Movie struct {
 	Video           string  `json:"video" form:"video"`
 	Trailer         string  `json:"trailer" form:"trailer"`
 
-	Country []string `json:"country"`
-	Genre   []string `json:"genre"`
-	Staff   []Person `json:"staff"`
+	Country []string           `json:"country"`
+	Genre   []string           `json:"genre"`
+	Staff   []PersonInMovieDTO `json:"staff"`
 }
 
 type MovieCompilation struct {
