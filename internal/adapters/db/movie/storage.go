@@ -17,11 +17,14 @@ func NewStorage(db *pgxpool.Pool) movie.Storage {
 }
 
 func (ms *movieStorage) GetOne(id int) (*domain.Movie, error) {
-	sql := "SELECT name, description, picture, video, trailer FROM movies WHERE id=$1"
+	sql := "SELECT id, name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
+		"picture, video, trailer FROM movies WHERE id=$1"
 
 	var selectedMovie domain.Movie
-
-	err := ms.db.QueryRow(context.Background(), sql, id).Scan(&selectedMovie)
+	err := ms.db.QueryRow(context.Background(), sql, id).Scan(&selectedMovie.ID, &selectedMovie.Name,
+		&selectedMovie.NamePicture, &selectedMovie.Year, &selectedMovie.Duration, &selectedMovie.AgeLimit,
+		&selectedMovie.Description, &selectedMovie.KinopoiskRating, &selectedMovie.Tagline, &selectedMovie.Picture,
+		&selectedMovie.Video, &selectedMovie.Trailer)
 	if err != nil {
 		return nil, err
 	}
@@ -29,40 +32,39 @@ func (ms *movieStorage) GetOne(id int) (*domain.Movie, error) {
 	return &selectedMovie, nil
 }
 
-func (ms *movieStorage) GetRandom(limit int) ([]domain.Movie, error) {
-	sql := "SELECT id, name, description, picture, video, trailer FROM movies " +
-		"ORDER BY RANDOM() LIMIT $1"
+func (ms *movieStorage) GetRandomMovies(limit, offset int) ([]domain.Movie, error) {
+	sql := "SELECT id, name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
+		"picture, video, trailer FROM movies LIMIT $1 OFFSET $2"
 
 	selectedMovies := make([]domain.Movie, 0, limit)
 
-	rows, err := ms.db.Query(context.Background(), sql, limit)
-
+	rows, err := ms.db.Query(context.Background(), sql, limit, offset)
 	if err != nil {
 		return nil, err
 	}
+
 	for rows.Next() {
 		var singleMovie domain.Movie
-		if err = rows.Scan(&singleMovie.ID, &singleMovie.Name, &singleMovie.Description, &singleMovie.Picture,
-			&singleMovie.Video, &singleMovie.Trailer); err != nil {
+		if err = rows.Scan(&singleMovie.ID, &singleMovie.Name, &singleMovie.NamePicture, &singleMovie.Year,
+			&singleMovie.Duration, &singleMovie.AgeLimit, &singleMovie.Description, &singleMovie.KinopoiskRating,
+			&singleMovie.Tagline, &singleMovie.Picture, &singleMovie.Video, &singleMovie.Trailer); err != nil {
 			return nil, err
 		}
-		sql2 := "SELECT g.name FROM genre AS g JOIN movies_genre mv_g ON mv_g.genre_id = g.id " +
-			"WHERE mv_g.movie_id = $1"
-		rows2, err2 := ms.db.Query(context.Background(), sql2, singleMovie.ID)
-		if err2 != nil {
-			singleMovie.Genre = append(singleMovie.Genre, err.Error())
-		}
-		for rows2.Next() {
-			var genre string
-			if err2 = rows2.Scan(&genre); err2 != nil {
-				singleMovie.Genre = append(singleMovie.Genre, err.Error())
-				break
-			}
-			singleMovie.Genre = append(singleMovie.Genre, genre)
-		}
-
 		selectedMovies = append(selectedMovies, singleMovie)
 	}
 
 	return selectedMovies, nil
+}
+
+func (ms *movieStorage) GetRandomMovie() (*domain.MainMovieInfoDTO, error) {
+	sql := "SELECT id, name, tagline, picture FROM movies ORDER BY RANDOM() LIMIT 1"
+
+	var mainMovie domain.MainMovieInfoDTO
+	err := ms.db.QueryRow(context.Background(), sql).Scan(&(mainMovie.ID), &(mainMovie.Name),
+		&(mainMovie.Tagline), &(mainMovie.Picture))
+	if err != nil {
+		return nil, err
+	}
+
+	return &mainMovie, nil
 }
