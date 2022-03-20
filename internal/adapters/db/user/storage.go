@@ -184,39 +184,68 @@ func (us *userStorage) GetUserProfile(userID int64) (*user.User, error) {
 }
 
 func (us *userStorage) EditProfile(user *user.User) error {
-	//sql := "SELECT password, salt FROM users WHERE id=$1"
-	//
-	//var oldPassword, oldSalt string
-	//err := us.db.QueryRow(context.Background(), sql, user.ID).Scan(&oldPassword, &oldSalt)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//isChangedPassword, err := ComparePasswords(user.Password, oldSalt, oldPassword)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//if isChangedPassword == true {
-	//
-	//}
+	sql := "SELECT username, password, salt FROM users WHERE id=$1"
 
-	salt, err := uuid.NewV4()
+	var oldName, oldPassword, oldSalt string
+	err := us.db.QueryRow(context.Background(), sql, user.ID).Scan(&oldName, &oldPassword, &oldSalt)
 	if err != nil {
 		return err
 	}
 
-	hashPassword, err := HashAndSalt(user.Password, salt.String())
-	if err != nil {
-		return err
+	notChangedPassword, _ := ComparePasswords(oldPassword, oldSalt, user.Password)
+
+	switch {
+	case notChangedPassword == false && user.Password != "" && user.Name != oldName && user.Name != "":
+		salt, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+
+		hashPassword, err := HashAndSalt(user.Password, salt.String())
+		if err != nil {
+			return err
+		}
+
+		sql := "UPDATE users SET username = $2, password = $3, salt = $4 WHERE id = $1"
+
+		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name, hashPassword, salt)
+		if err != nil {
+			return err
+		}
+
+		return nil
+
+	case notChangedPassword == false && user.Password != "":
+		salt, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+
+		hashPassword, err := HashAndSalt(user.Password, salt.String())
+		if err != nil {
+			return err
+		}
+
+		sql := "UPDATE users SET password = $2, salt = $3 WHERE id = $1"
+
+		_, err = us.db.Exec(context.Background(), sql, user.ID, hashPassword, salt)
+		if err != nil {
+			return err
+		}
+
+		return nil
+
+	case user.Name != oldName && user.Name != "":
+		sql := "UPDATE users SET username = $2 WHERE id = $1"
+
+		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name)
+		if err != nil {
+			return err
+		}
+
+		return nil
+
+	default:
+		return nil
 	}
-
-	sql := "UPDATE users SET username = $2, password = $3, salt = $4 WHERE id = $1"
-
-	_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name, hashPassword, salt)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
