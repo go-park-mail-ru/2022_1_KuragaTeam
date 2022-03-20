@@ -10,7 +10,7 @@ import (
 )
 
 type PostgresDBComposite struct {
-	DB *pgxpool.Pool
+	db *pgxpool.Pool
 }
 
 func NewPostgresDBComposite() (*PostgresDBComposite, error) {
@@ -27,5 +27,5 @@ func NewPostgresDBComposite() (*PostgresDBComposite, error) {
 		return nil, err
 	}
 
-	return &PostgresDBComposite{DB: dbPool}, nil
+	return &PostgresDBComposite{db: dbPool}, nil
 }

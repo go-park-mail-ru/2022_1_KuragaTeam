@@ -15,8 +15,8 @@ type StaffComposite struct {
 }
 
 func NewStaffComposite(postgresComposite *PostgresDBComposite) (*StaffComposite, error) {
-	staffStorage := staff3.NewStorage(postgresComposite.DB)
-	positionStorage := position2.NewStorage(postgresComposite.DB)
+	staffStorage := staff3.NewStorage(postgresComposite.db)
+	positionStorage := position2.NewStorage(postgresComposite.db)
 	service := staff.NewService(staffStorage, positionStorage)
 	handler := staff2.NewHandler(service)
 	return &StaffComposite{
