@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "github.com/jackc/pgx/v4"
+
 	"github.com/labstack/echo/v4"
 
 	"log"
@@ -33,8 +33,20 @@ func main() {
 	if err != nil {
 		log.Fatal("author composite failed")
 	}
-
 	movieComposite.Handler.Register(echoServer)
+
+	staffComposite, err := composites.NewStaffComposite(postgresDBC)
+	if err != nil {
+		log.Fatal("staff composite failed")
+	}
+	staffComposite.Handler.Register(echoServer)
+
+
+	moviesCompilationsComposite, err := composites.NewMoviesCompilationsComposite(postgresDBC)
+	if err != nil {
+		log.Fatal("moviesCompilations composite failed")
+	}
+	moviesCompilationsComposite.Handler.Register(echoServer)
 
 	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite)
 	if err != nil {
