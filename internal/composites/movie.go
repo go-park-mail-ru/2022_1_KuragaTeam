@@ -17,10 +17,10 @@ type MovieComposite struct {
 }
 
 func NewMovieComposite(postgresComposite *PostgresDBComposite) (*MovieComposite, error) {
-	movieStorage := movie3.NewStorage(postgresComposite.DB)
-	genreStorage := genre.NewStorage(postgresComposite.DB)
-	countryStorage := country.NewStorage(postgresComposite.DB)
-	staffStorage := staff.NewStorage(postgresComposite.DB)
+	movieStorage := movie3.NewStorage(postgresComposite.db)
+	genreStorage := genre.NewStorage(postgresComposite.db)
+	countryStorage := country.NewStorage(postgresComposite.db)
+	staffStorage := staff.NewStorage(postgresComposite.db)
 	service := movie2.NewService(movieStorage, genreStorage, countryStorage, staffStorage)
 	handler := movie.NewHandler(service)
 	return &MovieComposite{
