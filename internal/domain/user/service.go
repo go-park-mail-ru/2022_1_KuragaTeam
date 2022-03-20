@@ -138,20 +138,6 @@ func (s *service) CheckAuthorization(session string) (int64, error) {
 	return userID, nil
 }
 
-func (s *service) GetUserMainPage(userID int64) (*user.MainPageUserDTO, error) {
-	userData, err := s.storage.GetUserMainPage(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	userDTO := user.MainPageUserDTO{
-		Name:   userData.Name,
-		Avatar: userData.Avatar,
-	}
-
-	return &userDTO, nil
-}
-
 func (s *service) GetUserProfile(userID int64) (*user.ProfileUserDTO, error) {
 	userData, err := s.storage.GetUserProfile(userID)
 	if err != nil {
@@ -159,8 +145,9 @@ func (s *service) GetUserProfile(userID int64) (*user.ProfileUserDTO, error) {
 	}
 
 	userDTO := user.ProfileUserDTO{
-		Name:  userData.Name,
-		Email: userData.Email,
+		Name:   userData.Name,
+		Email:  userData.Email,
+		Avatar: userData.Avatar,
 	}
 
 	return &userDTO, nil

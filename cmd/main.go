@@ -1,8 +1,8 @@
 package main
 
 import (
+
 	"github.com/labstack/echo/v4"
-	_ "github.com/swaggo/echo-swagger"
 
 	"log"
 	"myapp/internal/composites"
@@ -40,6 +40,7 @@ func main() {
 		log.Fatal("staff composite failed")
 	}
 	staffComposite.Handler.Register(echoServer)
+
 
 	moviesCompilationsComposite, err := composites.NewMoviesCompilationsComposite(postgresDBC)
 	if err != nil {

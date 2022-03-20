@@ -1,4 +1,4 @@
 .idea
 .env
 cover.out
-internal/composites/.env
+cmd/.env
