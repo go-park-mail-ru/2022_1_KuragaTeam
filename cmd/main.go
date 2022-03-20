@@ -1,17 +1,11 @@
 package main
 
 import (
-	"github.com/gomodule/redigo/redis"
 	_ "github.com/jackc/pgx/v4"
 	"github.com/labstack/echo/v4"
-	echoSwagger "github.com/swaggo/echo-swagger"
-  
+
 	"log"
-	"myapp/db"
-	"myapp/handlers"
 	"myapp/internal/composites"
-	"myapp/middleware"
-	"myapp/utils"
 )
 
 // @title Movie Space API
@@ -40,7 +34,7 @@ func main() {
 		log.Fatal("author composite failed")
 	}
 
-  movieComposite.Handler.Register(echoServer)
+	movieComposite.Handler.Register(echoServer)
 
 	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite)
 	if err != nil {
