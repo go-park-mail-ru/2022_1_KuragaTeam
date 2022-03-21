@@ -1,10 +1,10 @@
 package usecase
 
 import (
-	"myapp/internal/domain"
-	"myapp/internal/domain/country"
-	"myapp/internal/domain/genre"
+	"myapp/internal"
+	"myapp/internal/country"
 	"myapp/internal/domain/staff"
+	"myapp/internal/genre"
 	"myapp/internal/movie"
 )
 
@@ -21,7 +21,7 @@ func NewService(movieStorage movie.Storage, genreStorage genre.Storage,
 		countryStorage: countryStorage, staffStorage: staffStorage}
 }
 
-func (s *service) GetByID(id int) (*domain.Movie, error) {
+func (s *service) GetByID(id int) (*internal.Movie, error) {
 	selectedMovie, err := s.movieStorage.GetOne(id)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (s *service) GetByID(id int) (*domain.Movie, error) {
 	selectedMovie.Rating = 8.1 // пока что просто замокано
 	return selectedMovie, nil
 }
-func (s *service) GetRandom(limit, offset int) ([]domain.Movie, error) {
+func (s *service) GetRandom(limit, offset int) ([]internal.Movie, error) {
 	movies, err := s.movieStorage.GetRandomMovies(limit, offset)
 	for i := 0; i < len(movies); i++ {
 		movies[i].Genre, err = s.genreStorage.GetByMovieID(movies[i].ID)
@@ -61,6 +61,6 @@ func (s *service) GetRandom(limit, offset int) ([]domain.Movie, error) {
 	return movies, err
 }
 
-func (s *service) GetMainMovie() (*domain.MainMovieInfoDTO, error) {
+func (s *service) GetMainMovie() (*internal.MainMovieInfoDTO, error) {
 	return s.movieStorage.GetRandomMovie()
 }

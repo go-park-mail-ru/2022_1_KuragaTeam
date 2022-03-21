@@ -1,16 +1,16 @@
-package country
+package repository
 
 import (
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"myapp/internal/domain/genre"
+	"myapp/internal/country"
 )
 
 type countryStorage struct {
 	db *pgxpool.Pool
 }
 
-func NewStorage(db *pgxpool.Pool) genre.Storage {
+func NewStorage(db *pgxpool.Pool) country.Storage {
 	return &countryStorage{db: db}
 }
 

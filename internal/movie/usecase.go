@@ -1,11 +1,11 @@
 package movie
 
 import (
-	"myapp/internal/domain"
+	"myapp/internal"
 )
 
 type Service interface {
-	GetByID(id int) (*domain.Movie, error)
-	GetRandom(limit, offset int) ([]domain.Movie, error)
-	GetMainMovie() (*domain.MainMovieInfoDTO, error)
+	GetByID(id int) (*internal.Movie, error)
+	GetRandom(limit, offset int) ([]internal.Movie, error)
+	GetMainMovie() (*internal.MainMovieInfoDTO, error)
 }

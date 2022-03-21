@@ -1,8 +1,10 @@
 package staff
 
-import "myapp/internal/domain"
+import (
+	"myapp/internal"
+)
 
 type Storage interface {
-	GetByMovieID(id int) ([]domain.PersonInMovieDTO, error)
-	GetByPersonID(id int) (*domain.Person, error)
+	GetByMovieID(id int) ([]internal.PersonInMovieDTO, error)
+	GetByPersonID(id int) (*internal.Person, error)
 }

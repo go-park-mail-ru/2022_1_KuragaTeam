@@ -2,8 +2,8 @@ package moviesCompilations
 
 import (
 	"github.com/labstack/echo/v4"
+	"myapp/internal"
 	"myapp/internal/adapters/api/moviesCompilations"
-	"myapp/internal/domain"
 )
 
 type service struct {
@@ -13,11 +13,11 @@ func NewService() moviesCompilations.Service {
 	return &service{}
 }
 
-func (s *service) GetMainCompilations(context echo.Context) ([]domain.MovieCompilation, error) {
-	movieCompilations := []domain.MovieCompilation{
+func (s *service) GetMainCompilations(context echo.Context) ([]internal.MovieCompilation, error) {
+	movieCompilations := []internal.MovieCompilation{
 		{
 			Name: "Популярное",
-			Movies: []domain.Movie{
+			Movies: []internal.Movie{
 				{
 					ID:          0,
 					Name:        "Звездные войны1",
@@ -58,7 +58,7 @@ func (s *service) GetMainCompilations(context echo.Context) ([]domain.MovieCompi
 		},
 		{
 			Name: "Топ",
-			Movies: []domain.Movie{
+			Movies: []internal.Movie{
 				{
 					ID:          0,
 					Name:        "Звездные войны#1",
@@ -90,7 +90,7 @@ func (s *service) GetMainCompilations(context echo.Context) ([]domain.MovieCompi
 		},
 		{
 			Name: "Семейное",
-			Movies: []domain.Movie{
+			Movies: []internal.Movie{
 				{
 					ID:          0,
 					Name:        "Звездные войны#1",
@@ -133,6 +133,6 @@ func (s *service) GetMainCompilations(context echo.Context) ([]domain.MovieCompi
 
 	return movieCompilations, nil
 }
-func (s *service) GetByMovieID(context echo.Context, limit int) (domain.MovieCompilation, error) {
-	return domain.MovieCompilation{}, nil
+func (s *service) GetByMovieID(context echo.Context, limit int) (internal.MovieCompilation, error) {
+	return internal.MovieCompilation{}, nil
 }

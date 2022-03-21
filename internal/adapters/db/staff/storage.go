@@ -3,7 +3,7 @@ package staff
 import (
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"myapp/internal/domain"
+	"myapp/internal"
 	"myapp/internal/domain/staff"
 )
 
@@ -23,15 +23,15 @@ const (
 		"WHERE p.id = $1"
 )
 
-func (ss *staffStorage) GetByMovieID(id int) ([]domain.PersonInMovieDTO, error) {
-	movieStaff := make([]domain.PersonInMovieDTO, 0)
+func (ss *staffStorage) GetByMovieID(id int) ([]internal.PersonInMovieDTO, error) {
+	movieStaff := make([]internal.PersonInMovieDTO, 0)
 
 	rows, err := ss.db.Query(context.Background(), sqlGetByMovieID, id)
 	if err != nil {
 		return nil, err
 	}
 	for rows.Next() {
-		var nextPerson domain.PersonInMovieDTO
+		var nextPerson internal.PersonInMovieDTO
 		if err = rows.Scan(&nextPerson.ID, &nextPerson.Name, &nextPerson.Photo, &nextPerson.Position); err != nil {
 			return nil, err
 		}
@@ -41,8 +41,8 @@ func (ss *staffStorage) GetByMovieID(id int) ([]domain.PersonInMovieDTO, error) 
 	return movieStaff, nil
 }
 
-func (ss *staffStorage) GetByPersonID(id int) (*domain.Person, error) {
-	var selectedPerson domain.Person
+func (ss *staffStorage) GetByPersonID(id int) (*internal.Person, error) {
+	var selectedPerson internal.Person
 
 	err := ss.db.QueryRow(context.Background(), sqlGetByPersonID, id).Scan(&selectedPerson.ID, &selectedPerson.Name,
 		&selectedPerson.Photo, &selectedPerson.Description)

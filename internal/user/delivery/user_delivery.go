@@ -1,7 +1,9 @@
-package user
+package delivery
 
 import (
+	"myapp/internal"
 	"myapp/internal/adapters/api"
+	"myapp/internal/user"
 	"net/http"
 	"time"
 
@@ -18,10 +20,10 @@ const (
 )
 
 type handler struct {
-	userService Service
+	userService user.Service
 }
 
-func NewHandler(service Service) api.Handler {
+func NewHandler(service user.Service) api.Handler {
 	return &handler{userService: service}
 }
 
@@ -36,10 +38,10 @@ func (h *handler) Register(router *echo.Echo) {
 
 func (h *handler) SignUp() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		userData := CreateUserDTO{}
+		userData := internal.CreateUserDTO{}
 
 		if err := ctx.Bind(&userData); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
@@ -48,14 +50,14 @@ func (h *handler) SignUp() echo.HandlerFunc {
 		session, msg, err := h.userService.SignUp(&userData)
 
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
 		if len(session) == 0 {
-			return ctx.JSON(http.StatusBadRequest, &Response{
+			return ctx.JSON(http.StatusBadRequest, &internal.Response{
 				Status:  http.StatusBadRequest,
 				Message: msg,
 			})
@@ -71,7 +73,7 @@ func (h *handler) SignUp() echo.HandlerFunc {
 
 		ctx.SetCookie(&cookie)
 
-		return ctx.JSON(http.StatusCreated, &Response{
+		return ctx.JSON(http.StatusCreated, &internal.Response{
 			Status:  http.StatusCreated,
 			Message: "OK: User created",
 		})
@@ -80,10 +82,10 @@ func (h *handler) SignUp() echo.HandlerFunc {
 
 func (h *handler) LogIn() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		userData := LogInUserDTO{}
+		userData := internal.LogInUserDTO{}
 
 		if err := ctx.Bind(&userData); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
@@ -92,14 +94,14 @@ func (h *handler) LogIn() echo.HandlerFunc {
 		session, err := h.userService.LogIn(&userData)
 
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
 		if len(session) == 0 {
-			return ctx.JSON(http.StatusNotFound, &Response{
+			return ctx.JSON(http.StatusNotFound, &internal.Response{
 				Status:  http.StatusNotFound,
 				Message: "ERROR: User not found",
 			})
@@ -115,7 +117,7 @@ func (h *handler) LogIn() echo.HandlerFunc {
 
 		ctx.SetCookie(&cookie)
 
-		return ctx.JSON(http.StatusOK, &Response{
+		return ctx.JSON(http.StatusOK, &internal.Response{
 			Status:  http.StatusOK,
 			Message: "OK: User can be logged in",
 		})
@@ -126,14 +128,14 @@ func (h *handler) GetUserMainPage() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: "ERROR: Session required",
 			})
 		}
 
 		if userID == -1 {
-			return ctx.JSON(http.StatusUnauthorized, &Response{
+			return ctx.JSON(http.StatusUnauthorized, &internal.Response{
 				Status:  http.StatusUnauthorized,
 				Message: "ERROR: User is unauthorized",
 			})
@@ -142,13 +144,13 @@ func (h *handler) GetUserMainPage() echo.HandlerFunc {
 		userData, err := h.userService.GetUserMainPage(userID)
 
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
-		return ctx.JSON(http.StatusOK, &ResponseUserMainPage{
+		return ctx.JSON(http.StatusOK, &internal.ResponseUserMainPage{
 			Status:   http.StatusOK,
 			UserData: userData,
 		})
@@ -159,14 +161,14 @@ func (h *handler) GetUserProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: "ERROR: Session required",
 			})
 		}
 
 		if userID == -1 {
-			return ctx.JSON(http.StatusUnauthorized, &Response{
+			return ctx.JSON(http.StatusUnauthorized, &internal.Response{
 				Status:  http.StatusUnauthorized,
 				Message: "ERROR: User is unauthorized",
 			})
@@ -175,13 +177,13 @@ func (h *handler) GetUserProfile() echo.HandlerFunc {
 		userData, err := h.userService.GetUserProfile(userID)
 
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
-		return ctx.JSON(http.StatusOK, &ResponseUserProfile{
+		return ctx.JSON(http.StatusOK, &internal.ResponseUserProfile{
 			Status:   http.StatusOK,
 			UserData: userData,
 		})
@@ -192,7 +194,7 @@ func (h *handler) LogOut() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("Session_cookie")
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
@@ -200,7 +202,7 @@ func (h *handler) LogOut() echo.HandlerFunc {
 
 		err = h.userService.LogOut(cookie.Value)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
@@ -209,7 +211,7 @@ func (h *handler) LogOut() echo.HandlerFunc {
 		cookie.Expires = time.Now().AddDate(0, 0, -1)
 		ctx.SetCookie(cookie)
 
-		return ctx.JSON(http.StatusOK, &Response{
+		return ctx.JSON(http.StatusOK, &internal.Response{
 			Status:  http.StatusOK,
 			Message: "OK: User is logged out",
 		})
@@ -220,32 +222,32 @@ func (h *handler) EditProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: "ERROR: Session required",
 			})
 		}
 
 		if userID == -1 {
-			return ctx.JSON(http.StatusUnauthorized, &Response{
+			return ctx.JSON(http.StatusUnauthorized, &internal.Response{
 				Status:  http.StatusUnauthorized,
 				Message: "ERROR: User is unauthorized",
 			})
 		}
 
-		userData := EditProfileDTO{
+		userData := internal.EditProfileDTO{
 			ID: userID,
 		}
 
 		if err := ctx.Bind(&userData); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
 		if userData.Password != userData.RepeatPassword {
-			return ctx.JSON(http.StatusBadRequest, &Response{
+			return ctx.JSON(http.StatusBadRequest, &internal.Response{
 				Status:  http.StatusBadRequest,
 				Message: "ERROR: Passwords are different",
 			})
@@ -253,13 +255,13 @@ func (h *handler) EditProfile() echo.HandlerFunc {
 
 		err := h.userService.EditProfile(&userData)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &Response{
+			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
-		return ctx.JSON(http.StatusOK, &Response{
+		return ctx.JSON(http.StatusOK, &internal.Response{
 			Status:  http.StatusOK,
 			Message: "OK: Profile is edited",
 		})

@@ -1,8 +1,9 @@
-package user
+package usecase
 
 import (
 	"myapp/constants"
-	"myapp/internal/adapters/api/user"
+	"myapp/internal"
+	"myapp/internal/user"
 	"strings"
 	"unicode"
 
@@ -10,18 +11,18 @@ import (
 )
 
 type service struct {
-	storage    Storage
-	redisStore RedisStore
+	storage    user.Storage
+	redisStore user.RedisStore
 }
 
-func NewService(storage Storage, redisStore RedisStore) user.Service {
+func NewService(storage user.Storage, redisStore user.RedisStore) user.Service {
 	return &service{
 		storage:    storage,
 		redisStore: redisStore,
 	}
 }
 
-func ValidateUser(user *User) error {
+func ValidateUser(user *internal.User) error {
 	user.Name = strings.TrimSpace(user.Name)
 	if err := validator.Validate(user); err != nil {
 		return err
@@ -72,8 +73,8 @@ func ValidatePassword(pass string) error {
 	return nil
 }
 
-func (s *service) SignUp(dto *user.CreateUserDTO) (string, string, error) {
-	userModel := &User{
+func (s *service) SignUp(dto *internal.CreateUserDTO) (string, string, error) {
+	userModel := &internal.User{
 		Name:     dto.Name,
 		Email:    dto.Email,
 		Password: dto.Password,
@@ -102,8 +103,8 @@ func (s *service) SignUp(dto *user.CreateUserDTO) (string, string, error) {
 	return session, "", nil
 }
 
-func (s *service) LogIn(dto *user.LogInUserDTO) (string, error) {
-	userModel := &User{
+func (s *service) LogIn(dto *internal.LogInUserDTO) (string, error) {
+	userModel := &internal.User{
 		Email:    dto.Email,
 		Password: dto.Password,
 	}
@@ -138,13 +139,13 @@ func (s *service) CheckAuthorization(session string) (int64, error) {
 	return userID, nil
 }
 
-func (s *service) GetUserMainPage(userID int64) (*user.MainPageUserDTO, error) {
+func (s *service) GetUserMainPage(userID int64) (*internal.MainPageUserDTO, error) {
 	userData, err := s.storage.GetUserMainPage(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	userDTO := user.MainPageUserDTO{
+	userDTO := internal.MainPageUserDTO{
 		Name:   userData.Name,
 		Avatar: userData.Avatar,
 	}
@@ -152,13 +153,13 @@ func (s *service) GetUserMainPage(userID int64) (*user.MainPageUserDTO, error) {
 	return &userDTO, nil
 }
 
-func (s *service) GetUserProfile(userID int64) (*user.ProfileUserDTO, error) {
+func (s *service) GetUserProfile(userID int64) (*internal.ProfileUserDTO, error) {
 	userData, err := s.storage.GetUserProfile(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	userDTO := user.ProfileUserDTO{
+	userDTO := internal.ProfileUserDTO{
 		Name:  userData.Name,
 		Email: userData.Email,
 	}
@@ -166,8 +167,8 @@ func (s *service) GetUserProfile(userID int64) (*user.ProfileUserDTO, error) {
 	return &userDTO, nil
 }
 
-func (s *service) EditProfile(dto *user.EditProfileDTO) error {
-	userModel := &User{
+func (s *service) EditProfile(dto *internal.EditProfileDTO) error {
+	userModel := &internal.User{
 		ID:       dto.ID,
 		Name:     dto.Name,
 		Password: dto.Password,

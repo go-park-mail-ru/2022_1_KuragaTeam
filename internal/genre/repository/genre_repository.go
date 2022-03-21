@@ -1,9 +1,9 @@
-package genre
+package repository
 
 import (
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"myapp/internal/domain/genre"
+	"myapp/internal/genre"
 )
 
 type genreStorage struct {

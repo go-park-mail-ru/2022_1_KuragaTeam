@@ -2,9 +2,9 @@ package composites
 
 import (
 	"myapp/internal/adapters/api"
-	"myapp/internal/adapters/db/country"
-	"myapp/internal/adapters/db/genre"
 	"myapp/internal/adapters/db/staff"
+	countryRepository "myapp/internal/country/repository"
+	genreRepository "myapp/internal/genre/repository"
 	"myapp/internal/movie"
 	"myapp/internal/movie/delivery"
 	"myapp/internal/movie/repository"
@@ -19,8 +19,8 @@ type MovieComposite struct {
 
 func NewMovieComposite(postgresComposite *PostgresDBComposite) (*MovieComposite, error) {
 	movieStorage := repository.NewStorage(postgresComposite.db)
-	genreStorage := genre.NewStorage(postgresComposite.db)
-	countryStorage := country.NewStorage(postgresComposite.db)
+	genreStorage := genreRepository.NewStorage(postgresComposite.db)
+	countryStorage := countryRepository.NewStorage(postgresComposite.db)
 	staffStorage := staff.NewStorage(postgresComposite.db)
 	service := usecase.NewService(movieStorage, genreStorage, countryStorage, staffStorage)
 	handler := delivery.NewHandler(service)

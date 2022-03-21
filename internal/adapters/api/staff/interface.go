@@ -1,7 +1,9 @@
 package staff
 
-import "myapp/internal/domain"
+import (
+	"myapp/internal"
+)
 
 type Service interface {
-	GetByID(id int) (*domain.Person, error)
+	GetByID(id int) (*internal.Person, error)
 }

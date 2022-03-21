@@ -2,14 +2,14 @@ package moviesCompilations
 
 import (
 	"github.com/labstack/echo/v4"
+	"myapp/internal"
 	"myapp/internal/adapters/api"
-	"myapp/internal/domain"
 	"net/http"
 )
 
 type ResponseMovieCompilations struct {
-	Status           int                       `json:"status"`
-	MovieCompilation []domain.MovieCompilation `json:"moviesCompilation"`
+	Status           int                         `json:"status"`
+	MovieCompilation []internal.MovieCompilation `json:"moviesCompilation"`
 }
 
 type Response struct {

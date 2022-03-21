@@ -1,8 +1,8 @@
 package staff
 
 import (
+	"myapp/internal"
 	"myapp/internal/adapters/api/staff"
-	"myapp/internal/domain"
 	"myapp/internal/domain/position"
 )
 
@@ -15,7 +15,7 @@ func NewService(staffStorage Storage, positionStorage position.Storage) staff.Se
 	return &service{staffStorage: staffStorage, positionStorage: positionStorage}
 }
 
-func (s *service) GetByID(id int) (*domain.Person, error) {
+func (s *service) GetByID(id int) (*internal.Person, error) {
 	person, err := s.staffStorage.GetByPersonID(id)
 	if err != nil {
 		return nil, err
