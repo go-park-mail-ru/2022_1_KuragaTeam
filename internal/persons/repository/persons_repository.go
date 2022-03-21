@@ -1,17 +1,17 @@
-package staff
+package repository
 
 import (
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"myapp/internal"
-	"myapp/internal/domain/staff"
+	"myapp/internal/persons"
 )
 
 type staffStorage struct {
 	db *pgxpool.Pool
 }
 
-func NewStorage(db *pgxpool.Pool) staff.Storage {
+func NewStorage(db *pgxpool.Pool) persons.Storage {
 	return &staffStorage{db: db}
 }
 

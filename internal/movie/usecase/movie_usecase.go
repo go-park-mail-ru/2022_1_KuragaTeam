@@ -3,20 +3,20 @@ package usecase
 import (
 	"myapp/internal"
 	"myapp/internal/country"
-	"myapp/internal/domain/staff"
 	"myapp/internal/genre"
 	"myapp/internal/movie"
+	"myapp/internal/persons"
 )
 
 type service struct {
 	movieStorage   movie.Storage
 	genreStorage   genre.Storage
 	countryStorage country.Storage
-	staffStorage   staff.Storage
+	staffStorage   persons.Storage
 }
 
 func NewService(movieStorage movie.Storage, genreStorage genre.Storage,
-	countryStorage country.Storage, staffStorage staff.Storage) movie.Service {
+	countryStorage country.Storage, staffStorage persons.Storage) movie.Service {
 	return &service{movieStorage: movieStorage, genreStorage: genreStorage,
 		countryStorage: countryStorage, staffStorage: staffStorage}
 }

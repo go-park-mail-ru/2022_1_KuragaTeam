@@ -1,17 +1,17 @@
-package staff
+package usecase
 
 import (
 	"myapp/internal"
-	"myapp/internal/adapters/api/staff"
 	"myapp/internal/domain/position"
+	"myapp/internal/persons"
 )
 
 type service struct {
-	staffStorage    Storage
+	staffStorage    persons.Storage
 	positionStorage position.Storage
 }
 
-func NewService(staffStorage Storage, positionStorage position.Storage) staff.Service {
+func NewService(staffStorage persons.Storage, positionStorage position.Storage) persons.Service {
 	return &service{staffStorage: staffStorage, positionStorage: positionStorage}
 }
 

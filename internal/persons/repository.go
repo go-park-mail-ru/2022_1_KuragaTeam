@@ -1,4 +1,4 @@
-package staff
+package persons
 
 import (
 	"myapp/internal"
