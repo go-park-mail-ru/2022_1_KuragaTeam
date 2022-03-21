@@ -41,7 +41,25 @@ func (ms *movieCompilationsStorage) GetByGenre(genreID int) (moviesCompilations.
 }
 
 func (ms *movieCompilationsStorage) GetByMovie(movieID int) (moviesCompilations.MovieCompilation, error) {
-	return moviesCompilations.MovieCompilation{}, nil
+	sql := "SELECT DISTINCT m.id, m.name, m.picture FROM movies AS m " +
+		"JOIN movies_genre m_g ON m_g.movie_id = m.id " +
+		"JOIN movies_genre m_g2 ON m_g2.genre_id = m_g.genre_id " +
+		"WHERE m_g2.movie_id=$1"
+
+	var selectedMC moviesCompilations.MovieCompilation
+	selectedMC.Name = "Похожие по жанру"
+
+	rows, err := ms.db.Query(context.Background(), sql, movieID)
+
+	for rows.Next() {
+		var selectedMovie moviesCompilations.Movie
+		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
+		if err != nil {
+			return moviesCompilations.MovieCompilation{}, err
+		}
+		selectedMC.Movies = append(selectedMC.Movies, selectedMovie)
+	}
+	return selectedMC, nil
 }
 func (ms *movieCompilationsStorage) GetByPerson(personID int) (moviesCompilations.MovieCompilation, error) {
 	return moviesCompilations.MovieCompilation{}, nil

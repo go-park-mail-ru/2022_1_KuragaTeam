@@ -2,6 +2,7 @@ package composites
 
 import (
 	"myapp/internal/api"
+	genreRepository "myapp/internal/genre/repository"
 	"myapp/internal/moviesCompilations"
 	"myapp/internal/moviesCompilations/delivery"
 	"myapp/internal/moviesCompilations/repository"
@@ -15,7 +16,8 @@ type MoviesCompilationsComposite struct {
 
 func NewMoviesCompilationsComposite(postgresComposite *PostgresDBComposite) (*MoviesCompilationsComposite, error) {
 	MCStorage := repository.NewStorage(postgresComposite.db)
-	service := usecase.NewService(MCStorage)
+	genreStorage := genreRepository.NewStorage(postgresComposite.db)
+	service := usecase.NewService(MCStorage, genreStorage)
 	handler := delivery.NewHandler(service)
 	return &MoviesCompilationsComposite{
 		Service: service,

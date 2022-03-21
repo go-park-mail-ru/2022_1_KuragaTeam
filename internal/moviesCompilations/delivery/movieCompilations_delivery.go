@@ -46,7 +46,7 @@ func (h *handler) Register(router *echo.Echo) {
 
 func (h *handler) GetMoviesCompilations() echo.HandlerFunc {
 	return func(context echo.Context) error {
-		mainMoviesCompilations, err := h.movieCompilationsService.GetMainCompilations(context)
+		mainMoviesCompilations, err := h.movieCompilationsService.GetMainCompilations()
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
@@ -61,10 +61,21 @@ func (h *handler) GetMoviesCompilations() echo.HandlerFunc {
 }
 func (h *handler) GetMCByMovieID() echo.HandlerFunc {
 	return func(context echo.Context) error {
-		return context.JSON(http.StatusInternalServerError, &Response{
-			Status:  http.StatusInternalServerError,
-			Message: "Not realised",
-		})
+		movieID, err := strconv.Atoi(context.Param("movie_id"))
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		selectedMC, err := h.movieCompilationsService.GetByMovie(movieID)
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		return context.JSON(http.StatusOK, &selectedMC)
 	}
 }
 
@@ -77,7 +88,7 @@ func (h *handler) GetMCByGenre() echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
-		selectedMC, err := h.movieCompilationsService.GetByGenre(context, genreID)
+		selectedMC, err := h.movieCompilationsService.GetByGenre(genreID)
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,

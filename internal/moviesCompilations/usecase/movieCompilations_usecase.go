@@ -1,19 +1,20 @@
 package usecase
 
 import (
-	"github.com/labstack/echo/v4"
+	"myapp/internal/genre"
 	"myapp/internal/moviesCompilations"
 )
 
 type service struct {
-	MCStorage moviesCompilations.Storage
+	MCStorage    moviesCompilations.Storage
+	genreStorage genre.Storage
 }
 
-func NewService(MCStorage moviesCompilations.Storage) moviesCompilations.Service {
-	return &service{MCStorage: MCStorage}
+func NewService(MCStorage moviesCompilations.Storage, genreStorage genre.Storage) moviesCompilations.Service {
+	return &service{MCStorage: MCStorage, genreStorage: genreStorage}
 }
 
-func (s *service) GetMainCompilations(context echo.Context) ([]moviesCompilations.MovieCompilation, error) {
+func (s *service) GetMainCompilations() ([]moviesCompilations.MovieCompilation, error) {
 	movieCompilations := []moviesCompilations.MovieCompilation{
 		{
 			Name: "Популярное",
@@ -101,10 +102,30 @@ func (s *service) GetMainCompilations(context echo.Context) ([]moviesCompilation
 	return movieCompilations, nil
 }
 
-func (s *service) GetByMovieID(context echo.Context, limit int) (moviesCompilations.MovieCompilation, error) {
-	return moviesCompilations.MovieCompilation{}, nil
+func (s *service) GetByMovie(movieID int) (moviesCompilations.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetByMovie(movieID)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	for i, _ := range MC.Movies {
+		MC.Movies[i].Genre, err = s.genreStorage.GetByMovieID(MC.Movies[i].ID)
+		if err != nil {
+			return moviesCompilations.MovieCompilation{}, err
+		}
+	}
+	return MC, nil
 }
 
-func (s *service) GetByGenre(context echo.Context, genreID int) (moviesCompilations.MovieCompilation, error) {
-	return s.MCStorage.GetByGenre(genreID)
+func (s *service) GetByGenre(genreID int) (moviesCompilations.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetByGenre(genreID)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	for i, _ := range MC.Movies {
+		MC.Movies[i].Genre, err = s.genreStorage.GetByMovieID(MC.Movies[i].ID)
+		if err != nil {
+			return moviesCompilations.MovieCompilation{}, err
+		}
+	}
+	return MC, nil
 }
