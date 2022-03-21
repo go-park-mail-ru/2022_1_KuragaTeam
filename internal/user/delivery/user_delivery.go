@@ -10,12 +10,11 @@ import (
 )
 
 const (
-	signupURL   = "/api/v1/signup"
-	loginURL    = "/api/v1/login"
-	logoutURL   = "/api/v1/logout"
-	mainPageURL = "/api/v1"
-	profileURL  = "/api/v1/profile"
-	editURL     = "/api/v1/edit"
+	signupURL  = "/api/v1/signup"
+	loginURL   = "/api/v1/login"
+	logoutURL  = "/api/v1/logout"
+	profileURL = "/api/v1/profile"
+	editURL    = "/api/v1/edit"
 )
 
 type handler struct {
@@ -30,7 +29,6 @@ func (h *handler) Register(router *echo.Echo) {
 	router.POST(signupURL, h.SignUp())
 	router.POST(loginURL, h.LogIn())
 	router.DELETE(logoutURL, h.LogOut())
-	router.GET(mainPageURL, h.GetUserMainPage())
 	router.GET(profileURL, h.GetUserProfile())
 	router.PUT(editURL, h.EditProfile())
 }
@@ -123,39 +121,6 @@ func (h *handler) LogIn() echo.HandlerFunc {
 	}
 }
 
-func (h *handler) GetUserMainPage() echo.HandlerFunc {
-	return func(ctx echo.Context) error {
-		userID, ok := ctx.Get("USER_ID").(int64)
-		if !ok {
-			return ctx.JSON(http.StatusInternalServerError, &user.Response{
-				Status:  http.StatusInternalServerError,
-				Message: "ERROR: Session required",
-			})
-		}
-
-		if userID == -1 {
-			return ctx.JSON(http.StatusUnauthorized, &user.Response{
-				Status:  http.StatusUnauthorized,
-				Message: "ERROR: User is unauthorized",
-			})
-		}
-
-		userData, err := h.userService.GetUserMainPage(userID)
-
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &user.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-		}
-
-		return ctx.JSON(http.StatusOK, &user.ResponseUserMainPage{
-			Status:   http.StatusOK,
-			UserData: userData,
-		})
-	}
-}
-
 func (h *handler) GetUserProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, ok := ctx.Get("USER_ID").(int64)
@@ -242,13 +207,6 @@ func (h *handler) EditProfile() echo.HandlerFunc {
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
-			})
-		}
-
-		if userData.Password != userData.RepeatPassword {
-			return ctx.JSON(http.StatusBadRequest, &user.Response{
-				Status:  http.StatusBadRequest,
-				Message: "ERROR: Passwords are different",
 			})
 		}
 
