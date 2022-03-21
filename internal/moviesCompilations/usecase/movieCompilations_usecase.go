@@ -173,5 +173,5 @@ func (s *service) GetTop(limit int) (moviesCompilations.MovieCompilation, error)
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
-	return moviesCompilations.MovieCompilation{}, nil
+	return MC, nil
 }

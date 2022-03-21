@@ -27,6 +27,7 @@ const (
 	MCByPersonURL = "api/v1/movieCompilations/person/:person_id"
 	MCByMovieURL  = "api/v1/movieCompilations/movie/:movie_id"
 	MCByGenreURL  = "api/v1/movieCompilations/genre/:genre_id"
+	MCTopURL      = "api/v1/movieCompilations/top"
 	MCDefaultURL  = "/api/v1/movieCompilations"
 )
 
@@ -43,6 +44,7 @@ func (h *handler) Register(router *echo.Echo) {
 	router.GET(MCByMovieURL, h.GetMCByMovieID())
 	router.GET(MCByGenreURL, h.GetMCByGenre())
 	router.GET(MCByPersonURL, h.GetMCByPersonID())
+	router.GET(MCTopURL, h.GetTopMC())
 }
 
 func (h *handler) GetMoviesCompilations() echo.HandlerFunc {
@@ -111,6 +113,24 @@ func (h *handler) GetMCByPersonID() echo.HandlerFunc {
 			})
 		}
 		selectedMC, err := h.movieCompilationsService.GetByPerson(personID)
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		return context.JSON(http.StatusOK, &selectedMC)
+	}
+}
+
+func (h *handler) GetTopMC() echo.HandlerFunc {
+	return func(context echo.Context) error {
+		var limit int
+		echo.QueryParamsBinder(context).Int("limit", &limit)
+		if limit == 0 {
+			limit = 10
+		}
+		selectedMC, err := h.movieCompilationsService.GetTop(limit)
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,

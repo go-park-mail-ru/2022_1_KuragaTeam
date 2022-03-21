@@ -83,7 +83,21 @@ func (ms *movieCompilationsStorage) GetByPerson(personID int) (moviesCompilation
 	return selectedMovieCompilation, nil
 }
 func (ms *movieCompilationsStorage) GetTop(limit int) (moviesCompilations.MovieCompilation, error) {
-	return moviesCompilations.MovieCompilation{}, nil
+	sql := "SELECT id, name, picture FROM movies ORDER BY kinopoisk_rating LIMIT $1"
+
+	var selectedMovieCompilation moviesCompilations.MovieCompilation
+	selectedMovieCompilation.Name = "Топ рейтинга"
+	rows, err := ms.db.Query(context.Background(), sql, limit)
+
+	for rows.Next() {
+		var selectedMovie moviesCompilations.Movie
+		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
+		if err != nil {
+			return moviesCompilations.MovieCompilation{}, err
+		}
+		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, selectedMovie)
+	}
+	return selectedMovieCompilation, nil
 }
 func (ms *movieCompilationsStorage) GetTopByYear(year int) (moviesCompilations.MovieCompilation, error) {
 	return moviesCompilations.MovieCompilation{}, nil
