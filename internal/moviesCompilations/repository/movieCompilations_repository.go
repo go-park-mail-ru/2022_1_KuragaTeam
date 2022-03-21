@@ -100,5 +100,19 @@ func (ms *movieCompilationsStorage) GetTop(limit int) (moviesCompilations.MovieC
 	return selectedMovieCompilation, nil
 }
 func (ms *movieCompilationsStorage) GetTopByYear(year int) (moviesCompilations.MovieCompilation, error) {
-	return moviesCompilations.MovieCompilation{}, nil
+	sql := "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating"
+
+	var selectedMovieCompilation moviesCompilations.MovieCompilation
+	selectedMovieCompilation.Name = "Топ рейтинга"
+	rows, err := ms.db.Query(context.Background(), sql, year)
+
+	for rows.Next() {
+		var selectedMovie moviesCompilations.Movie
+		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
+		if err != nil {
+			return moviesCompilations.MovieCompilation{}, err
+		}
+		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, selectedMovie)
+	}
+	return selectedMovieCompilation, nil
 }

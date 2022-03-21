@@ -158,7 +158,7 @@ func (s *service) GetTopByYear(year int) (moviesCompilations.MovieCompilation, e
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
-	return moviesCompilations.MovieCompilation{}, nil
+	return MC, nil
 }
 func (s *service) GetTop(limit int) (moviesCompilations.MovieCompilation, error) {
 	if limit > 10 {
