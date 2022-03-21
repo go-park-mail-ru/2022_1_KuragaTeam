@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"myapp/internal"
-	"myapp/internal/domain/position"
 	"myapp/internal/persons"
+	"myapp/internal/position"
 )
 
 type service struct {

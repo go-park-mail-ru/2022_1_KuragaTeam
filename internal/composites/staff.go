@@ -2,11 +2,11 @@ package composites
 
 import (
 	"myapp/internal/adapters/api"
-	"myapp/internal/adapters/db/position"
 	"myapp/internal/persons"
 	"myapp/internal/persons/delivery"
 	"myapp/internal/persons/repository"
 	"myapp/internal/persons/usecase"
+	positionsRepository "myapp/internal/position/repository"
 )
 
 type StaffComposite struct {
@@ -17,8 +17,8 @@ type StaffComposite struct {
 
 func NewStaffComposite(postgresComposite *PostgresDBComposite) (*StaffComposite, error) {
 	staffStorage := repository.NewStorage(postgresComposite.db)
-	positionStorage := position.NewStorage(postgresComposite.db)
-	service := usecase.NewService(staffStorage, positionStorage)
+	personsStorage := positionsRepository.NewStorage(postgresComposite.db)
+	service := usecase.NewService(staffStorage, personsStorage)
 	handler := delivery.NewHandler(service)
 	return &StaffComposite{
 		Storage: staffStorage,

@@ -1,9 +1,9 @@
-package position
+package repository
 
 import (
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"myapp/internal/domain/position"
+	"myapp/internal/position"
 )
 
 type positionStorage struct {
