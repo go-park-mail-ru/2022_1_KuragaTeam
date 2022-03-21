@@ -1,28 +1,29 @@
 package composites
 
 import (
-	"myapp/internal/adapters/api"
-	"myapp/internal/adapters/api/movie"
-	"myapp/internal/adapters/db/country"
-	"myapp/internal/adapters/db/genre"
-	movie3 "myapp/internal/adapters/db/movie"
-	"myapp/internal/adapters/db/staff"
-	movie2 "myapp/internal/domain/movie"
+	"myapp/internal/api"
+	countryRepository "myapp/internal/country/repository"
+	genreRepository "myapp/internal/genre/repository"
+	"myapp/internal/movie"
+	"myapp/internal/movie/delivery"
+	"myapp/internal/movie/repository"
+	"myapp/internal/movie/usecase"
+	personsRepository "myapp/internal/persons/repository"
 )
 
 type MovieComposite struct {
-	Storage movie2.Storage
+	Storage movie.Storage
 	Service movie.Service
 	Handler api.Handler
 }
 
 func NewMovieComposite(postgresComposite *PostgresDBComposite) (*MovieComposite, error) {
-	movieStorage := movie3.NewStorage(postgresComposite.db)
-	genreStorage := genre.NewStorage(postgresComposite.db)
-	countryStorage := country.NewStorage(postgresComposite.db)
-	staffStorage := staff.NewStorage(postgresComposite.db)
-	service := movie2.NewService(movieStorage, genreStorage, countryStorage, staffStorage)
-	handler := movie.NewHandler(service)
+	movieStorage := repository.NewStorage(postgresComposite.db)
+	genreStorage := genreRepository.NewStorage(postgresComposite.db)
+	countryStorage := countryRepository.NewStorage(postgresComposite.db)
+	staffStorage := personsRepository.NewStorage(postgresComposite.db)
+	service := usecase.NewService(movieStorage, genreStorage, countryStorage, staffStorage)
+	handler := delivery.NewHandler(service)
 	return &MovieComposite{
 		Storage: movieStorage,
 		Service: service,

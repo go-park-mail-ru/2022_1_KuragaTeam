@@ -1,7 +1,6 @@
 package main
 
 import (
-
 	"github.com/labstack/echo/v4"
 
 	"log"
@@ -40,7 +39,6 @@ func main() {
 		log.Fatal("staff composite failed")
 	}
 	staffComposite.Handler.Register(echoServer)
-
 
 	moviesCompilationsComposite, err := composites.NewMoviesCompilationsComposite(postgresDBC)
 	if err != nil {

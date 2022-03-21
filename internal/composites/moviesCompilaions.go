@@ -1,19 +1,20 @@
 package composites
 
 import (
-	"myapp/internal/adapters/api"
-	moviesCompilations2 "myapp/internal/adapters/api/moviesCompilations"
-	"myapp/internal/domain/moviesCompilations"
+	"myapp/internal/api"
+	"myapp/internal/moviesCompilations"
+	"myapp/internal/moviesCompilations/delivery"
+	"myapp/internal/moviesCompilations/usecase"
 )
 
 type MoviesCompilationsComposite struct {
-	Service moviesCompilations2.Service
+	Service moviesCompilations.Service
 	Handler api.Handler
 }
 
 func NewMoviesCompilationsComposite(postgresComposite *PostgresDBComposite) (*MoviesCompilationsComposite, error) {
-	service := moviesCompilations.NewService()
-	handler := moviesCompilations2.NewHandler(service)
+	service := usecase.NewService()
+	handler := delivery.NewHandler(service)
 	return &MoviesCompilationsComposite{
 		Service: service,
 		Handler: handler,
