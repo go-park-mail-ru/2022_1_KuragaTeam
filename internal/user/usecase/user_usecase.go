@@ -34,17 +34,14 @@ func ValidateUser(user *user.User) error {
 
 func ValidatePassword(pass string) error {
 	var (
-		upp, low, num bool
-		symbolsCount  uint8
+		letter, num  bool
+		symbolsCount uint8
 	)
 
 	for _, char := range pass {
 		switch {
-		case unicode.IsUpper(char):
-			upp = true
-			symbolsCount++
-		case unicode.IsLower(char):
-			low = true
+		case unicode.IsLetter(char):
+			letter = true
 			symbolsCount++
 		case unicode.IsNumber(char):
 			num = true
@@ -56,11 +53,8 @@ func ValidatePassword(pass string) error {
 		}
 	}
 
-	if !upp {
-		return constants.ErrUp
-	}
-	if !low {
-		return constants.ErrLow
+	if !letter {
+		return constants.ErrLetter
 	}
 	if !num {
 		return constants.ErrNum
