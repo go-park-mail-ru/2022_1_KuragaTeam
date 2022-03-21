@@ -14,6 +14,17 @@ func NewService(MCStorage moviesCompilations.Storage, genreStorage genre.Storage
 	return &service{MCStorage: MCStorage, genreStorage: genreStorage}
 }
 
+func (s *service) fillGenres(MC *moviesCompilations.MovieCompilation) error {
+	for i := 0; i < len(MC.Movies); i++ {
+		var err error
+		MC.Movies[i].Genre, err = s.genreStorage.GetByMovieID(MC.Movies[i].ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *service) GetMainCompilations() ([]moviesCompilations.MovieCompilation, error) {
 	movieCompilations := []moviesCompilations.MovieCompilation{
 		{
@@ -107,11 +118,10 @@ func (s *service) GetByMovie(movieID int) (moviesCompilations.MovieCompilation, 
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
-	for i, _ := range MC.Movies {
-		MC.Movies[i].Genre, err = s.genreStorage.GetByMovieID(MC.Movies[i].ID)
-		if err != nil {
-			return moviesCompilations.MovieCompilation{}, err
-		}
+
+	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
 	}
 	return MC, nil
 }
@@ -121,11 +131,47 @@ func (s *service) GetByGenre(genreID int) (moviesCompilations.MovieCompilation, 
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
-	for i, _ := range MC.Movies {
-		MC.Movies[i].Genre, err = s.genreStorage.GetByMovieID(MC.Movies[i].ID)
-		if err != nil {
-			return moviesCompilations.MovieCompilation{}, err
-		}
+	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
 	}
 	return MC, nil
+}
+
+func (s *service) GetByPerson(personID int) (moviesCompilations.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetByPerson(personID)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	return MC, nil
+}
+func (s *service) GetTopByYear(year int) (moviesCompilations.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetTopByYear(year)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	return moviesCompilations.MovieCompilation{}, nil
+}
+func (s *service) GetTop(limit int) (moviesCompilations.MovieCompilation, error) {
+	if limit > 10 {
+		limit = 10
+	}
+
+	MC, err := s.MCStorage.GetTop(limit)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	return moviesCompilations.MovieCompilation{}, nil
 }
