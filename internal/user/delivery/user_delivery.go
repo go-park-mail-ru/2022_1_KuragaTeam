@@ -1,7 +1,6 @@
 package delivery
 
 import (
-	"myapp/internal"
 	"myapp/internal/adapters/api"
 	"myapp/internal/user"
 	"net/http"
@@ -38,10 +37,10 @@ func (h *handler) Register(router *echo.Echo) {
 
 func (h *handler) SignUp() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		userData := internal.CreateUserDTO{}
+		userData := user.CreateUserDTO{}
 
 		if err := ctx.Bind(&userData); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
@@ -50,14 +49,14 @@ func (h *handler) SignUp() echo.HandlerFunc {
 		session, msg, err := h.userService.SignUp(&userData)
 
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
 		if len(session) == 0 {
-			return ctx.JSON(http.StatusBadRequest, &internal.Response{
+			return ctx.JSON(http.StatusBadRequest, &user.Response{
 				Status:  http.StatusBadRequest,
 				Message: msg,
 			})
@@ -73,7 +72,7 @@ func (h *handler) SignUp() echo.HandlerFunc {
 
 		ctx.SetCookie(&cookie)
 
-		return ctx.JSON(http.StatusCreated, &internal.Response{
+		return ctx.JSON(http.StatusCreated, &user.Response{
 			Status:  http.StatusCreated,
 			Message: "OK: User created",
 		})
@@ -82,10 +81,10 @@ func (h *handler) SignUp() echo.HandlerFunc {
 
 func (h *handler) LogIn() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		userData := internal.LogInUserDTO{}
+		userData := user.LogInUserDTO{}
 
 		if err := ctx.Bind(&userData); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
@@ -94,14 +93,14 @@ func (h *handler) LogIn() echo.HandlerFunc {
 		session, err := h.userService.LogIn(&userData)
 
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
 		if len(session) == 0 {
-			return ctx.JSON(http.StatusNotFound, &internal.Response{
+			return ctx.JSON(http.StatusNotFound, &user.Response{
 				Status:  http.StatusNotFound,
 				Message: "ERROR: User not found",
 			})
@@ -117,7 +116,7 @@ func (h *handler) LogIn() echo.HandlerFunc {
 
 		ctx.SetCookie(&cookie)
 
-		return ctx.JSON(http.StatusOK, &internal.Response{
+		return ctx.JSON(http.StatusOK, &user.Response{
 			Status:  http.StatusOK,
 			Message: "OK: User can be logged in",
 		})
@@ -128,14 +127,14 @@ func (h *handler) GetUserMainPage() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: "ERROR: Session required",
 			})
 		}
 
 		if userID == -1 {
-			return ctx.JSON(http.StatusUnauthorized, &internal.Response{
+			return ctx.JSON(http.StatusUnauthorized, &user.Response{
 				Status:  http.StatusUnauthorized,
 				Message: "ERROR: User is unauthorized",
 			})
@@ -144,13 +143,13 @@ func (h *handler) GetUserMainPage() echo.HandlerFunc {
 		userData, err := h.userService.GetUserMainPage(userID)
 
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
-		return ctx.JSON(http.StatusOK, &internal.ResponseUserMainPage{
+		return ctx.JSON(http.StatusOK, &user.ResponseUserMainPage{
 			Status:   http.StatusOK,
 			UserData: userData,
 		})
@@ -161,14 +160,14 @@ func (h *handler) GetUserProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: "ERROR: Session required",
 			})
 		}
 
 		if userID == -1 {
-			return ctx.JSON(http.StatusUnauthorized, &internal.Response{
+			return ctx.JSON(http.StatusUnauthorized, &user.Response{
 				Status:  http.StatusUnauthorized,
 				Message: "ERROR: User is unauthorized",
 			})
@@ -177,13 +176,13 @@ func (h *handler) GetUserProfile() echo.HandlerFunc {
 		userData, err := h.userService.GetUserProfile(userID)
 
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
-		return ctx.JSON(http.StatusOK, &internal.ResponseUserProfile{
+		return ctx.JSON(http.StatusOK, &user.ResponseUserProfile{
 			Status:   http.StatusOK,
 			UserData: userData,
 		})
@@ -194,7 +193,7 @@ func (h *handler) LogOut() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		cookie, err := ctx.Cookie("Session_cookie")
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
@@ -202,7 +201,7 @@ func (h *handler) LogOut() echo.HandlerFunc {
 
 		err = h.userService.LogOut(cookie.Value)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
@@ -211,7 +210,7 @@ func (h *handler) LogOut() echo.HandlerFunc {
 		cookie.Expires = time.Now().AddDate(0, 0, -1)
 		ctx.SetCookie(cookie)
 
-		return ctx.JSON(http.StatusOK, &internal.Response{
+		return ctx.JSON(http.StatusOK, &user.Response{
 			Status:  http.StatusOK,
 			Message: "OK: User is logged out",
 		})
@@ -222,32 +221,32 @@ func (h *handler) EditProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: "ERROR: Session required",
 			})
 		}
 
 		if userID == -1 {
-			return ctx.JSON(http.StatusUnauthorized, &internal.Response{
+			return ctx.JSON(http.StatusUnauthorized, &user.Response{
 				Status:  http.StatusUnauthorized,
 				Message: "ERROR: User is unauthorized",
 			})
 		}
 
-		userData := internal.EditProfileDTO{
+		userData := user.EditProfileDTO{
 			ID: userID,
 		}
 
 		if err := ctx.Bind(&userData); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
 		if userData.Password != userData.RepeatPassword {
-			return ctx.JSON(http.StatusBadRequest, &internal.Response{
+			return ctx.JSON(http.StatusBadRequest, &user.Response{
 				Status:  http.StatusBadRequest,
 				Message: "ERROR: Passwords are different",
 			})
@@ -255,13 +254,13 @@ func (h *handler) EditProfile() echo.HandlerFunc {
 
 		err := h.userService.EditProfile(&userData)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, &internal.Response{
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
-		return ctx.JSON(http.StatusOK, &internal.Response{
+		return ctx.JSON(http.StatusOK, &user.Response{
 			Status:  http.StatusOK,
 			Message: "OK: Profile is edited",
 		})

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"myapp/constants"
-	"myapp/internal"
 	"myapp/internal/user"
 	"time"
 
@@ -48,7 +47,7 @@ func ComparePasswords(hashedPwd string, salt string, plainPwd string) (bool, err
 	return true, nil
 }
 
-func (us *userStorage) IsUserExists(userModel *internal.User) (int64, bool, error) {
+func (us *userStorage) IsUserExists(userModel *user.User) (int64, bool, error) {
 	var userID int64
 	sql := "SELECT id, password, salt FROM users WHERE email=$1"
 	rows, err := us.db.Query(context.Background(), sql, userModel.Email)
@@ -66,7 +65,7 @@ func (us *userStorage) IsUserExists(userModel *internal.User) (int64, bool, erro
 		return userID, false, nil
 	}
 
-	signInUser := internal.User{}
+	signInUser := user.User{}
 	err = rows.Scan(&signInUser.ID, &signInUser.Password, &signInUser.Salt)
 
 	userID = signInUser.ID
@@ -83,7 +82,7 @@ func (us *userStorage) IsUserExists(userModel *internal.User) (int64, bool, erro
 	return userID, result, nil
 }
 
-func (us *userStorage) IsUserUnique(userModel *internal.User) (bool, error) {
+func (us *userStorage) IsUserUnique(userModel *user.User) (bool, error) {
 	sql := "SELECT * FROM users WHERE email=$1"
 	rows, err := us.db.Query(context.Background(), sql, userModel.Email)
 
@@ -101,7 +100,7 @@ func (us *userStorage) IsUserUnique(userModel *internal.User) (bool, error) {
 	return true, nil
 }
 
-func (us *userStorage) CreateUser(userModel *internal.User) (int64, error) {
+func (us *userStorage) CreateUser(userModel *user.User) (int64, error) {
 	var userID int64
 
 	salt, err := uuid.NewV4()
@@ -123,7 +122,7 @@ func (us *userStorage) CreateUser(userModel *internal.User) (int64, error) {
 	return userID, nil
 }
 
-func (us *userStorage) GetUserMainPage(userID int64) (*internal.User, error) {
+func (us *userStorage) GetUserMainPage(userID int64) (*user.User, error) {
 	sql := "SELECT username, avatar FROM users WHERE id=$1"
 
 	var name, avatar string
@@ -133,7 +132,7 @@ func (us *userStorage) GetUserMainPage(userID int64) (*internal.User, error) {
 		return nil, err
 	}
 
-	userData := internal.User{
+	userData := user.User{
 		Name:   name,
 		Avatar: avatar,
 	}
@@ -183,7 +182,7 @@ func (r *redisStore) DeleteSession(session string) error {
 	return nil
 }
 
-func (us *userStorage) GetUserProfile(userID int64) (*internal.User, error) {
+func (us *userStorage) GetUserProfile(userID int64) (*user.User, error) {
 	sql := "SELECT username, email FROM users WHERE id=$1"
 
 	var name, email string
@@ -193,7 +192,7 @@ func (us *userStorage) GetUserProfile(userID int64) (*internal.User, error) {
 		return nil, err
 	}
 
-	userData := internal.User{
+	userData := user.User{
 		Name:  name,
 		Email: email,
 	}
@@ -201,7 +200,7 @@ func (us *userStorage) GetUserProfile(userID int64) (*internal.User, error) {
 	return &userData, nil
 }
 
-func (us *userStorage) EditProfile(user *internal.User) error {
+func (us *userStorage) EditProfile(user *user.User) error {
 	//sql := "SELECT password, salt FROM users WHERE id=$1"
 	//
 	//var password, salt string

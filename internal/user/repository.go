@@ -1,14 +1,12 @@
 package user
 
-import "myapp/internal"
-
 type Storage interface {
-	IsUserExists(user *internal.User) (int64, bool, error)
-	IsUserUnique(user *internal.User) (bool, error)
-	CreateUser(user *internal.User) (int64, error)
-	GetUserMainPage(userID int64) (*internal.User, error)
-	GetUserProfile(userID int64) (*internal.User, error)
-	EditProfile(user *internal.User) error
+	IsUserExists(user *User) (int64, bool, error)
+	IsUserUnique(user *User) (bool, error)
+	CreateUser(user *User) (int64, error)
+	GetUserMainPage(userID int64) (*User, error)
+	GetUserProfile(userID int64) (*User, error)
+	EditProfile(user *User) error
 }
 
 type RedisStore interface {
