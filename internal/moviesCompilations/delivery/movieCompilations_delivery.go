@@ -1,9 +1,10 @@
-package moviesCompilations
+package delivery
 
 import (
 	"github.com/labstack/echo/v4"
 	"myapp/internal"
 	"myapp/internal/adapters/api"
+	"myapp/internal/moviesCompilations"
 	"net/http"
 )
 
@@ -23,10 +24,10 @@ const (
 )
 
 type handler struct {
-	movieCompilationsService Service
+	movieCompilationsService moviesCompilations.Service
 }
 
-func NewHandler(service Service) api.Handler {
+func NewHandler(service moviesCompilations.Service) api.Handler {
 	return &handler{movieCompilationsService: service}
 }
 
@@ -37,7 +38,7 @@ func (h *handler) Register(router *echo.Echo) {
 
 func (h *handler) GetMoviesCompilations() echo.HandlerFunc {
 	return func(context echo.Context) error {
-		moviesCompilations, err := h.movieCompilationsService.GetMainCompilations(context)
+		mainMoviesCompilations, err := h.movieCompilationsService.GetMainCompilations(context)
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
@@ -46,7 +47,7 @@ func (h *handler) GetMoviesCompilations() echo.HandlerFunc {
 		}
 		return context.JSON(http.StatusOK, &ResponseMovieCompilations{
 			Status:           http.StatusOK,
-			MovieCompilation: moviesCompilations,
+			MovieCompilation: mainMoviesCompilations,
 		})
 	}
 }

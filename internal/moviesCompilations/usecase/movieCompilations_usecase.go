@@ -1,9 +1,9 @@
-package moviesCompilations
+package usecase
 
 import (
 	"github.com/labstack/echo/v4"
 	"myapp/internal"
-	"myapp/internal/adapters/api/moviesCompilations"
+	"myapp/internal/moviesCompilations"
 )
 
 type service struct {
