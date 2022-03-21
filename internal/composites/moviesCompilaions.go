@@ -1,7 +1,7 @@
 package composites
 
 import (
-	"myapp/internal/adapters/api"
+	"myapp/internal/api"
 	"myapp/internal/moviesCompilations"
 	"myapp/internal/moviesCompilations/delivery"
 	"myapp/internal/moviesCompilations/usecase"

@@ -2,7 +2,7 @@ package delivery
 
 import (
 	"github.com/labstack/echo/v4"
-	"myapp/internal/adapters/api"
+	"myapp/internal/api"
 	"myapp/internal/movie"
 	"net/http"
 	"strconv"

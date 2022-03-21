@@ -3,7 +3,7 @@ package delivery
 import (
 	"github.com/labstack/echo/v4"
 	"myapp/internal"
-	"myapp/internal/adapters/api"
+	"myapp/internal/api"
 	"myapp/internal/moviesCompilations"
 	"net/http"
 )

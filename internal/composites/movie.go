@@ -1,7 +1,7 @@
 package composites
 
 import (
-	"myapp/internal/adapters/api"
+	"myapp/internal/api"
 	countryRepository "myapp/internal/country/repository"
 	genreRepository "myapp/internal/genre/repository"
 	"myapp/internal/movie"

@@ -1,7 +1,7 @@
 package composites
 
 import (
-	"myapp/internal/adapters/api"
+	"myapp/internal/api"
 	"myapp/internal/persons"
 	"myapp/internal/persons/delivery"
 	"myapp/internal/persons/repository"

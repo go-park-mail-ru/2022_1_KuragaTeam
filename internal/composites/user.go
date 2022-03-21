@@ -1,7 +1,7 @@
 package composites
 
 import (
-	"myapp/internal/adapters/api"
+	api2 "myapp/internal/api"
 	"myapp/internal/user"
 	"myapp/internal/user/delivery"
 	"myapp/internal/user/repository"
@@ -11,8 +11,8 @@ import (
 type UserComposite struct {
 	Storage    user.Storage
 	Service    user.Service
-	Handler    api.Handler
-	Middleware api.Middleware
+	Handler    api2.Handler
+	Middleware api2.Middleware
 }
 
 func NewUserComposite(postgresComposite *PostgresDBComposite, redisComposite *RedisComposite) (*UserComposite, error) {

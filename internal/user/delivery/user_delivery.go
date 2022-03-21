@@ -1,7 +1,7 @@
 package delivery
 
 import (
-	"myapp/internal/adapters/api"
+	"myapp/internal/api"
 	"myapp/internal/user"
 	"net/http"
 	"time"

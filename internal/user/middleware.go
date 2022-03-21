@@ -1,7 +1,7 @@
 package user
 
 import (
-	"myapp/internal/adapters/api"
+	"myapp/internal/api"
 	"net/http"
 	"time"
 
