@@ -1,21 +1,21 @@
-package movie
+package usecase
 
 import (
-	"myapp/internal/adapters/api/movie"
 	"myapp/internal/domain"
 	"myapp/internal/domain/country"
 	"myapp/internal/domain/genre"
 	"myapp/internal/domain/staff"
+	"myapp/internal/movie"
 )
 
 type service struct {
-	movieStorage   Storage
+	movieStorage   movie.Storage
 	genreStorage   genre.Storage
 	countryStorage country.Storage
 	staffStorage   staff.Storage
 }
 
-func NewService(movieStorage Storage, genreStorage genre.Storage,
+func NewService(movieStorage movie.Storage, genreStorage genre.Storage,
 	countryStorage country.Storage, staffStorage staff.Storage) movie.Service {
 	return &service{movieStorage: movieStorage, genreStorage: genreStorage,
 		countryStorage: countryStorage, staffStorage: staffStorage}

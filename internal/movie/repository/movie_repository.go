@@ -1,11 +1,11 @@
-package movie
+package repository
 
 import (
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"myapp/internal/domain"
 
-	"myapp/internal/domain/movie"
+	"myapp/internal/movie"
 )
 
 type movieStorage struct {
