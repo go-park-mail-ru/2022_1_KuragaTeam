@@ -40,8 +40,11 @@ func (s *service) SignUp(dto *user.CreateUserDTO) (string, string, error) {
 	}
 
 	userID, err := s.storage.CreateUser(userModel)
-	session, err := s.redisStore.StoreSession(userID)
+	if err != nil {
+		return "", "", err
+	}
 
+	session, err := s.redisStore.StoreSession(userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -105,10 +108,23 @@ func (s *service) EditProfile(dto *user.EditProfileDTO) error {
 		ID:       dto.ID,
 		Name:     dto.Name,
 		Password: dto.Password,
-		Avatar:   dto.Avatar,
 	}
 
-	oldAvatar, err := s.storage.EditProfile(userModel)
+	err := s.storage.EditProfile(userModel)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *service) EditAvatar(dto *user.EditAvatarDTO) error {
+	userModel := &user.User{
+		ID:     dto.ID,
+		Avatar: dto.Avatar,
+	}
+
+	oldAvatar, err := s.storage.EditAvatar(userModel)
 	if err != nil {
 		return err
 	}

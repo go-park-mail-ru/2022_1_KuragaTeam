@@ -33,7 +33,11 @@ type EditProfileDTO struct {
 	ID       int64  `json:"id" form:"id"`
 	Name     string `json:"username" form:"username"`
 	Password string `json:"password" form:"password"`
-	Avatar   string `json:"avatar" form:"avatar"`
+}
+
+type EditAvatarDTO struct {
+	ID     int64  `json:"id" form:"id"`
+	Avatar string `json:"avatar" form:"avatar"`
 }
 
 type Response struct {

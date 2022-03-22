@@ -177,118 +177,80 @@ func (us *userStorage) GetUserProfile(userID int64) (*user.User, error) {
 	return &userData, nil
 }
 
-func (us *userStorage) EditProfile(user *user.User) (string, error) {
-	sql := "SELECT username, password, salt, avatar FROM users WHERE id=$1"
+func (us *userStorage) EditProfile(user *user.User) error {
+	sql := "SELECT username, password, salt FROM users WHERE id=$1"
 
-	var oldName, oldPassword, oldSalt, oldAvatar string
-	err := us.db.QueryRow(context.Background(), sql, user.ID).Scan(&oldName, &oldPassword, &oldSalt, &oldAvatar)
+	var oldName, oldPassword, oldSalt string
+	err := us.db.QueryRow(context.Background(), sql, user.ID).Scan(&oldName, &oldPassword, &oldSalt)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	notChangedPassword, _ := ComparePasswords(oldPassword, oldSalt, user.Password)
 
 	switch {
-	case notChangedPassword == false && len(user.Password) != 0 && user.Name != oldName && len(user.Name) != 0 && len(user.Avatar) != 0:
-		salt, err := uuid.NewV4()
-		if err != nil {
-			return "", err
-		}
-
-		hashPassword, err := HashAndSalt(user.Password, salt.String())
-		if err != nil {
-			return "", err
-		}
-
-		sql := "UPDATE users SET username = $2, password = $3, salt = $4, avatar = $5 WHERE id = $1"
-
-		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name, hashPassword, salt, user.Avatar)
-		if err != nil {
-			return "", err
-		}
-
-		return oldAvatar, nil
-
 	case notChangedPassword == false && len(user.Password) != 0 && user.Name != oldName && len(user.Name) != 0:
 		salt, err := uuid.NewV4()
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		hashPassword, err := HashAndSalt(user.Password, salt.String())
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		sql := "UPDATE users SET username = $2, password = $3, salt = $4 WHERE id = $1"
 
 		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name, hashPassword, salt)
 		if err != nil {
-			return "", err
+			return err
 		}
 
-		return oldAvatar, nil
-
-	case notChangedPassword == false && len(user.Password) != 0 && len(user.Avatar) != 0:
-		salt, err := uuid.NewV4()
-		if err != nil {
-			return "", err
-		}
-
-		hashPassword, err := HashAndSalt(user.Password, salt.String())
-		if err != nil {
-			return "", err
-		}
-
-		sql := "UPDATE users SET avatar = $2, password = $3, salt = $4 WHERE id = $1"
-
-		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Avatar, hashPassword, salt)
-		if err != nil {
-			return "", err
-		}
-
-		return oldAvatar, nil
-
-	case user.Name != oldName && len(user.Name) != 0 && len(user.Avatar) != 0:
-		sql := "UPDATE users SET username = $2, avatar = $3 WHERE id = $1"
-
-		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name, user.Avatar)
-		if err != nil {
-			return "", err
-		}
-
-		return oldAvatar, nil
+		return nil
 
 	case notChangedPassword == false && len(user.Password) != 0:
 		salt, err := uuid.NewV4()
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		hashPassword, err := HashAndSalt(user.Password, salt.String())
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		sql := "UPDATE users SET password = $2, salt = $3 WHERE id = $1"
 
 		_, err = us.db.Exec(context.Background(), sql, user.ID, hashPassword, salt)
 		if err != nil {
-			return "", err
+			return err
 		}
 
-		return "", nil
-	case user.Name != oldName && len(user.Name) != 0:
+		return nil
+
+	default:
 		sql := "UPDATE users SET username = $2 WHERE id = $1"
 
 		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name)
 		if err != nil {
-			return "", err
+			return err
 		}
 
-		return "", nil
+		return nil
+	}
+}
 
-	default:
+func (us *userStorage) EditAvatar(user *user.User) (string, error) {
+	sql := "SELECT avatar FROM users WHERE id=$1"
+
+	var oldAvatar string
+	err := us.db.QueryRow(context.Background(), sql, user.ID).Scan(&oldAvatar)
+	if err != nil {
+		return "", err
+	}
+
+	if len(user.Avatar) != 0 {
 		sql := "UPDATE users SET avatar = $2 WHERE id = $1"
 
 		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Avatar)
@@ -298,6 +260,8 @@ func (us *userStorage) EditProfile(user *user.User) (string, error) {
 
 		return oldAvatar, nil
 	}
+
+	return "", nil
 }
 
 func (i imageStorage) UploadFile(input user.UploadInput) (string, error) {

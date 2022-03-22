@@ -5,7 +5,8 @@ type Storage interface {
 	IsUserUnique(user *User) (bool, error)
 	CreateUser(user *User) (int64, error)
 	GetUserProfile(userID int64) (*User, error)
-	EditProfile(user *User) (string, error)
+	EditProfile(user *User) error
+	EditAvatar(user *User) (string, error)
 }
 
 type RedisStore interface {
