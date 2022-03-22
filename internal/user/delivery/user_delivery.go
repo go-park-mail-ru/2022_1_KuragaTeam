@@ -17,6 +17,13 @@ const (
 	editURL    = "/api/v1/edit"
 )
 
+var (
+	IMAGE_TYPES = map[string]interface{}{
+		"image/jpeg": nil,
+		"image/png":  nil,
+	}
+)
+
 type handler struct {
 	userService user.Service
 }
@@ -210,7 +217,67 @@ func (h *handler) EditProfile() echo.HandlerFunc {
 			})
 		}
 
-		err := h.userService.EditProfile(&userData)
+		fileName := ""
+
+		file, err := ctx.FormFile("file")
+		switch err {
+		case nil:
+			src, err := file.Open()
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, &user.Response{
+					Status:  http.StatusInternalServerError,
+					Message: err.Error(),
+				})
+			}
+
+			buffer := make([]byte, file.Size)
+			_, err = src.Read(buffer)
+			src.Close()
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, &user.Response{
+					Status:  http.StatusInternalServerError,
+					Message: err.Error(),
+				})
+			}
+
+			file, err = ctx.FormFile("file")
+			src, err = file.Open()
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, &user.Response{
+					Status:  http.StatusInternalServerError,
+					Message: err.Error(),
+				})
+			}
+			defer src.Close()
+
+			fileType := http.DetectContentType(buffer)
+
+			// Validate File Type
+			if _, ex := IMAGE_TYPES[fileType]; !ex {
+				return ctx.JSON(http.StatusBadRequest, &user.Response{
+					Status:  http.StatusBadRequest,
+					Message: "file type is not supported",
+				})
+			}
+
+			fileName, err = h.userService.UploadAvatar(src, file.Size, fileType, userID)
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, &user.Response{
+					Status:  http.StatusInternalServerError,
+					Message: err.Error(),
+				})
+			}
+		case http.ErrMissingFile:
+		default:
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		userData.Avatar = fileName
+
+		err = h.userService.EditProfile(&userData)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,

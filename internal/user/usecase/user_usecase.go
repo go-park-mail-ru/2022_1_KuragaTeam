@@ -1,75 +1,22 @@
 package usecase
 
 import (
-	"myapp/constants"
+	"io"
 	"myapp/internal/user"
-	"strings"
-	"unicode"
-
-	"gopkg.in/validator.v2"
 )
 
 type service struct {
-	storage    user.Storage
-	redisStore user.RedisStore
+	storage      user.Storage
+	redisStore   user.RedisStore
+	imageStorage user.ImageStorage
 }
 
-func NewService(storage user.Storage, redisStore user.RedisStore) user.Service {
+func NewService(storage user.Storage, redisStore user.RedisStore, imageStorage user.ImageStorage) user.Service {
 	return &service{
-		storage:    storage,
-		redisStore: redisStore,
+		storage:      storage,
+		redisStore:   redisStore,
+		imageStorage: imageStorage,
 	}
-}
-
-func ValidateUser(user *user.User) error {
-	user.Name = strings.TrimSpace(user.Name)
-	if err := validator.Validate(user); err != nil {
-		return err
-	}
-	if err := ValidatePassword(user.Password); err != nil {
-		return err
-	}
-	return nil
-}
-
-func ValidatePassword(pass string) error {
-	var (
-		upp, low, num bool
-		symbolsCount  uint8
-	)
-
-	for _, char := range pass {
-		switch {
-		case unicode.IsUpper(char):
-			upp = true
-			symbolsCount++
-		case unicode.IsLower(char):
-			low = true
-			symbolsCount++
-		case unicode.IsNumber(char):
-			num = true
-			symbolsCount++
-		case unicode.IsPunct(char) || unicode.IsSymbol(char):
-			symbolsCount++
-		default:
-			return constants.ErrBan
-		}
-	}
-
-	if !upp {
-		return constants.ErrUp
-	}
-	if !low {
-		return constants.ErrLow
-	}
-	if !num {
-		return constants.ErrNum
-	}
-	if symbolsCount < 8 {
-		return constants.ErrCount
-	}
-
-	return nil
 }
 
 func (s *service) SignUp(dto *user.CreateUserDTO) (string, string, error) {
@@ -158,12 +105,31 @@ func (s *service) EditProfile(dto *user.EditProfileDTO) error {
 		ID:       dto.ID,
 		Name:     dto.Name,
 		Password: dto.Password,
+		Avatar:   dto.Avatar,
 	}
 
-	err := s.storage.EditProfile(userModel)
+	oldAvatar, err := s.storage.EditProfile(userModel)
 	if err != nil {
 		return err
 	}
 
+	if oldAvatar != "default_avatar.webp" {
+		err = s.imageStorage.DeleteFile(oldAvatar)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (s *service) UploadAvatar(file io.Reader, size int64, contentType string, userID int64) (string, error) {
+	uploadImage := user.UploadInput{
+		UserID:      userID,
+		File:        file,
+		Size:        size,
+		ContentType: contentType,
+	}
+
+	return s.imageStorage.UploadFile(uploadImage)
 }

@@ -28,6 +28,11 @@ func main() {
 		log.Fatal("redis composite failed")
 	}
 
+	minioComposite, err := composites.NewMinioComposite()
+	if err != nil {
+		log.Fatal("minio composite failed")
+	}
+
 	movieComposite, err := composites.NewMovieComposite(postgresDBC)
 	if err != nil {
 		log.Fatal("author composite failed")
@@ -46,7 +51,7 @@ func main() {
 	}
 	moviesCompilationsComposite.Handler.Register(echoServer)
 
-	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite)
+	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite, minioComposite)
 	if err != nil {
 		log.Fatal("user composite failed")
 	}

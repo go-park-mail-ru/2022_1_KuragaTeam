@@ -15,10 +15,11 @@ type UserComposite struct {
 	Middleware api2.Middleware
 }
 
-func NewUserComposite(postgresComposite *PostgresDBComposite, redisComposite *RedisComposite) (*UserComposite, error) {
+func NewUserComposite(postgresComposite *PostgresDBComposite, redisComposite *RedisComposite, minioComposite *MinioComposite) (*UserComposite, error) {
 	storage := repository.NewStorage(postgresComposite.db)
 	redis := repository.NewRedisStore(redisComposite.redis)
-	service := usecase.NewService(storage, redis)
+	minio := repository.NewImageStorage(minioComposite.client)
+	service := usecase.NewService(storage, redis, minio)
 	handler := delivery.NewHandler(service)
 	middleware := user.NewMiddleware(service)
 	return &UserComposite{
