@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/net/context"
 	"myapp/internal/moviesCompilations"
@@ -103,7 +104,7 @@ func (ms *movieCompilationsStorage) GetTopByYear(year int) (moviesCompilations.M
 	sql := "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating"
 
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
-	selectedMovieCompilation.Name = "Топ рейтинга"
+	selectedMovieCompilation.Name = fmt.Sprintf("Лучшее за %d год", year)
 	rows, err := ms.db.Query(context.Background(), sql, year)
 
 	for rows.Next() {

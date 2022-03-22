@@ -8,16 +8,6 @@ import (
 	"strconv"
 )
 
-type ResponseMovieCompilations struct {
-	Status           int                                   `json:"status"`
-	MovieCompilation []moviesCompilations.MovieCompilation `json:"movies_compilation"`
-}
-
-type ResponseOneMovieCompilation struct {
-	Status           int                                 `json:"status"`
-	MovieCompilation moviesCompilations.MovieCompilation `json:"movies_compilation"`
-}
-
 type Response struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
@@ -58,10 +48,7 @@ func (h *handler) GetMoviesCompilations() echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
-		return context.JSON(http.StatusOK, &ResponseMovieCompilations{
-			Status:           http.StatusOK,
-			MovieCompilation: mainMoviesCompilations,
-		})
+		return context.JSON(http.StatusOK, &mainMoviesCompilations)
 	}
 }
 

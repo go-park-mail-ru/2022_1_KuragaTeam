@@ -26,91 +26,111 @@ func (s *service) fillGenres(MC *moviesCompilations.MovieCompilation) error {
 }
 
 func (s *service) GetMainCompilations() ([]moviesCompilations.MovieCompilation, error) {
-	movieCompilations := []moviesCompilations.MovieCompilation{
-		{
-			Name: "Популярное",
-			Movies: []moviesCompilations.Movie{
-				{
-					ID:      0,
-					Name:    "Звездные войны1",
-					Picture: "star.png",
-					Genre:   []string{"Фантастика1"},
-				},
-				{
-					ID:      0,
-					Name:    "Звездные войны2",
-					Picture: "",
-					Genre:   []string{"Фантастика2"},
-				},
-				{
-					ID:      0,
-					Name:    "Звездные войны3",
-					Picture: "",
-					Genre:   []string{"Фантастика3"},
-				},
-				{
-					ID:      0,
-					Name:    "Звездные войны4",
-					Picture: "",
-					Genre:   []string{"Фантастика4"},
-				},
-			},
-		},
-		{
-			Name: "Топ",
-			Movies: []moviesCompilations.Movie{
-				{
-					ID:      0,
-					Name:    "Звездные войны#1",
-					Picture: "",
-					Genre:   []string{"Фантастика"},
-				},
-				{
-					ID:      0,
-					Name:    "Звездные войны#2",
-					Picture: "",
-					Genre:   []string{"Фантастика"},
-				},
-				{
-					ID:      0,
-					Name:    "Звездные войны#3",
-					Picture: "",
-					Genre:   []string{"Фантастика"},
-				},
-			},
-		},
-		{
-			Name: "Семейное",
-			Movies: []moviesCompilations.Movie{
-				{
-					ID:      0,
-					Name:    "Звездные войны#1",
-					Picture: "",
-					Genre:   []string{"Фантастика"},
-				},
-				{
-					ID:      0,
-					Name:    "Звездные войны#2",
-					Picture: "",
-					Genre:   []string{"Фантастика"},
-				},
-				{
-					ID:      0,
-					Name:    "Звездные войны#3",
-					Picture: "",
-					Genre:   []string{"Фантастика"},
-				},
-				{
-					ID:      0,
-					Name:    "Звездные войны4",
-					Picture: "",
-					Genre:   []string{"Фантастика4"},
-				},
-			},
-		},
-	}
+	//movieCompilations := []moviesCompilations.MovieCompilation{
+	//	{
+	//		Name: "Популярное",
+	//		Movies: []moviesCompilations.Movie{
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны1",
+	//				Picture: "star.png",
+	//				Genre:   []string{"Фантастика1"},
+	//			},
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны2",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика2"},
+	//			},
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны3",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика3"},
+	//			},
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны4",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика4"},
+	//			},
+	//		},
+	//	},
+	//	{
+	//		Name: "Топ",
+	//		Movies: []moviesCompilations.Movie{
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны#1",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика"},
+	//			},
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны#2",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика"},
+	//			},
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны#3",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика"},
+	//			},
+	//		},
+	//	},
+	//	{
+	//		Name: "Семейное",
+	//		Movies: []moviesCompilations.Movie{
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны#1",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика"},
+	//			},
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны#2",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика"},
+	//			},
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны#3",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика"},
+	//			},
+	//			{
+	//				ID:      0,
+	//				Name:    "Звездные войны4",
+	//				Picture: "",
+	//				Genre:   []string{"Фантастика4"},
+	//			},
+	//		},
+	//	},
+	//}
 
-	return movieCompilations, nil
+	MC := make([]moviesCompilations.MovieCompilation, 0)
+
+	nextMC, err := s.GetTop(10)
+	if err != nil {
+		return nil, err
+	}
+	MC = append(MC, nextMC)
+
+	nextMC, err = s.GetTopByYear(2011)
+	if err != nil {
+		return nil, err
+	}
+	MC = append(MC, nextMC)
+
+	nextMC, err = s.GetByGenre(2) // Боевик
+	if err != nil {
+		return nil, err
+	}
+	MC = append(MC, nextMC)
+
+	return MC, nil
 }
 
 func (s *service) GetByMovie(movieID int) (moviesCompilations.MovieCompilation, error) {
