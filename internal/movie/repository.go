@@ -6,6 +6,6 @@ import (
 
 type Storage interface {
 	GetOne(id int) (*internal.Movie, error)
-	GetRandomMovies(limit, offset int) ([]internal.Movie, error)
+	GetAllMovies(limit, offset int) ([]internal.Movie, error)
 	GetRandomMovie() (*internal.MainMovieInfoDTO, error)
 }

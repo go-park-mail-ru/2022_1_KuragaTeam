@@ -1,11 +1,11 @@
 package moviesCompilations
 
-import (
-	"github.com/labstack/echo/v4"
-	"myapp/internal"
-)
-
 type Service interface {
-	GetMainCompilations(context echo.Context) ([]internal.MovieCompilation, error)
-	GetByMovieID(context echo.Context, limit int) (internal.MovieCompilation, error)
+	GetMainCompilations() ([]MovieCompilation, error)
+	GetByGenre(genreID int) (MovieCompilation, error)
+	GetByMovie(movieID int) (MovieCompilation, error)
+	GetByPerson(personID int) (MovieCompilation, error)
+	GetTopByYear(year int) (MovieCompilation, error)
+	GetTop(limit int) (MovieCompilation, error)
+	//GetPopularID(context echo.Context, limit int) (MovieCompilation, error)
 }
