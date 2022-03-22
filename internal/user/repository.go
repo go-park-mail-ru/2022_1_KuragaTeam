@@ -6,10 +6,16 @@ type Storage interface {
 	CreateUser(user *User) (int64, error)
 	GetUserProfile(userID int64) (*User, error)
 	EditProfile(user *User) error
+	EditAvatar(user *User) (string, error)
 }
 
 type RedisStore interface {
 	StoreSession(userID int64) (string, error)
 	GetUserId(session string) (int64, error)
 	DeleteSession(session string) error
+}
+
+type ImageStorage interface {
+	UploadFile(input UploadInput) (string, error) // Загрузка файлов
+	DeleteFile(string) error                      // Удаление файлов
 }

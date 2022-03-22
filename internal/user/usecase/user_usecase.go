@@ -1,69 +1,22 @@
 package usecase
 
 import (
-	"myapp/constants"
+	"io"
 	"myapp/internal/user"
-	"strings"
-	"unicode"
-
-	"gopkg.in/validator.v2"
 )
 
 type service struct {
-	storage    user.Storage
-	redisStore user.RedisStore
+	storage      user.Storage
+	redisStore   user.RedisStore
+	imageStorage user.ImageStorage
 }
 
-func NewService(storage user.Storage, redisStore user.RedisStore) user.Service {
+func NewService(storage user.Storage, redisStore user.RedisStore, imageStorage user.ImageStorage) user.Service {
 	return &service{
-		storage:    storage,
-		redisStore: redisStore,
+		storage:      storage,
+		redisStore:   redisStore,
+		imageStorage: imageStorage,
 	}
-}
-
-func ValidateUser(user *user.User) error {
-	user.Name = strings.TrimSpace(user.Name)
-	if err := validator.Validate(user); err != nil {
-		return err
-	}
-	if err := ValidatePassword(user.Password); err != nil {
-		return err
-	}
-	return nil
-}
-
-func ValidatePassword(pass string) error {
-	var (
-		letter, num  bool
-		symbolsCount uint8
-	)
-
-	for _, char := range pass {
-		switch {
-		case unicode.IsLetter(char):
-			letter = true
-			symbolsCount++
-		case unicode.IsNumber(char):
-			num = true
-			symbolsCount++
-		case unicode.IsPunct(char) || unicode.IsSymbol(char):
-			symbolsCount++
-		default:
-			return constants.ErrBan
-		}
-	}
-
-	if !letter {
-		return constants.ErrLetter
-	}
-	if !num {
-		return constants.ErrNum
-	}
-	if symbolsCount < 8 {
-		return constants.ErrCount
-	}
-
-	return nil
 }
 
 func (s *service) SignUp(dto *user.CreateUserDTO) (string, string, error) {
@@ -87,8 +40,11 @@ func (s *service) SignUp(dto *user.CreateUserDTO) (string, string, error) {
 	}
 
 	userID, err := s.storage.CreateUser(userModel)
-	session, err := s.redisStore.StoreSession(userID)
+	if err != nil {
+		return "", "", err
+	}
 
+	session, err := s.redisStore.StoreSession(userID)
 	if err != nil {
 		return "", "", err
 	}
@@ -160,4 +116,36 @@ func (s *service) EditProfile(dto *user.EditProfileDTO) error {
 	}
 
 	return nil
+}
+
+func (s *service) EditAvatar(dto *user.EditAvatarDTO) error {
+	userModel := &user.User{
+		ID:     dto.ID,
+		Avatar: dto.Avatar,
+	}
+
+	oldAvatar, err := s.storage.EditAvatar(userModel)
+	if err != nil {
+		return err
+	}
+
+	if oldAvatar != "default_avatar.webp" {
+		err = s.imageStorage.DeleteFile(oldAvatar)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *service) UploadAvatar(file io.Reader, size int64, contentType string, userID int64) (string, error) {
+	uploadImage := user.UploadInput{
+		UserID:      userID,
+		File:        file,
+		Size:        size,
+		ContentType: contentType,
+	}
+
+	return s.imageStorage.UploadFile(uploadImage)
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/minio/minio-go/v7"
 )
 
 type userStorage struct {
@@ -20,6 +20,10 @@ type redisStore struct {
 	redis *redis.Pool
 }
 
+type imageStorage struct {
+	client *minio.Client
+}
+
 func NewStorage(db *pgxpool.Pool) user.Storage {
 	return &userStorage{db: db}
 }
@@ -28,23 +32,8 @@ func NewRedisStore(redis *redis.Pool) user.RedisStore {
 	return &redisStore{redis: redis}
 }
 
-func HashAndSalt(pwd string, salt string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(pwd+salt), bcrypt.MinCost)
-	if err != nil {
-		return "", err
-	}
-
-	return string(hash), nil
-}
-
-func ComparePasswords(hashedPwd string, salt string, plainPwd string) (bool, error) {
-	byteHash := []byte(hashedPwd)
-	err := bcrypt.CompareHashAndPassword(byteHash, []byte(plainPwd+salt))
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+func NewImageStorage(client *minio.Client) user.ImageStorage {
+	return &imageStorage{client: client}
 }
 
 func (us *userStorage) IsUserExists(userModel *user.User) (int64, bool, error) {
@@ -113,7 +102,7 @@ func (us *userStorage) CreateUser(userModel *user.User) (int64, error) {
 		return userID, err
 	}
 
-	sql := "INSERT INTO users(username, email, password, salt, avatar, subscription_expires) VALUES($1, $2, $3, $4, '/avatars/default_avatar.png', LOCALTIMESTAMP) RETURNING id"
+	sql := "INSERT INTO users(username, email, password, salt, avatar, subscription_expires) VALUES($1, $2, $3, $4, 'default_avatar.webp', LOCALTIMESTAMP) RETURNING id"
 
 	if err = us.db.QueryRow(context.Background(), sql, userModel.Name, userModel.Email, hashPassword, salt).Scan(&userID); err != nil {
 		return userID, err
@@ -174,10 +163,15 @@ func (us *userStorage) GetUserProfile(userID int64) (*user.User, error) {
 		return nil, err
 	}
 
+	avatarUrl, err := GenerateFileURL(avatar)
+	if err != nil {
+		return nil, err
+	}
+
 	userData := user.User{
 		Name:   name,
 		Email:  email,
-		Avatar: avatar,
+		Avatar: avatarUrl,
 	}
 
 	return &userData, nil
@@ -195,7 +189,7 @@ func (us *userStorage) EditProfile(user *user.User) error {
 	notChangedPassword, _ := ComparePasswords(oldPassword, oldSalt, user.Password)
 
 	switch {
-	case notChangedPassword == false && user.Password != "" && user.Name != oldName && user.Name != "":
+	case notChangedPassword == false && len(user.Password) != 0 && user.Name != oldName && len(user.Name) != 0:
 		salt, err := uuid.NewV4()
 		if err != nil {
 			return err
@@ -215,7 +209,7 @@ func (us *userStorage) EditProfile(user *user.User) error {
 
 		return nil
 
-	case notChangedPassword == false && user.Password != "":
+	case notChangedPassword == false && len(user.Password) != 0:
 		salt, err := uuid.NewV4()
 		if err != nil {
 			return err
@@ -235,7 +229,7 @@ func (us *userStorage) EditProfile(user *user.User) error {
 
 		return nil
 
-	case user.Name != oldName && user.Name != "":
+	default:
 		sql := "UPDATE users SET username = $2 WHERE id = $1"
 
 		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name)
@@ -244,8 +238,67 @@ func (us *userStorage) EditProfile(user *user.User) error {
 		}
 
 		return nil
-
-	default:
-		return nil
 	}
+}
+
+func (us *userStorage) EditAvatar(user *user.User) (string, error) {
+	sql := "SELECT avatar FROM users WHERE id=$1"
+
+	var oldAvatar string
+	err := us.db.QueryRow(context.Background(), sql, user.ID).Scan(&oldAvatar)
+	if err != nil {
+		return "", err
+	}
+
+	if len(user.Avatar) != 0 {
+		sql := "UPDATE users SET avatar = $2 WHERE id = $1"
+
+		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Avatar)
+		if err != nil {
+			return "", err
+		}
+
+		return oldAvatar, nil
+	}
+
+	return "", nil
+}
+
+func (i imageStorage) UploadFile(input user.UploadInput) (string, error) {
+	imageName := GenerateObjectName(input)
+
+	opts := minio.PutObjectOptions{
+		ContentType:  input.ContentType,
+		UserMetadata: map[string]string{"x-amz-acl": "public-read"},
+	}
+
+	_, err := i.client.PutObject(
+		context.Background(),
+		constants.UserObjectsBucketName, // Константа с именем бакета
+		imageName,
+		input.File,
+		input.Size,
+		opts,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return imageName, nil
+}
+
+func (i imageStorage) DeleteFile(name string) error {
+	opts := minio.RemoveObjectOptions{}
+
+	err := i.client.RemoveObject(
+		context.Background(),
+		constants.UserObjectsBucketName,
+		name,
+		opts,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

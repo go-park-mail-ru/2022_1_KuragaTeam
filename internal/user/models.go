@@ -1,5 +1,7 @@
 package user
 
+import "io"
+
 type User struct {
 	ID                  int64  `json:"id" form:"id"`
 	Name                string `json:"username" form:"username" validate:"nonzero" example:"name"`
@@ -33,6 +35,11 @@ type EditProfileDTO struct {
 	Password string `json:"password" form:"password"`
 }
 
+type EditAvatarDTO struct {
+	ID     int64  `json:"id" form:"id"`
+	Avatar string `json:"avatar" form:"avatar"`
+}
+
 type Response struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
@@ -41,4 +48,11 @@ type Response struct {
 type ResponseUserProfile struct {
 	Status   int             `json:"status"`
 	UserData *ProfileUserDTO `json:"user"`
+}
+
+type UploadInput struct {
+	UserID      int64
+	File        io.Reader
+	Size        int64
+	ContentType string
 }
