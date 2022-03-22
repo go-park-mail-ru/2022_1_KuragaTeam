@@ -2,16 +2,11 @@ package delivery
 
 import (
 	"github.com/labstack/echo/v4"
-	"myapp/internal"
 	"myapp/internal/api"
 	"myapp/internal/moviesCompilations"
 	"net/http"
+	"strconv"
 )
-
-type ResponseMovieCompilations struct {
-	Status           int                         `json:"status"`
-	MovieCompilation []internal.MovieCompilation `json:"moviesCompilation"`
-}
 
 type Response struct {
 	Status  int    `json:"status"`
@@ -19,8 +14,12 @@ type Response struct {
 }
 
 const (
-	MCByMovieIDURL = "api/v1/movieCompilations/:movie_id"
-	MCDefaultURL   = "/api/v1/movieCompilations"
+	MCByPersonURL = "api/v1/movieCompilations/person/:person_id"
+	MCByMovieURL  = "api/v1/movieCompilations/movie/:movie_id"
+	MCByGenreURL  = "api/v1/movieCompilations/genre/:genre_id"
+	MCTopURL      = "api/v1/movieCompilations/top"
+	MCYearTopURL  = "api/v1/movieCompilations/yearTop/:year"
+	MCDefaultURL  = "/api/v1/movieCompilations"
 )
 
 type handler struct {
@@ -33,29 +32,120 @@ func NewHandler(service moviesCompilations.Service) api.Handler {
 
 func (h *handler) Register(router *echo.Echo) {
 	router.GET(MCDefaultURL, h.GetMoviesCompilations())
-	router.GET(MCByMovieIDURL, h.GetMCByMovieID())
+	router.GET(MCByMovieURL, h.GetMCByMovieID())
+	router.GET(MCByGenreURL, h.GetMCByGenre())
+	router.GET(MCByPersonURL, h.GetMCByPersonID())
+	router.GET(MCTopURL, h.GetTopMC())
+	router.GET(MCYearTopURL, h.GetYearTopMC())
 }
 
 func (h *handler) GetMoviesCompilations() echo.HandlerFunc {
 	return func(context echo.Context) error {
-		mainMoviesCompilations, err := h.movieCompilationsService.GetMainCompilations(context)
+		mainMoviesCompilations, err := h.movieCompilationsService.GetMainCompilations()
 		if err != nil {
 			return context.JSON(http.StatusInternalServerError, &Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
-		return context.JSON(http.StatusOK, &ResponseMovieCompilations{
-			Status:           http.StatusOK,
-			MovieCompilation: mainMoviesCompilations,
-		})
+		return context.JSON(http.StatusOK, &mainMoviesCompilations)
 	}
 }
+
 func (h *handler) GetMCByMovieID() echo.HandlerFunc {
 	return func(context echo.Context) error {
-		return context.JSON(http.StatusInternalServerError, &Response{
-			Status:  http.StatusInternalServerError,
-			Message: "Not realised",
-		})
+		movieID, err := strconv.Atoi(context.Param("movie_id"))
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		selectedMC, err := h.movieCompilationsService.GetByMovie(movieID)
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		return context.JSON(http.StatusOK, &selectedMC)
+	}
+}
+
+func (h *handler) GetMCByGenre() echo.HandlerFunc {
+	return func(context echo.Context) error {
+		genreID, err := strconv.Atoi(context.Param("genre_id"))
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		selectedMC, err := h.movieCompilationsService.GetByGenre(genreID)
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		return context.JSON(http.StatusOK, &selectedMC)
+	}
+}
+
+func (h *handler) GetMCByPersonID() echo.HandlerFunc {
+	return func(context echo.Context) error {
+		personID, err := strconv.Atoi(context.Param("person_id"))
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		selectedMC, err := h.movieCompilationsService.GetByPerson(personID)
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		return context.JSON(http.StatusOK, &selectedMC)
+	}
+}
+
+func (h *handler) GetTopMC() echo.HandlerFunc {
+	return func(context echo.Context) error {
+		var limit int
+		echo.QueryParamsBinder(context).Int("limit", &limit)
+		if limit == 0 {
+			limit = 10
+		}
+		selectedMC, err := h.movieCompilationsService.GetTop(limit)
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		return context.JSON(http.StatusOK, &selectedMC)
+	}
+}
+
+func (h *handler) GetYearTopMC() echo.HandlerFunc {
+	return func(context echo.Context) error {
+		year, err := strconv.Atoi(context.Param("year"))
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		selectedMC, err := h.movieCompilationsService.GetTopByYear(year)
+		if err != nil {
+			return context.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		return context.JSON(http.StatusOK, &selectedMC)
 	}
 }

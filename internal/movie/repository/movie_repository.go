@@ -31,7 +31,7 @@ func (ms *movieStorage) GetOne(id int) (*internal.Movie, error) {
 	return &selectedMovie, nil
 }
 
-func (ms *movieStorage) GetRandomMovies(limit, offset int) ([]internal.Movie, error) {
+func (ms *movieStorage) GetAllMovies(limit, offset int) ([]internal.Movie, error) {
 	sql := "SELECT id, name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
 		"picture, video, trailer FROM movies LIMIT $1 OFFSET $2"
 

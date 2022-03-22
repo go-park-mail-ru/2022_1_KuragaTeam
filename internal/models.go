@@ -40,8 +40,3 @@ type Movie struct {
 	Genre   []string           `json:"genre"`
 	Staff   []PersonInMovieDTO `json:"staff"`
 }
-
-type MovieCompilation struct {
-	Name   string  `json:"compilationName"`
-	Movies []Movie `json:"movies"`
-}
