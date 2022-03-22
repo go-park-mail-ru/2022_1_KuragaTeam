@@ -3,6 +3,7 @@ package usecase
 import (
 	"io"
 	"myapp/internal/user"
+	"myapp/internal/utils/validation"
 )
 
 type service struct {
@@ -26,7 +27,7 @@ func (s *service) SignUp(dto *user.CreateUserDTO) (string, string, error) {
 		Password: dto.Password,
 	}
 
-	if err := ValidateUser(userModel); err != nil {
+	if err := validation.ValidateUser(userModel); err != nil {
 		return "", "", err
 	}
 

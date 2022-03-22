@@ -1,4 +1,4 @@
-package usecase
+package validation
 
 import (
 	"myapp/constants"

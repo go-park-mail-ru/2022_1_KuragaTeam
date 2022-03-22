@@ -4,6 +4,8 @@ import (
 	"context"
 	"myapp/constants"
 	"myapp/internal/user"
+	"myapp/internal/utils/hash"
+	"myapp/internal/utils/images"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -63,7 +65,7 @@ func (us *userStorage) IsUserExists(userModel *user.User) (int64, bool, error) {
 		return userID, false, err
 	}
 
-	result, err := ComparePasswords(signInUser.Password, signInUser.Salt, userModel.Password)
+	result, err := hash.ComparePasswords(signInUser.Password, signInUser.Salt, userModel.Password)
 	if err != nil {
 		return userID, false, constants.ErrWrongData
 	}
@@ -97,7 +99,7 @@ func (us *userStorage) CreateUser(userModel *user.User) (int64, error) {
 		return userID, err
 	}
 
-	hashPassword, err := HashAndSalt(userModel.Password, salt.String())
+	hashPassword, err := hash.HashAndSalt(userModel.Password, salt.String())
 	if err != nil {
 		return userID, err
 	}
@@ -163,7 +165,7 @@ func (us *userStorage) GetUserProfile(userID int64) (*user.User, error) {
 		return nil, err
 	}
 
-	avatarUrl, err := GenerateFileURL(avatar)
+	avatarUrl, err := images.GenerateFileURL(avatar, constants.UserObjectsBucketName)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +188,7 @@ func (us *userStorage) EditProfile(user *user.User) error {
 		return err
 	}
 
-	notChangedPassword, _ := ComparePasswords(oldPassword, oldSalt, user.Password)
+	notChangedPassword, _ := hash.ComparePasswords(oldPassword, oldSalt, user.Password)
 
 	switch {
 	case notChangedPassword == false && len(user.Password) != 0 && user.Name != oldName && len(user.Name) != 0:
@@ -195,7 +197,7 @@ func (us *userStorage) EditProfile(user *user.User) error {
 			return err
 		}
 
-		hashPassword, err := HashAndSalt(user.Password, salt.String())
+		hashPassword, err := hash.HashAndSalt(user.Password, salt.String())
 		if err != nil {
 			return err
 		}
@@ -215,7 +217,7 @@ func (us *userStorage) EditProfile(user *user.User) error {
 			return err
 		}
 
-		hashPassword, err := HashAndSalt(user.Password, salt.String())
+		hashPassword, err := hash.HashAndSalt(user.Password, salt.String())
 		if err != nil {
 			return err
 		}
@@ -265,7 +267,7 @@ func (us *userStorage) EditAvatar(user *user.User) (string, error) {
 }
 
 func (i imageStorage) UploadFile(input user.UploadInput) (string, error) {
-	imageName := GenerateObjectName(input)
+	imageName := images.GenerateObjectName(input)
 
 	opts := minio.PutObjectOptions{
 		ContentType:  input.ContentType,
