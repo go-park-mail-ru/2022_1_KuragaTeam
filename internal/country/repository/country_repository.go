@@ -23,6 +23,8 @@ func (ms *countryStorage) GetByMovieID(id int) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		var nextCountry string
 		if err = rows.Scan(&nextCountry); err != nil {

@@ -30,6 +30,8 @@ func (ss *staffStorage) GetByMovieID(id int) ([]internal.PersonInMovieDTO, error
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		var nextPerson internal.PersonInMovieDTO
 		if err = rows.Scan(&nextPerson.ID, &nextPerson.Name, &nextPerson.Photo, &nextPerson.Position); err != nil {

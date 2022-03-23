@@ -23,6 +23,8 @@ func (ms *genreStorage) GetByMovieID(id int) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		var nextGenre string
 		if err = rows.Scan(&nextGenre); err != nil {
