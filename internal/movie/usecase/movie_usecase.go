@@ -6,6 +6,7 @@ import (
 	"myapp/internal/genre"
 	"myapp/internal/movie"
 	"myapp/internal/persons"
+	"myapp/internal/utils/images"
 )
 
 type service struct {
@@ -19,6 +20,31 @@ func NewService(movieStorage movie.Storage, genreStorage genre.Storage,
 	countryStorage country.Storage, staffStorage persons.Storage) movie.Service {
 	return &service{movieStorage: movieStorage, genreStorage: genreStorage,
 		countryStorage: countryStorage, staffStorage: staffStorage}
+}
+
+func (s *service) concatURLs(movie *internal.Movie) error {
+	var err error
+	movie.Picture, err = images.GenerateFileURL(movie.Picture, "posters")
+	if err != nil {
+		return err
+	}
+
+	movie.Video, err = images.GenerateFileURL(movie.Video, "movie")
+	if err != nil {
+		return err
+	}
+
+	movie.Trailer, err = images.GenerateFileURL(movie.Trailer, "trailers")
+	if err != nil {
+		return err
+	}
+
+	movie.NamePicture, err = images.GenerateFileURL(movie.NamePicture, "logos")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) GetByID(id int) (*internal.Movie, error) {
@@ -42,6 +68,12 @@ func (s *service) GetByID(id int) (*internal.Movie, error) {
 	}
 
 	selectedMovie.Rating = 8.1 // пока что просто замокано
+
+	err = s.concatURLs(selectedMovie)
+	if err != nil {
+		return nil, err
+	}
+
 	return selectedMovie, nil
 }
 func (s *service) GetRandom(limit, offset int) ([]internal.Movie, error) {
@@ -57,10 +89,24 @@ func (s *service) GetRandom(limit, offset int) ([]internal.Movie, error) {
 		}
 
 		movies[i].Rating = 8.1 // пока что просто замокано
+
+		err = s.concatURLs(&movies[i])
+		if err != nil {
+			return nil, err
+		}
+
 	}
 	return movies, err
 }
 
 func (s *service) GetMainMovie() (*internal.MainMovieInfoDTO, error) {
-	return s.movieStorage.GetRandomMovie()
+	selectedMovie, err := s.movieStorage.GetRandomMovie()
+	if err != nil {
+		return nil, err
+	}
+	selectedMovie.Picture, err = images.GenerateFileURL(selectedMovie.Picture, "posters")
+	if err != nil {
+		return nil, err
+	}
+	return selectedMovie, err
 }

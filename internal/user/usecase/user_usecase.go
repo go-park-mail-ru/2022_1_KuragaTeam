@@ -3,6 +3,8 @@ package usecase
 import (
 	"io"
 	"myapp/internal/user"
+	"myapp/internal/utils/constants"
+	"myapp/internal/utils/validation"
 )
 
 type service struct {
@@ -26,7 +28,7 @@ func (s *service) SignUp(dto *user.CreateUserDTO) (string, string, error) {
 		Password: dto.Password,
 	}
 
-	if err := ValidateUser(userModel); err != nil {
+	if err := validation.ValidateUser(userModel); err != nil {
 		return "", "", err
 	}
 
@@ -129,7 +131,7 @@ func (s *service) EditAvatar(dto *user.EditAvatarDTO) error {
 		return err
 	}
 
-	if oldAvatar != "default_avatar.webp" {
+	if oldAvatar != constants.DefaultImage {
 		err = s.imageStorage.DeleteFile(oldAvatar)
 		if err != nil {
 			return err

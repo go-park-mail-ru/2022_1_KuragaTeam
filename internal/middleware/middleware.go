@@ -1,7 +1,8 @@
-package user
+package middleware
 
 import (
 	"myapp/internal/api"
+	"myapp/internal/user"
 	"net/http"
 	"time"
 
@@ -10,10 +11,10 @@ import (
 )
 
 type Middleware struct {
-	userService Service
+	userService user.Service
 }
 
-func NewMiddleware(service Service) api.Middleware {
+func NewMiddleware(service user.Service) api.Middleware {
 	return &Middleware{userService: service}
 }
 

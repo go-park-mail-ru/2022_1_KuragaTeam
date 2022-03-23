@@ -38,6 +38,7 @@ func (ms *movieCompilationsStorage) GetByGenre(genreID int) (moviesCompilations.
 	}
 
 	rows, err := ms.db.Query(context.Background(), getByGenreSQL, genreID)
+	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
@@ -55,6 +56,7 @@ func (ms *movieCompilationsStorage) GetByMovie(movieID int) (moviesCompilations.
 	selectedMC.Name = "Похожие по жанру"
 
 	rows, err := ms.db.Query(context.Background(), getByMovieSQL, movieID)
+	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
@@ -75,6 +77,7 @@ func (ms *movieCompilationsStorage) GetByPerson(personID int) (moviesCompilation
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 	selectedMovieCompilation.Name = "Фильмография"
 	rows, err := ms.db.Query(context.Background(), getByPersonSQL, personID)
+	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
@@ -92,6 +95,7 @@ func (ms *movieCompilationsStorage) GetTop(limit int) (moviesCompilations.MovieC
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 	selectedMovieCompilation.Name = "Топ рейтинга"
 	rows, err := ms.db.Query(context.Background(), getTopSQL, limit)
+	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
@@ -109,6 +113,7 @@ func (ms *movieCompilationsStorage) GetTopByYear(year int) (moviesCompilations.M
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 	selectedMovieCompilation.Name = fmt.Sprintf("Лучшее за %d год", year)
 	rows, err := ms.db.Query(context.Background(), getTopByYearSQL, year)
+	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie

@@ -1,8 +1,8 @@
-package usecase
+package validation
 
 import (
-	"myapp/constants"
 	"myapp/internal/user"
+	"myapp/internal/utils/constants"
 	"strings"
 	"unicode"
 

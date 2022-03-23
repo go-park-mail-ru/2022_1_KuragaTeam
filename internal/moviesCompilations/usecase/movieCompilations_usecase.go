@@ -3,6 +3,7 @@ package usecase
 import (
 	"myapp/internal/genre"
 	"myapp/internal/moviesCompilations"
+	"myapp/internal/utils/images"
 )
 
 type service struct {
@@ -25,90 +26,18 @@ func (s *service) fillGenres(MC *moviesCompilations.MovieCompilation) error {
 	return nil
 }
 
+func (s *service) concatUrls(MC *moviesCompilations.MovieCompilation) error {
+	var err error
+	for i, _ := range MC.Movies {
+		MC.Movies[i].Picture, err = images.GenerateFileURL(MC.Movies[i].Picture, "posters")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *service) GetMainCompilations() ([]moviesCompilations.MovieCompilation, error) {
-	//movieCompilations := []moviesCompilations.MovieCompilation{
-	//	{
-	//		Name: "Популярное",
-	//		Movies: []moviesCompilations.Movie{
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны1",
-	//				Picture: "star.png",
-	//				Genre:   []string{"Фантастика1"},
-	//			},
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны2",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика2"},
-	//			},
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны3",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика3"},
-	//			},
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны4",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика4"},
-	//			},
-	//		},
-	//	},
-	//	{
-	//		Name: "Топ",
-	//		Movies: []moviesCompilations.Movie{
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны#1",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика"},
-	//			},
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны#2",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика"},
-	//			},
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны#3",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика"},
-	//			},
-	//		},
-	//	},
-	//	{
-	//		Name: "Семейное",
-	//		Movies: []moviesCompilations.Movie{
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны#1",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика"},
-	//			},
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны#2",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика"},
-	//			},
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны#3",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика"},
-	//			},
-	//			{
-	//				ID:      0,
-	//				Name:    "Звездные войны4",
-	//				Picture: "",
-	//				Genre:   []string{"Фантастика4"},
-	//			},
-	//		},
-	//	},
-	//}
 
 	MC := make([]moviesCompilations.MovieCompilation, 0)
 
@@ -138,8 +67,11 @@ func (s *service) GetByMovie(movieID int) (moviesCompilations.MovieCompilation, 
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
-
 	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.concatUrls(&MC)
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
@@ -155,6 +87,10 @@ func (s *service) GetByGenre(genreID int) (moviesCompilations.MovieCompilation, 
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
+	err = s.concatUrls(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
 	return MC, nil
 }
 
@@ -167,6 +103,10 @@ func (s *service) GetByPerson(personID int) (moviesCompilations.MovieCompilation
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
+	err = s.concatUrls(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
 	return MC, nil
 }
 func (s *service) GetTopByYear(year int) (moviesCompilations.MovieCompilation, error) {
@@ -175,6 +115,10 @@ func (s *service) GetTopByYear(year int) (moviesCompilations.MovieCompilation, e
 		return moviesCompilations.MovieCompilation{}, err
 	}
 	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.concatUrls(&MC)
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
@@ -190,6 +134,10 @@ func (s *service) GetTop(limit int) (moviesCompilations.MovieCompilation, error)
 		return moviesCompilations.MovieCompilation{}, err
 	}
 	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.concatUrls(&MC)
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
