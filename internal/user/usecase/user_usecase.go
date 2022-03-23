@@ -3,6 +3,7 @@ package usecase
 import (
 	"io"
 	"myapp/internal/user"
+	"myapp/internal/utils/constants"
 	"myapp/internal/utils/validation"
 )
 
@@ -130,7 +131,7 @@ func (s *service) EditAvatar(dto *user.EditAvatarDTO) error {
 		return err
 	}
 
-	if oldAvatar != "default_avatar.webp" {
+	if oldAvatar != constants.DefaultImage {
 		err = s.imageStorage.DeleteFile(oldAvatar)
 		if err != nil {
 			return err

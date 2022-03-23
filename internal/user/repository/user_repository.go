@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"myapp/constants"
 	"myapp/internal/user"
+	"myapp/internal/utils/constants"
 	"myapp/internal/utils/hash"
 	"myapp/internal/utils/images"
 	"time"
@@ -104,9 +104,9 @@ func (us *userStorage) CreateUser(userModel *user.User) (int64, error) {
 		return userID, err
 	}
 
-	sql := "INSERT INTO users(username, email, password, salt, avatar, subscription_expires) VALUES($1, $2, $3, $4, 'default_avatar.webp', LOCALTIMESTAMP) RETURNING id"
+	sql := "INSERT INTO users(username, email, password, salt, avatar, subscription_expires) VALUES($1, $2, $3, $4, $5, LOCALTIMESTAMP) RETURNING id"
 
-	if err = us.db.QueryRow(context.Background(), sql, userModel.Name, userModel.Email, hashPassword, salt).Scan(&userID); err != nil {
+	if err = us.db.QueryRow(context.Background(), sql, userModel.Name, userModel.Email, hashPassword, salt, constants.DefaultImage).Scan(&userID); err != nil {
 		return userID, err
 	}
 

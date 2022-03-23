@@ -2,6 +2,7 @@ package composites
 
 import (
 	api2 "myapp/internal/api"
+	"myapp/internal/middleware"
 	"myapp/internal/user"
 	"myapp/internal/user/delivery"
 	"myapp/internal/user/repository"
@@ -21,7 +22,7 @@ func NewUserComposite(postgresComposite *PostgresDBComposite, redisComposite *Re
 	minio := repository.NewImageStorage(minioComposite.client)
 	service := usecase.NewService(storage, redis, minio)
 	handler := delivery.NewHandler(service)
-	middleware := user.NewMiddleware(service)
+	middleware := middleware.NewMiddleware(service)
 	return &UserComposite{
 		Storage:    storage,
 		Service:    service,
