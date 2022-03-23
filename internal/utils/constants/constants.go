@@ -12,4 +12,5 @@ var (
 
 const (
 	UserObjectsBucketName = "avatars"
+	DefaultImage          = "default_avatar.webp"
 )

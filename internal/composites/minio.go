@@ -2,7 +2,7 @@ package composites
 
 import (
 	"context"
-	"myapp/constants"
+	"myapp/internal/utils/constants"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -28,7 +28,7 @@ func NewMinioComposite() (*MinioComposite, error) {
 		return nil, err
 	}
 
-	imageName := "default_avatar.webp"
+	imageName := constants.DefaultImage
 	file, err := os.Open(imageName)
 	if err != nil {
 		return nil, err
