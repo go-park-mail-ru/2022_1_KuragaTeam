@@ -29,5 +29,13 @@ func (s *service) GetByID(id int) (*internal.Person, error) {
 	if err != nil {
 		return nil, err
 	}
+	person.AdditPhoto1, err = images.GenerateFileURL(person.AdditPhoto1, "persons")
+	if err != nil {
+		return nil, err
+	}
+	person.AdditPhoto2, err = images.GenerateFileURL(person.AdditPhoto2, "persons")
+	if err != nil {
+		return nil, err
+	}
 	return person, nil
 }

@@ -11,6 +11,8 @@ type Person struct {
 	ID          int      `json:"id" form:"id"`
 	Name        string   `json:"name" form:"name"`
 	Photo       string   `json:"photo" form:"photo"`
+	AdditPhoto1 string   `json:"addit_photo_1" form:"addit_photo_1"`
+	AdditPhoto2 string   `json:"addit_photo_2" form:"addit_photo_2"`
 	Description string   `json:"description" form:"description"`
 	Position    []string `json:"position" form:"position"`
 }

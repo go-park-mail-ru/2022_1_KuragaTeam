@@ -232,12 +232,28 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
      id serial constraint person_pk primary key,
      name varchar(60) not null unique,
      photo varchar(255) not null,
+     addit_photo1 varchar(255),
+     addit_photo2 varchar(255),
      description varchar(1024) not null
   );
 
-  INSERT INTO person(name, photo, description) VALUES('Джосс Уидон', 'JossWhedon.png', 'Родился 23 июня 1964 года.');
-  INSERT INTO person(name, photo, description) VALUES('Кевин Файги', 'KevinFeige.png', 'Родился 2 июня 1973 года.');
-  INSERT INTO person(name, photo, description) VALUES('Роберт Дауни мл.', 'RobertDowneyJr.png', 'Родился 4 апреля 1965 года.');
+  INSERT INTO person(name, photo, addit_photo1, addit_photo2, description) VALUES('Джосс Уидон', 'JossWhedon.webp',
+          'JossWhedon1.webp', 'JossWhedon2.webp', 'Родился 23 июня 1964 года. Американский режиссёр, сценарист, актёр и ' ||
+          'продюсер, автор комиксов. Наибольшую известность получил в качестве создателя сериала «Баффи — ' ||
+          'истребительница вампиров». Среди других его известных работ — сериалы «Ангел», «Светлячок», «Кукольный дом», ' ||
+          '«Агенты „Щ. И. Т.“», фильмы «Миссия „Серенити“» (2005), «Мстители» (2012) и «Мстители: Эра Альтрона» (2015).');
+
+  INSERT INTO person(name, photo, addit_photo1, addit_photo2, description) VALUES('Кевин Файги', 'KevinFeige.webp',
+          'KevinFeige1.webp', 'KevinFeige2.webp', 'Родился 2 июня 1973 года. Американский продюсер и глава Marvel ' ||
+          'Studios, известный благодаря продюсированию высокобюджетных экранизаций комиксов компании Marvel ' ||
+          'Entertainment. Газета The New York Times в 2011 году назвала Файги «одним из самых могущественных ' ||
+          'людей в кино».');
+
+  INSERT INTO person(name, photo, addit_photo1, addit_photo2, description) VALUES('Роберт Дауни мл.',
+          'RobertDowneyJr.webp', 'RobertDowneyJr1.webp', 'RobertDowneyJr2.webp', 'Родился 4 апреля 1965 года. ' ||
+         'Американский актёр, продюсер и музыкант. Лауреат премий «Золотой глобус» (2001, 2010), BAFTA (1993), ' ||
+         'премии Гильдии киноактёров США (2001) и «Сатурн» (1994, 2009, 2014, 2019), номинант на премии «Оскар» ' ||
+         '(1993, 2009) и «Эмми» (2001).');
 
   CREATE TABLE IF NOT EXISTS position(
       id serial constraint position_pk primary key,
