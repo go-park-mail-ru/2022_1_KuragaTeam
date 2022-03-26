@@ -67,6 +67,13 @@ func (s *service) GetByID(id int) (*internal.Movie, error) {
 		return nil, err
 	}
 
+	for i, _ := range selectedMovie.Staff {
+		selectedMovie.Staff[i].Photo, err = images.GenerateFileURL(selectedMovie.Staff[i].Photo, "persons")
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	selectedMovie.Rating = 8.1 // пока что просто замокано
 
 	err = s.concatURLs(selectedMovie)
