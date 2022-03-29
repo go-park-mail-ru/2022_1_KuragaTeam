@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"myapp/internal/user"
 	"myapp/internal/utils/constants"
 	"myapp/internal/utils/hash"
@@ -10,12 +11,11 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/gomodule/redigo/redis"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/minio/minio-go/v7"
 )
 
 type userStorage struct {
-	db *pgxpool.Pool
+	db *sql.DB
 }
 
 type redisStore struct {
@@ -26,7 +26,7 @@ type imageStorage struct {
 	client *minio.Client
 }
 
-func NewStorage(db *pgxpool.Pool) user.Storage {
+func NewStorage(db *sql.DB) user.Storage {
 	return &userStorage{db: db}
 }
 
@@ -40,8 +40,8 @@ func NewImageStorage(client *minio.Client) user.ImageStorage {
 
 func (us *userStorage) IsUserExists(userModel *user.User) (int64, bool, error) {
 	var userID int64
-	sql := "SELECT id, password, salt FROM users WHERE email=$1"
-	rows, err := us.db.Query(context.Background(), sql, userModel.Email)
+	sqlScript := "SELECT id, password, salt FROM users WHERE email=$1"
+	rows, err := us.db.Query(sqlScript, userModel.Email)
 	if err != nil {
 		return userID, false, err
 	}
@@ -74,8 +74,8 @@ func (us *userStorage) IsUserExists(userModel *user.User) (int64, bool, error) {
 }
 
 func (us *userStorage) IsUserUnique(userModel *user.User) (bool, error) {
-	sql := "SELECT * FROM users WHERE email=$1"
-	rows, err := us.db.Query(context.Background(), sql, userModel.Email)
+	sqlScript := "SELECT * FROM users WHERE email=$1"
+	rows, err := us.db.Query(sqlScript, userModel.Email)
 
 	if err != nil {
 		return false, err
@@ -104,9 +104,9 @@ func (us *userStorage) CreateUser(userModel *user.User) (int64, error) {
 		return userID, err
 	}
 
-	sql := "INSERT INTO users(username, email, password, salt, avatar, subscription_expires) VALUES($1, $2, $3, $4, $5, LOCALTIMESTAMP) RETURNING id"
+	sqlScript := "INSERT INTO users(username, email, password, salt, avatar, subscription_expires) VALUES($1, $2, $3, $4, $5, LOCALTIMESTAMP) RETURNING id"
 
-	if err = us.db.QueryRow(context.Background(), sql, userModel.Name, userModel.Email, hashPassword, salt, constants.DefaultImage).Scan(&userID); err != nil {
+	if err = us.db.QueryRow(sqlScript, userModel.Name, userModel.Email, hashPassword, salt, constants.DefaultImage).Scan(&userID); err != nil {
 		return userID, err
 	}
 
@@ -156,10 +156,10 @@ func (r *redisStore) DeleteSession(session string) error {
 }
 
 func (us *userStorage) GetUserProfile(userID int64) (*user.User, error) {
-	sql := "SELECT username, email, avatar FROM users WHERE id=$1"
+	sqlScript := "SELECT username, email, avatar FROM users WHERE id=$1"
 
 	var name, email, avatar string
-	err := us.db.QueryRow(context.Background(), sql, userID).Scan(&name, &email, &avatar)
+	err := us.db.QueryRow(sqlScript, userID).Scan(&name, &email, &avatar)
 
 	if err != nil {
 		return nil, err
@@ -180,10 +180,10 @@ func (us *userStorage) GetUserProfile(userID int64) (*user.User, error) {
 }
 
 func (us *userStorage) EditProfile(user *user.User) error {
-	sql := "SELECT username, password, salt FROM users WHERE id=$1"
+	sqlScript := "SELECT username, password, salt FROM users WHERE id=$1"
 
 	var oldName, oldPassword, oldSalt string
-	err := us.db.QueryRow(context.Background(), sql, user.ID).Scan(&oldName, &oldPassword, &oldSalt)
+	err := us.db.QueryRow(sqlScript, user.ID).Scan(&oldName, &oldPassword, &oldSalt)
 	if err != nil {
 		return err
 	}
@@ -202,9 +202,9 @@ func (us *userStorage) EditProfile(user *user.User) error {
 			return err
 		}
 
-		sql := "UPDATE users SET username = $2, password = $3, salt = $4 WHERE id = $1"
+		sqlScript := "UPDATE users SET username = $2, password = $3, salt = $4 WHERE id = $1"
 
-		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name, hashPassword, salt)
+		_, err = us.db.Exec(sqlScript, user.ID, user.Name, hashPassword, salt)
 		if err != nil {
 			return err
 		}
@@ -222,9 +222,9 @@ func (us *userStorage) EditProfile(user *user.User) error {
 			return err
 		}
 
-		sql := "UPDATE users SET password = $2, salt = $3 WHERE id = $1"
+		sqlScript := "UPDATE users SET password = $2, salt = $3 WHERE id = $1"
 
-		_, err = us.db.Exec(context.Background(), sql, user.ID, hashPassword, salt)
+		_, err = us.db.Exec(sqlScript, user.ID, hashPassword, salt)
 		if err != nil {
 			return err
 		}
@@ -232,9 +232,9 @@ func (us *userStorage) EditProfile(user *user.User) error {
 		return nil
 
 	default:
-		sql := "UPDATE users SET username = $2 WHERE id = $1"
+		sqlScript := "UPDATE users SET username = $2 WHERE id = $1"
 
-		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Name)
+		_, err = us.db.Exec(sqlScript, user.ID, user.Name)
 		if err != nil {
 			return err
 		}
@@ -244,18 +244,18 @@ func (us *userStorage) EditProfile(user *user.User) error {
 }
 
 func (us *userStorage) EditAvatar(user *user.User) (string, error) {
-	sql := "SELECT avatar FROM users WHERE id=$1"
+	sqlScript := "SELECT avatar FROM users WHERE id=$1"
 
 	var oldAvatar string
-	err := us.db.QueryRow(context.Background(), sql, user.ID).Scan(&oldAvatar)
+	err := us.db.QueryRow(sqlScript, user.ID).Scan(&oldAvatar)
 	if err != nil {
 		return "", err
 	}
 
 	if len(user.Avatar) != 0 {
-		sql := "UPDATE users SET avatar = $2 WHERE id = $1"
+		sqlScript := "UPDATE users SET avatar = $2 WHERE id = $1"
 
-		_, err = us.db.Exec(context.Background(), sql, user.ID, user.Avatar)
+		_, err = us.db.Exec(sqlScript, user.ID, user.Avatar)
 		if err != nil {
 			return "", err
 		}

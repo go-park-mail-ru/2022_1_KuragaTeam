@@ -1,16 +1,16 @@
 package composites
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/jackc/pgx/stdlib"
 	"github.com/joho/godotenv"
-	"golang.org/x/net/context"
 )
 
 type PostgresDBComposite struct {
-	db *pgxpool.Pool
+	db *sql.DB
 }
 
 func NewPostgresDBComposite() (*PostgresDBComposite, error) {
@@ -22,10 +22,15 @@ func NewPostgresDBComposite() (*PostgresDBComposite, error) {
 		os.Getenv("DBHOST"), os.Getenv("DBPORT"), os.Getenv("DBUSER"),
 		os.Getenv("DBPASSWORD"), os.Getenv("DBNAME"))
 
-	dbPool, err := pgxpool.Connect(context.Background(), psqlInfo)
+	db, err := sql.Open("pgx", psqlInfo)
 	if err != nil {
 		return nil, err
 	}
 
-	return &PostgresDBComposite{db: dbPool}, nil
+	err = db.Ping() // вот тут будет первое подключение к базе
+	if err != nil {
+		return nil, err
+	}
+
+	return &PostgresDBComposite{db: db}, nil
 }

@@ -1,25 +1,24 @@
 package repository
 
 import (
-	"context"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"database/sql"
 	"myapp/internal/country"
 )
 
 type countryStorage struct {
-	db *pgxpool.Pool
+	db *sql.DB
 }
 
-func NewStorage(db *pgxpool.Pool) country.Storage {
+func NewStorage(db *sql.DB) country.Storage {
 	return &countryStorage{db: db}
 }
 
 func (ms *countryStorage) GetByMovieID(id int) ([]string, error) {
 	countries := make([]string, 0)
 
-	sql := "SELECT c.name FROM country AS c JOIN movies_countries mv_c ON mv_c.country_id = c.id " +
+	sqlScript := "SELECT c.name FROM country AS c JOIN movies_countries mv_c ON mv_c.country_id = c.id " +
 		"WHERE mv_c.movie_id = $1"
-	rows, err := ms.db.Query(context.Background(), sql, id)
+	rows, err := ms.db.Query(sqlScript, id)
 	if err != nil {
 		return nil, err
 	}
