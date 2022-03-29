@@ -1,26 +1,25 @@
 package repository
 
 import (
-	"context"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"database/sql"
 	"myapp/internal"
 	"myapp/internal/movie"
 )
 
 type movieStorage struct {
-	db *pgxpool.Pool
+	db *sql.DB
 }
 
-func NewStorage(db *pgxpool.Pool) movie.Storage {
+func NewStorage(db *sql.DB) movie.Storage {
 	return &movieStorage{db: db}
 }
 
 func (ms *movieStorage) GetOne(id int) (*internal.Movie, error) {
-	sql := "SELECT id, name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
+	sqlScript := "SELECT id, name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
 		"picture, video, trailer FROM movies WHERE id=$1"
 
 	var selectedMovie internal.Movie
-	err := ms.db.QueryRow(context.Background(), sql, id).Scan(&selectedMovie.ID, &selectedMovie.Name,
+	err := ms.db.QueryRow(sqlScript, id).Scan(&selectedMovie.ID, &selectedMovie.Name,
 		&selectedMovie.NamePicture, &selectedMovie.Year, &selectedMovie.Duration, &selectedMovie.AgeLimit,
 		&selectedMovie.Description, &selectedMovie.KinopoiskRating, &selectedMovie.Tagline, &selectedMovie.Picture,
 		&selectedMovie.Video, &selectedMovie.Trailer)
@@ -32,12 +31,12 @@ func (ms *movieStorage) GetOne(id int) (*internal.Movie, error) {
 }
 
 func (ms *movieStorage) GetAllMovies(limit, offset int) ([]internal.Movie, error) {
-	sql := "SELECT id, name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
+	sqlScript := "SELECT id, name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
 		"picture, video, trailer FROM movies LIMIT $1 OFFSET $2"
 
 	selectedMovies := make([]internal.Movie, 0, limit)
 
-	rows, err := ms.db.Query(context.Background(), sql, limit, offset)
+	rows, err := ms.db.Query(sqlScript, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -57,10 +56,10 @@ func (ms *movieStorage) GetAllMovies(limit, offset int) ([]internal.Movie, error
 }
 
 func (ms *movieStorage) GetRandomMovie() (*internal.MainMovieInfoDTO, error) {
-	sql := "SELECT id, name, tagline, picture FROM movies ORDER BY RANDOM() LIMIT 1"
+	sqlScript := "SELECT id, name, tagline, picture FROM movies ORDER BY RANDOM() LIMIT 1"
 
 	var mainMovie internal.MainMovieInfoDTO
-	err := ms.db.QueryRow(context.Background(), sql).Scan(&(mainMovie.ID), &(mainMovie.Name),
+	err := ms.db.QueryRow(sqlScript).Scan(&(mainMovie.ID), &(mainMovie.Name),
 		&(mainMovie.Tagline), &(mainMovie.Picture))
 	if err != nil {
 		return nil, err

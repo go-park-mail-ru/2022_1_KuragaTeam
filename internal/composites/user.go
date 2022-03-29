@@ -7,6 +7,8 @@ import (
 	"myapp/internal/user/delivery"
 	"myapp/internal/user/repository"
 	"myapp/internal/user/usecase"
+
+	"go.uber.org/zap"
 )
 
 type UserComposite struct {
@@ -16,13 +18,13 @@ type UserComposite struct {
 	Middleware api2.Middleware
 }
 
-func NewUserComposite(postgresComposite *PostgresDBComposite, redisComposite *RedisComposite, minioComposite *MinioComposite) (*UserComposite, error) {
+func NewUserComposite(postgresComposite *PostgresDBComposite, redisComposite *RedisComposite, minioComposite *MinioComposite, logger *zap.SugaredLogger) (*UserComposite, error) {
 	storage := repository.NewStorage(postgresComposite.db)
 	redis := repository.NewRedisStore(redisComposite.redis)
 	minio := repository.NewImageStorage(minioComposite.client)
 	service := usecase.NewService(storage, redis, minio)
-	handler := delivery.NewHandler(service)
-	middleware := middleware.NewMiddleware(service)
+	handler := delivery.NewHandler(service, logger)
+	middleware := middleware.NewMiddleware(service, logger)
 	return &UserComposite{
 		Storage:    storage,
 		Service:    service,

@@ -1,17 +1,16 @@
 package repository
 
 import (
-	"context"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"database/sql"
 	"myapp/internal"
 	"myapp/internal/persons"
 )
 
 type staffStorage struct {
-	db *pgxpool.Pool
+	db *sql.DB
 }
 
-func NewStorage(db *pgxpool.Pool) persons.Storage {
+func NewStorage(db *sql.DB) persons.Storage {
 	return &staffStorage{db: db}
 }
 
@@ -26,7 +25,7 @@ const (
 func (ss *staffStorage) GetByMovieID(id int) ([]internal.PersonInMovieDTO, error) {
 	movieStaff := make([]internal.PersonInMovieDTO, 0)
 
-	rows, err := ss.db.Query(context.Background(), sqlGetByMovieID, id)
+	rows, err := ss.db.Query(sqlGetByMovieID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +45,9 @@ func (ss *staffStorage) GetByMovieID(id int) ([]internal.PersonInMovieDTO, error
 func (ss *staffStorage) GetByPersonID(id int) (*internal.Person, error) {
 	var selectedPerson internal.Person
 
-	err := ss.db.QueryRow(context.Background(), sqlGetByPersonID, id).Scan(&selectedPerson.ID, &selectedPerson.Name,
+	err := ss.db.QueryRow(sqlGetByPersonID, id).Scan(&selectedPerson.ID, &selectedPerson.Name,
 		&selectedPerson.Photo, &selectedPerson.AdditPhoto1, &selectedPerson.AdditPhoto2, &selectedPerson.Description)
+
 	if err != nil {
 		return nil, err
 	}
