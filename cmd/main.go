@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"log"
 	"myapp/internal/composites"
@@ -17,6 +19,12 @@ import (
 // @schemes http
 func main() {
 	echoServer := echo.New()
+
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 
 	postgresDBC, err := composites.NewPostgresDBComposite()
 	if err != nil {
@@ -51,10 +59,11 @@ func main() {
 	}
 	moviesCompilationsComposite.Handler.Register(echoServer)
 
-	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite, minioComposite)
+	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite, minioComposite, logger)
 	if err != nil {
 		log.Fatal("user composite failed")
 	}
+
 	userComposite.Middleware.Register(echoServer)
 	userComposite.Handler.Register(echoServer)
 

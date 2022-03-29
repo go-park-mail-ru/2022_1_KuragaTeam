@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 )
 
 const (
@@ -18,6 +19,17 @@ const (
 	avatarURL  = "/api/v1/avatar"
 )
 
+const (
+	UserNotFound           = "User not found"
+	UserCanBeLoggedIn      = "User can be logged in"
+	UserCreated            = "User created"
+	SessionRequired        = "Session required"
+	UserIsUnauthorized     = "User is unauthorized"
+	UserIsLoggedOut        = "User is logged out"
+	FileTypeIsNotSupported = "File type is not supported"
+	ProfileIsEdited        = "Profile is edited"
+)
+
 var (
 	IMAGE_TYPES = map[string]interface{}{
 		"image/jpeg": nil,
@@ -27,10 +39,14 @@ var (
 
 type handler struct {
 	userService user.Service
+	logger      *zap.SugaredLogger
 }
 
-func NewHandler(service user.Service) api.Handler {
-	return &handler{userService: service}
+func NewHandler(service user.Service, logger *zap.SugaredLogger) api.Handler {
+	return &handler{
+		userService: service,
+		logger:      logger,
+	}
 }
 
 func (h *handler) Register(router *echo.Echo) {
@@ -45,8 +61,14 @@ func (h *handler) Register(router *echo.Echo) {
 func (h *handler) SignUp() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userData := user.CreateUserDTO{}
+		requestID := ctx.Get("REQUEST_ID").(string)
 
 		if err := ctx.Bind(&userData); err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -56,6 +78,11 @@ func (h *handler) SignUp() echo.HandlerFunc {
 		session, msg, err := h.userService.SignUp(&userData)
 
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -63,6 +90,11 @@ func (h *handler) SignUp() echo.HandlerFunc {
 		}
 
 		if len(session) == 0 {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", msg),
+				zap.Int("ANSWER STATUS", http.StatusBadRequest),
+			)
 			return ctx.JSON(http.StatusBadRequest, &user.Response{
 				Status:  http.StatusBadRequest,
 				Message: msg,
@@ -79,9 +111,14 @@ func (h *handler) SignUp() echo.HandlerFunc {
 
 		ctx.SetCookie(&cookie)
 
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusCreated),
+		)
+
 		return ctx.JSON(http.StatusCreated, &user.Response{
 			Status:  http.StatusCreated,
-			Message: "OK: User created",
+			Message: UserCreated,
 		})
 	}
 }
@@ -89,8 +126,14 @@ func (h *handler) SignUp() echo.HandlerFunc {
 func (h *handler) LogIn() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userData := user.LogInUserDTO{}
+		requestID := ctx.Get("REQUEST_ID").(string)
 
 		if err := ctx.Bind(&userData); err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -100,6 +143,11 @@ func (h *handler) LogIn() echo.HandlerFunc {
 		session, err := h.userService.LogIn(&userData)
 
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -107,9 +155,14 @@ func (h *handler) LogIn() echo.HandlerFunc {
 		}
 
 		if len(session) == 0 {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", UserNotFound),
+				zap.Int("ANSWER STATUS", http.StatusNotFound),
+			)
 			return ctx.JSON(http.StatusNotFound, &user.Response{
 				Status:  http.StatusNotFound,
-				Message: "ERROR: User not found",
+				Message: UserNotFound,
 			})
 		}
 
@@ -123,38 +176,65 @@ func (h *handler) LogIn() echo.HandlerFunc {
 
 		ctx.SetCookie(&cookie)
 
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
 		return ctx.JSON(http.StatusOK, &user.Response{
 			Status:  http.StatusOK,
-			Message: "OK: User can be logged in",
+			Message: UserCanBeLoggedIn,
 		})
 	}
 }
 
 func (h *handler) GetUserProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
+		requestID := ctx.Get("REQUEST_ID").(string)
 		userID, ok := ctx.Get("USER_ID").(int64)
+
 		if !ok {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
-				Message: "ERROR: Session required",
+				Message: SessionRequired,
 			})
 		}
 
 		if userID == -1 {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
 			return ctx.JSON(http.StatusUnauthorized, &user.Response{
 				Status:  http.StatusUnauthorized,
-				Message: "ERROR: User is unauthorized",
+				Message: UserIsUnauthorized,
 			})
 		}
 
 		userData, err := h.userService.GetUserProfile(userID)
 
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
+
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
 
 		return ctx.JSON(http.StatusOK, &user.ResponseUserProfile{
 			Status:   http.StatusOK,
@@ -165,8 +245,16 @@ func (h *handler) GetUserProfile() echo.HandlerFunc {
 
 func (h *handler) LogOut() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
+		requestID := ctx.Get("REQUEST_ID").(string)
+
 		cookie, err := ctx.Cookie("Session_cookie")
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -175,6 +263,11 @@ func (h *handler) LogOut() echo.HandlerFunc {
 
 		err = h.userService.LogOut(cookie.Value)
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -184,27 +277,44 @@ func (h *handler) LogOut() echo.HandlerFunc {
 		cookie.Expires = time.Now().AddDate(0, 0, -1)
 		ctx.SetCookie(cookie)
 
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
 		return ctx.JSON(http.StatusOK, &user.Response{
 			Status:  http.StatusOK,
-			Message: "OK: User is logged out",
+			Message: UserIsLoggedOut,
 		})
 	}
 }
 
 func (h *handler) EditAvatar() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
+		requestID := ctx.Get("REQUEST_ID").(string)
+
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
-				Message: "ERROR: Session required",
+				Message: SessionRequired,
 			})
 		}
 
 		if userID == -1 {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
 			return ctx.JSON(http.StatusUnauthorized, &user.Response{
 				Status:  http.StatusUnauthorized,
-				Message: "ERROR: User is unauthorized",
+				Message: UserIsUnauthorized,
 			})
 		}
 
@@ -216,6 +326,11 @@ func (h *handler) EditAvatar() echo.HandlerFunc {
 
 		file, err := ctx.FormFile("file")
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -224,6 +339,11 @@ func (h *handler) EditAvatar() echo.HandlerFunc {
 
 		src, err := file.Open()
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -234,6 +354,11 @@ func (h *handler) EditAvatar() echo.HandlerFunc {
 		_, err = src.Read(buffer)
 		src.Close()
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -244,6 +369,11 @@ func (h *handler) EditAvatar() echo.HandlerFunc {
 		src, err = file.Open()
 		defer src.Close()
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -254,14 +384,24 @@ func (h *handler) EditAvatar() echo.HandlerFunc {
 
 		// Validate File Type
 		if _, ex := IMAGE_TYPES[fileType]; !ex {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", FileTypeIsNotSupported),
+				zap.Int("ANSWER STATUS", http.StatusBadRequest),
+			)
 			return ctx.JSON(http.StatusBadRequest, &user.Response{
 				Status:  http.StatusBadRequest,
-				Message: "file type is not supported",
+				Message: FileTypeIsNotSupported,
 			})
 		}
 
 		fileName, err = h.userService.UploadAvatar(src, file.Size, fileType, userID)
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -272,33 +412,55 @@ func (h *handler) EditAvatar() echo.HandlerFunc {
 
 		err = h.userService.EditAvatar(&userData)
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
 		return ctx.JSON(http.StatusOK, &user.Response{
 			Status:  http.StatusOK,
-			Message: "OK: Profile is edited",
+			Message: ProfileIsEdited,
 		})
 	}
 }
 
 func (h *handler) EditProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
+		requestID := ctx.Get("REQUEST_ID").(string)
+
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
-				Message: "ERROR: Session required",
+				Message: SessionRequired,
 			})
 		}
 
 		if userID == -1 {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
 			return ctx.JSON(http.StatusUnauthorized, &user.Response{
 				Status:  http.StatusUnauthorized,
-				Message: "ERROR: User is unauthorized",
+				Message: UserIsUnauthorized,
 			})
 		}
 
@@ -307,6 +469,11 @@ func (h *handler) EditProfile() echo.HandlerFunc {
 		}
 
 		if err := ctx.Bind(&userData); err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
@@ -315,15 +482,25 @@ func (h *handler) EditProfile() echo.HandlerFunc {
 
 		err := h.userService.EditProfile(&userData)
 		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
 			return ctx.JSON(http.StatusInternalServerError, &user.Response{
 				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}
 
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
 		return ctx.JSON(http.StatusOK, &user.Response{
 			Status:  http.StatusOK,
-			Message: "OK: Profile is edited",
+			Message: ProfileIsEdited,
 		})
 	}
 }
