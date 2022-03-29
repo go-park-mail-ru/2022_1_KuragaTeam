@@ -4,6 +4,7 @@ import (
 	"myapp/internal"
 	"myapp/internal/persons"
 	"myapp/internal/position"
+	"myapp/internal/utils/images"
 )
 
 type service struct {
@@ -21,6 +22,18 @@ func (s *service) GetByID(id int) (*internal.Person, error) {
 		return nil, err
 	}
 	person.Position, err = s.positionStorage.GetByPersonID(id)
+	if err != nil {
+		return nil, err
+	}
+	person.Photo, err = images.GenerateFileURL(person.Photo, "persons")
+	if err != nil {
+		return nil, err
+	}
+	person.AdditPhoto1, err = images.GenerateFileURL(person.AdditPhoto1, "persons")
+	if err != nil {
+		return nil, err
+	}
+	person.AdditPhoto2, err = images.GenerateFileURL(person.AdditPhoto2, "persons")
 	if err != nil {
 		return nil, err
 	}

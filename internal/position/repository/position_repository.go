@@ -22,6 +22,7 @@ func (ms *positionStorage) GetByPersonID(id int) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var personPosition string
