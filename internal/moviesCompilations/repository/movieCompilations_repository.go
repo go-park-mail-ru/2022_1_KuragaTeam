@@ -1,17 +1,16 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
-	"golang.org/x/net/context"
 	"myapp/internal/moviesCompilations"
 )
 
 type movieCompilationsStorage struct {
-	db *pgxpool.Pool
+	db *sql.DB
 }
 
-func NewStorage(db *pgxpool.Pool) moviesCompilations.Storage {
+func NewStorage(db *sql.DB) moviesCompilations.Storage {
 	return &movieCompilationsStorage{db: db}
 }
 
@@ -32,12 +31,12 @@ const (
 func (ms *movieCompilationsStorage) GetByGenre(genreID int) (moviesCompilations.MovieCompilation, error) {
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 
-	err := ms.db.QueryRow(context.Background(), getGenreNameSQL, genreID).Scan(&selectedMovieCompilation.Name)
+	err := ms.db.QueryRow(getGenreNameSQL, genreID).Scan(&selectedMovieCompilation.Name)
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
 
-	rows, err := ms.db.Query(context.Background(), getByGenreSQL, genreID)
+	rows, err := ms.db.Query(getByGenreSQL, genreID)
 	defer rows.Close()
 
 	for rows.Next() {
@@ -55,7 +54,7 @@ func (ms *movieCompilationsStorage) GetByMovie(movieID int) (moviesCompilations.
 	var selectedMC moviesCompilations.MovieCompilation
 	selectedMC.Name = "Похожие по жанру"
 
-	rows, err := ms.db.Query(context.Background(), getByMovieSQL, movieID)
+	rows, err := ms.db.Query(getByMovieSQL, movieID)
 	defer rows.Close()
 
 	for rows.Next() {
@@ -76,7 +75,7 @@ func (ms *movieCompilationsStorage) GetByPerson(personID int) (moviesCompilation
 
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 	selectedMovieCompilation.Name = "Фильмография"
-	rows, err := ms.db.Query(context.Background(), getByPersonSQL, personID)
+	rows, err := ms.db.Query(getByPersonSQL, personID)
 	defer rows.Close()
 
 	for rows.Next() {
@@ -94,7 +93,7 @@ func (ms *movieCompilationsStorage) GetTop(limit int) (moviesCompilations.MovieC
 
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 	selectedMovieCompilation.Name = "Топ рейтинга"
-	rows, err := ms.db.Query(context.Background(), getTopSQL, limit)
+	rows, err := ms.db.Query(getTopSQL, limit)
 	defer rows.Close()
 
 	for rows.Next() {
@@ -112,7 +111,7 @@ func (ms *movieCompilationsStorage) GetTopByYear(year int) (moviesCompilations.M
 
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 	selectedMovieCompilation.Name = fmt.Sprintf("Лучшее за %d год", year)
-	rows, err := ms.db.Query(context.Background(), getTopByYearSQL, year)
+	rows, err := ms.db.Query(getTopByYearSQL, year)
 	defer rows.Close()
 
 	for rows.Next() {
