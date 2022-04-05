@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"github.com/labstack/echo/v4"
-	"myapp/internal/api"
 	"myapp/internal/persons"
 	"net/http"
 	"strconv"
@@ -21,7 +20,7 @@ type handler struct {
 	staffService persons.Service
 }
 
-func NewHandler(service persons.Service) api.Handler {
+func NewHandler(service persons.Service) *handler {
 	return &handler{staffService: service}
 }
 
