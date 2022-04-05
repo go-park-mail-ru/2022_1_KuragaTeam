@@ -74,7 +74,7 @@ func (us *userStorage) IsUserExists(userModel *user.User) (int64, bool, error) {
 }
 
 func (us *userStorage) IsUserUnique(userModel *user.User) (bool, error) {
-	sqlScript := "SELECT * FROM users WHERE email=$1"
+	sqlScript := "SELECT id FROM users WHERE email=$1"
 	rows, err := us.db.Query(sqlScript, userModel.Email)
 
 	if err != nil {

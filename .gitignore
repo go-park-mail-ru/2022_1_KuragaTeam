@@ -1,4 +1,7 @@
 .idea
 .env
 cover.out
+internal/user/delivery/mock
+internal/user/usecase/mock
+
 internal/mock

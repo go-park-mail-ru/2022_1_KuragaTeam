@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"myapp/internal/api"
 	"myapp/internal/user"
 	"net/http"
 	"time"
@@ -17,7 +16,7 @@ type Middleware struct {
 	logger      *zap.SugaredLogger
 }
 
-func NewMiddleware(service user.Service, logger *zap.SugaredLogger) api.Middleware {
+func NewMiddleware(service user.Service, logger *zap.SugaredLogger) *Middleware {
 	return &Middleware{
 		userService: service,
 		logger:      logger,
@@ -41,7 +40,7 @@ func (m Middleware) CheckAuthorization() echo.MiddlewareFunc {
 				if err != nil {
 					cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
 					ctx.SetCookie(cookie)
-					ctx.Set("USER_ID", -1)
+					ctx.Set("USER_ID", int64(-1))
 					return next(ctx)
 				}
 			}

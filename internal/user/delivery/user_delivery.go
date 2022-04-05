@@ -1,7 +1,6 @@
 package delivery
 
 import (
-	"myapp/internal/api"
 	"myapp/internal/user"
 	"net/http"
 	"time"
@@ -42,7 +41,7 @@ type handler struct {
 	logger      *zap.SugaredLogger
 }
 
-func NewHandler(service user.Service, logger *zap.SugaredLogger) api.Handler {
+func NewHandler(service user.Service, logger *zap.SugaredLogger) *handler {
 	return &handler{
 		userService: service,
 		logger:      logger,
