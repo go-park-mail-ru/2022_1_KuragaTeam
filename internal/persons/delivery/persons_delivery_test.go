@@ -65,7 +65,9 @@ func TestPersonsDelivery_GetPerson(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Return error",
+			name:        "Return error",
+			paramExists: true,
+			param:       "1",
 			useCaseMock: &mock.MockPersonsService{
 				GetByIDFunc: func(id int) (*internal.Person, error) {
 					return nil, errors.New(testError)
