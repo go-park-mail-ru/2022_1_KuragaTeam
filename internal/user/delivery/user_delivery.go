@@ -104,7 +104,7 @@ func (h *handler) SignUp() echo.HandlerFunc {
 			Name:     "Session_cookie",
 			Value:    session,
 			HttpOnly: true,
-			Expires:  time.Now().Add(time.Hour),
+			Expires:  time.Now().Add(30 * 24 * time.Hour),
 			SameSite: 0,
 		}
 
@@ -169,7 +169,7 @@ func (h *handler) LogIn() echo.HandlerFunc {
 			Name:     "Session_cookie",
 			Value:    session,
 			HttpOnly: true,
-			Expires:  time.Now().Add(time.Hour),
+			Expires:  time.Now().Add(30 * 24 * time.Hour),
 			SameSite: 0,
 		}
 
