@@ -41,7 +41,7 @@ func (s *service) GetMainCompilations() ([]moviesCompilations.MovieCompilation, 
 
 	MC := make([]moviesCompilations.MovieCompilation, 0)
 
-	nextMC, err := s.GetTop(10)
+	nextMC, err := s.GetTop(12)
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +147,8 @@ func (s *service) GetTopByYear(year int) (moviesCompilations.MovieCompilation, e
 	return MC, nil
 }
 func (s *service) GetTop(limit int) (moviesCompilations.MovieCompilation, error) {
-	if limit > 10 {
-		limit = 10
+	if limit > 40 {
+		limit = 40
 	}
 
 	MC, err := s.MCStorage.GetTop(limit)
