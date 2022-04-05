@@ -1,10 +1,10 @@
 package internal
 
 type MainMovieInfoDTO struct {
-	ID      int    `json:"id" form:"id"`
-	Name    string `json:"name" form:"name"`
-	Tagline string `json:"tagline" form:"tagline"`
-	Picture string `json:"picture" form:"picture"`
+	ID          int    `json:"id" form:"id"`
+	NamePicture string `json:"name_picture" form:"name_picture"`
+	Tagline     string `json:"tagline" form:"tagline"`
+	Picture     string `json:"picture" form:"picture"`
 }
 
 type Person struct {

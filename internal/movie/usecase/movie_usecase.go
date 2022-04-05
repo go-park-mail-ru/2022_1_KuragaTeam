@@ -115,5 +115,9 @@ func (s *service) GetMainMovie() (*internal.MainMovieInfoDTO, error) {
 	if err != nil {
 		return nil, err
 	}
+	selectedMovie.NamePicture, err = images.GenerateFileURL(selectedMovie.NamePicture, "logos")
+	if err != nil {
+		return nil, err
+	}
 	return selectedMovie, err
 }
