@@ -59,6 +59,12 @@ func (s *service) GetMainCompilations() ([]moviesCompilations.MovieCompilation, 
 	}
 	MC = append(MC, nextMC)
 
+	nextMC, err = s.GetByCountry(3) // США
+	if err != nil {
+		return nil, err
+	}
+	MC = append(MC, nextMC)
+
 	return MC, nil
 }
 
@@ -80,6 +86,22 @@ func (s *service) GetByMovie(movieID int) (moviesCompilations.MovieCompilation, 
 
 func (s *service) GetByGenre(genreID int) (moviesCompilations.MovieCompilation, error) {
 	MC, err := s.MCStorage.GetByGenre(genreID)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.concatUrls(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	return MC, nil
+}
+
+func (s *service) GetByCountry(countryID int) (moviesCompilations.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetByCountry(countryID)
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
