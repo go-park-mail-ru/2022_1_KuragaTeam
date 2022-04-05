@@ -128,6 +128,30 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
          'хакершу Лисбет Саландер для проведения расследования.', '7.7', 'Evil shall with evil be expelled',
          'TheGirlwiththeDragonTattoo.webp', 'TheGirlwiththeDragonTattoo.mp4', 'TheGirlwiththeDragonTattoo.mp4') RETURNING id;
 
+INSERT INTO movies(name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
+VALUES('Драйв', 'Drive.webp', '2011', '1 час 40 минут', '18',
+       'Великолепный водитель – при свете дня он выполняет каскадерские трюки на съёмочных площадках Голливуда, а по ' ||
+       'ночам ведет рискованную игру. Но один опасный контракт – и за его жизнь назначена награда. Теперь, чтобы ' ||
+       'остаться в живых и спасти свою очаровательную соседку, он должен делать то, что умеет лучше всего – ' ||
+       'виртуозно уходить от погони.', '7.3', 'Some Heroes Are Real',
+       'Drive.webp', 'Drive.webm', 'Drive.webm') RETURNING id;
+
+INSERT INTO movies(name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
+VALUES('Живая сталь', 'RealSteel.webp', '2011', '2 часа 7 минут', '16',
+       'События фильма происходят в будущем, где бокс запрещен за негуманностью и заменен боями 2000-фунтовых ' ||
+       'роботов, управляемых людьми. Бывший боксер, а теперь промоутер, переметнувшийся в Робобокс, решает, что ' ||
+       'наконец нашел своего чемпиона, когда ему попадается выбракованный, но очень способный робот. Одновременно ' ||
+       'на жизненном пути героя возникает 11-летний парень, оказывающийся его сыном. И по мере того, как машина ' ||
+       'пробивает свой путь к вершине, обретшие друг друга отец и сын учатся дружить.', '7.6',
+       'Чемпионами не рождаются, их собирают', 'RealSteel.webp', 'RealSteel.webm', 'RealSteel.webm') RETURNING id;
+
+INSERT INTO movies(name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
+VALUES('Исходный код', 'SourceCode.webp', '2011', '1 час 33 минуты', '12',
+       'Солдат по имени Коултер мистическим образом оказывается в теле неизвестного мужчины, погибшего в ' ||
+       'железнодорожной катастрофе. Коултер вынужден переживать чужую смерть снова и снова до тех пор, пока не ' ||
+       'поймет, кто – зачинщик катастрофы.', '7.8', 'Make every second count', 'SourceCode.webp',
+       'SourceCode.webm', 'SourceCode.webm') RETURNING id;
+
   DELETE FROM movies WHERE id = 4;
   DELETE FROM movies WHERE id = 5;
 
@@ -147,6 +171,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO genre(name) VALUES('История');
   INSERT INTO genre(name) VALUES('Детектив');
   INSERT INTO genre(name) VALUES('Криминал');
+  INSERT INTO genre(name) VALUES('Семейный');
 
   BEGIN;
   CREATE TABLE IF NOT EXISTS movies_genre(
@@ -187,6 +212,16 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('11', '3');
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('11', '11');
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('11', '10');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('12', '11');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('12', '3');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('12', '8');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('13', '6');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('13', '2');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('13', '12');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('14', '6');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('14', '2');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('14', '8');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('14', '3');
 
 
   CREATE TABLE IF NOT EXISTS country(
@@ -201,6 +236,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO country(name) VALUES('Канада');
   INSERT INTO country(name) VALUES('Швеция');
   INSERT INTO country(name) VALUES('Норвегия');
+  INSERT INTO country(name) VALUES('Индия');
+  INSERT INTO country(name) VALUES('Германия');
 
   BEGIN;
   CREATE TABLE movies_countries(
@@ -226,6 +263,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO movies_countries(movie_id, country_id) VALUES('11', '3');
   INSERT INTO movies_countries(movie_id, country_id) VALUES('11', '6');
   INSERT INTO movies_countries(movie_id, country_id) VALUES('11', '7');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('12', '3');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('13', '3');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('13', '8');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('14', '3');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('14', '5');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('14', '2');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('14', '9');
 
 
   CREATE TABLE IF NOT EXISTS person(

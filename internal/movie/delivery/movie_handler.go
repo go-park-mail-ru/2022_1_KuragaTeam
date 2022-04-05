@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"github.com/labstack/echo/v4"
-	"myapp/internal/api"
 	"myapp/internal/movie"
 	"net/http"
 	"strconv"
@@ -25,7 +24,7 @@ type handler struct {
 	movieService movie.Service
 }
 
-func NewHandler(service movie.Service) api.Handler {
+func NewHandler(service movie.Service) *handler {
 	return &handler{movieService: service}
 }
 

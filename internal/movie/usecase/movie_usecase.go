@@ -88,11 +88,11 @@ func (s *service) GetRandom(limit, offset int) ([]internal.Movie, error) {
 	for i := 0; i < len(movies); i++ {
 		movies[i].Genre, err = s.genreStorage.GetByMovieID(movies[i].ID)
 		if err != nil {
-			movies[i].Genre = append(movies[i].Genre, err.Error())
+			return nil, err
 		}
 		movies[i].Country, err = s.countryStorage.GetByMovieID(movies[i].ID)
 		if err != nil {
-			movies[i].Country = append(movies[i].Country, err.Error())
+			return nil, err
 		}
 
 		movies[i].Rating = 8.1 // пока что просто замокано
@@ -112,6 +112,10 @@ func (s *service) GetMainMovie() (*internal.MainMovieInfoDTO, error) {
 		return nil, err
 	}
 	selectedMovie.Picture, err = images.GenerateFileURL(selectedMovie.Picture, "posters")
+	if err != nil {
+		return nil, err
+	}
+	selectedMovie.NamePicture, err = images.GenerateFileURL(selectedMovie.NamePicture, "logos")
 	if err != nil {
 		return nil, err
 	}

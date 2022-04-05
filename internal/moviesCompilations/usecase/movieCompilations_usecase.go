@@ -41,7 +41,7 @@ func (s *service) GetMainCompilations() ([]moviesCompilations.MovieCompilation, 
 
 	MC := make([]moviesCompilations.MovieCompilation, 0)
 
-	nextMC, err := s.GetTop(10)
+	nextMC, err := s.GetTop(12)
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +54,12 @@ func (s *service) GetMainCompilations() ([]moviesCompilations.MovieCompilation, 
 	MC = append(MC, nextMC)
 
 	nextMC, err = s.GetByGenre(2) // Боевик
+	if err != nil {
+		return nil, err
+	}
+	MC = append(MC, nextMC)
+
+	nextMC, err = s.GetByCountry(3) // США
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +86,22 @@ func (s *service) GetByMovie(movieID int) (moviesCompilations.MovieCompilation, 
 
 func (s *service) GetByGenre(genreID int) (moviesCompilations.MovieCompilation, error) {
 	MC, err := s.MCStorage.GetByGenre(genreID)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.fillGenres(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	err = s.concatUrls(&MC)
+	if err != nil {
+		return moviesCompilations.MovieCompilation{}, err
+	}
+	return MC, nil
+}
+
+func (s *service) GetByCountry(countryID int) (moviesCompilations.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetByCountry(countryID)
 	if err != nil {
 		return moviesCompilations.MovieCompilation{}, err
 	}
@@ -125,8 +147,8 @@ func (s *service) GetTopByYear(year int) (moviesCompilations.MovieCompilation, e
 	return MC, nil
 }
 func (s *service) GetTop(limit int) (moviesCompilations.MovieCompilation, error) {
-	if limit > 10 {
-		limit = 10
+	if limit > 40 {
+		limit = 40
 	}
 
 	MC, err := s.MCStorage.GetTop(limit)
