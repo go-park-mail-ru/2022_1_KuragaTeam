@@ -21,19 +21,20 @@ func TestMovieUsecase_GetMainMovie(t *testing.T) {
 	defer ctrl.Finish()
 
 	movie := internal.MainMovieInfoDTO{
-		ID:      0,
-		Name:    "Movie1",
-		Tagline: "This is test movie",
-		Picture: "movie_picture.webp",
+		ID:          0,
+		NamePicture: "name_picture.webp",
+		Tagline:     "This is test movie",
+		Picture:     "movie_picture.webp",
 	}
 	movieFromStorage := internal.MainMovieInfoDTO{
-		ID:      movie.ID,
-		Name:    movie.Name,
-		Tagline: movie.Tagline,
-		Picture: movie.Picture,
+		ID:          movie.ID,
+		NamePicture: movie.NamePicture,
+		Tagline:     movie.Tagline,
+		Picture:     movie.Picture,
 	}
 
 	movie.Picture, _ = images.GenerateFileURL(movie.Picture, "posters")
+	movie.NamePicture, _ = images.GenerateFileURL(movie.NamePicture, "logos")
 
 	tests := []struct {
 		name          string

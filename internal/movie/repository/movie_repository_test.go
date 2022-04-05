@@ -92,6 +92,13 @@ func TestMovieRepository_GetRandomMovie(t *testing.T) {
 
 	storage := NewStorage(db)
 
+	movie := internal.MainMovieInfoDTO{
+		ID:          1,
+		NamePicture: "name_picture.webp",
+		Tagline:     "Tagline",
+		Picture:     "picture",
+	}
+
 	tests := []struct {
 		name        string
 		mock        func()
@@ -103,24 +110,19 @@ func TestMovieRepository_GetRandomMovie(t *testing.T) {
 			name: "Get one movie",
 			mock: func() {
 				rows := sqlmock.NewRows([]string{"id", "name", "tagline", "picture"}).
-					AddRow("1", "Movie1", "Tagline", "picture")
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT id, name, tagline, picture FROM movies ORDER BY " +
+					AddRow("1", "name_picture.webp", "Tagline", "picture")
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT id, name_picture, tagline, picture FROM movies ORDER BY " +
 					"RANDOM() LIMIT 1")).WillReturnRows(rows)
 			},
-			id: 1,
-			expected: internal.MainMovieInfoDTO{
-				ID:      1,
-				Name:    "Movie1",
-				Tagline: "Tagline",
-				Picture: "picture",
-			},
+			id:          1,
+			expected:    movie,
 			expectedErr: nil,
 		},
 		{
 			name: "Error occurred during SELECT request",
 			mock: func() {
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT id, name, tagline, picture FROM movies ORDER BY " +
-					"RANDOM() LIMIT 1")).WillReturnError(errors.New("Error occurred during request "))
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT id, name, tagline, picture FROM movies ORDER " +
+					"BY RANDOM() LIMIT 1")).WillReturnError(errors.New("Error occurred during request "))
 			},
 			id:          1,
 			expectedErr: errors.New("Error occurred during request "),

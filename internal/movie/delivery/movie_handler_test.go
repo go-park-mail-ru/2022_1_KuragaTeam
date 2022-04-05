@@ -23,10 +23,10 @@ func TestMovieDelivery_GetMainMovie(t *testing.T) {
 	defer ctrl.Finish()
 
 	movie := internal.MainMovieInfoDTO{
-		ID:      0,
-		Name:    "Movie1",
-		Tagline: "This is test movie",
-		Picture: "movie_picture.webp",
+		ID:          0,
+		NamePicture: "name_picture.webp",
+		Tagline:     "This is test movie",
+		Picture:     "movie_picture.webp",
 	}
 
 	tests := []struct {
