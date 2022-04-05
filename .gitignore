@@ -1,4 +1,4 @@
 .idea
 .env
 cover.out
-.env
+internal/mock
