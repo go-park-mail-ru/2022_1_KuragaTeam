@@ -28,7 +28,7 @@ const (
 	getByPersonSQL = "SELECT m.id, m.name, m.picture FROM movies AS m JOIN movies_staff m_s ON " +
 		"m_s.movie_id = m.id WHERE m_s.person_id=$1"
 	getTopSQL       = "SELECT id, name, picture FROM movies ORDER BY kinopoisk_rating DESC LIMIT $1"
-	getTopByYearSQL = "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating"
+	getTopByYearSQL = "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating DESC"
 )
 
 func (ms *movieCompilationsStorage) GetByGenre(genreID int) (moviesCompilations.MovieCompilation, error) {
