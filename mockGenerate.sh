@@ -12,3 +12,4 @@ moq -out mock/persons_repository_mock.go -pkg mock persons Storage:MockPersonsSt
 moq -out mock/position_repository_mock.go -pkg mock position Storage:MockPositionStorage
 
 moq -out mock/movieCompilations_usecase_mock.go -pkg mock moviesCompilations Service:MockMovieCompilationService
+moq -out mock/movieCompilations_repository_mock.go -pkg mock moviesCompilations Storage:MockMovieCompilationStorage

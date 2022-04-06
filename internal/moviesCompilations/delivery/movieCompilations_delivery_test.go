@@ -6,8 +6,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"myapp/internal/mock"
 	"myapp/internal/moviesCompilations"
+	"myapp/mock"
 	"net/http/httptest"
 	"testing"
 )

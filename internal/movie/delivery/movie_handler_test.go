@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"myapp/internal"
-	"myapp/internal/mock"
+	"myapp/mock"
 	"net/http/httptest"
 	"testing"
 )
