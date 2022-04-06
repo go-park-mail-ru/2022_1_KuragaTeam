@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"github.com/labstack/echo/v4"
-	"myapp/internal/api"
 	"myapp/internal/moviesCompilations"
 	"net/http"
 	"strconv"
@@ -26,7 +25,7 @@ type handler struct {
 	movieCompilationsService moviesCompilations.Service
 }
 
-func NewHandler(service moviesCompilations.Service) api.Handler {
+func NewHandler(service moviesCompilations.Service) *handler {
 	return &handler{movieCompilationsService: service}
 }
 
@@ -116,8 +115,8 @@ func (h *handler) GetTopMC() echo.HandlerFunc {
 	return func(context echo.Context) error {
 		var limit int
 		echo.QueryParamsBinder(context).Int("limit", &limit)
-		if limit == 0 {
-			limit = 10
+		if limit > 12 {
+			limit = 12
 		}
 		selectedMC, err := h.movieCompilationsService.GetTop(limit)
 		if err != nil {
