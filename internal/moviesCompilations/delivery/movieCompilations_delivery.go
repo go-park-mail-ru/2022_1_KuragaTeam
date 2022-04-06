@@ -115,8 +115,8 @@ func (h *handler) GetTopMC() echo.HandlerFunc {
 	return func(context echo.Context) error {
 		var limit int
 		echo.QueryParamsBinder(context).Int("limit", &limit)
-		if limit == 0 {
-			limit = 10
+		if limit > 12 {
+			limit = 12
 		}
 		selectedMC, err := h.movieCompilationsService.GetTop(limit)
 		if err != nil {

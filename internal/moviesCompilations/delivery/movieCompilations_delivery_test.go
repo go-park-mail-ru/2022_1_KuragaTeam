@@ -451,7 +451,7 @@ func TestMoviesCompilationsDelivery_GetTopMC(t *testing.T) {
 		{
 			name:        "Get top MC",
 			paramExists: true,
-			param:       "10",
+			param:       "15",
 			useCaseMock: &mock.MockMovieCompilationService{
 				GetTopFunc: func(limit int) (moviesCompilations.MovieCompilation, error) {
 					return MC1, nil
