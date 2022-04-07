@@ -531,7 +531,20 @@ func (h *handler) GetCsrf() echo.HandlerFunc {
 			})
 		}
 
-		token, _ := csrf.Tokens.Create(cookie.Value, time.Now().Add(time.Hour).Unix())
+		token, err := csrf.Tokens.Create(cookie.Value, time.Now().Add(time.Hour).Unix())
+
+		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
 
 		h.logger.Info(
 			zap.String("ID", requestID),
