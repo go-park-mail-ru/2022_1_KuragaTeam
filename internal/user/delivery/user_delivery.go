@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"myapp/internal/csrf"
 	"myapp/internal/user"
 	"net/http"
 	"time"
@@ -16,6 +17,7 @@ const (
 	profileURL = "/api/v1/profile"
 	editURL    = "/api/v1/edit"
 	avatarURL  = "/api/v1/avatar"
+	csrfURL    = "/api/v1/csrf"
 )
 
 const (
@@ -55,6 +57,7 @@ func (h *handler) Register(router *echo.Echo) {
 	router.GET(profileURL, h.GetUserProfile())
 	router.PUT(editURL, h.EditProfile())
 	router.PUT(avatarURL, h.EditAvatar())
+	router.GET(csrfURL, h.GetCsrf())
 }
 
 func (h *handler) SignUp() echo.HandlerFunc {
@@ -500,6 +503,38 @@ func (h *handler) EditProfile() echo.HandlerFunc {
 		return ctx.JSON(http.StatusOK, &user.Response{
 			Status:  http.StatusOK,
 			Message: ProfileIsEdited,
+		})
+	}
+}
+
+func (h *handler) GetCsrf() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID := ctx.Get("REQUEST_ID").(string)
+
+		cookie, err := ctx.Cookie("Session_cookie")
+		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		token, _ := csrf.Tokens.Create(cookie.Value, time.Now().Add(time.Hour).Unix())
+
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &user.Response{
+			Status:  http.StatusOK,
+			Message: token,
 		})
 	}
 }
