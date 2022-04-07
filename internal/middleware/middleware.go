@@ -97,7 +97,7 @@ func (m Middleware) AccessLog() echo.MiddlewareFunc {
 func (m Middleware) CSRF() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
-			if ctx.Request().Method == "PUT" || ctx.Request().RequestURI == "/api/v1/edit" {
+			if ctx.Request().Method == "PUT" {
 				cookie, err := ctx.Cookie("Session_cookie")
 				if err != nil {
 					m.logger.Debug(
