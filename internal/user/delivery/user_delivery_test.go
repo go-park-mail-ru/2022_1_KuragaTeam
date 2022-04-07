@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"mime/multipart"
+	"myapp/internal/csrf"
+	"myapp/internal/mock"
 	"myapp/internal/user"
-	"myapp/internal/user/delivery/mock"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -633,6 +634,83 @@ func TestUserDelivery_EditProfile(t *testing.T) {
 			handler.Register(server)
 			edit := handler.EditProfile()
 			_ = edit(ctx)
+
+			body := rec.Body.String()
+			status := rec.Code
+
+			if test.expectedError {
+				assert.Equal(t, th.expectedStatus, status)
+			} else {
+				assert.Equal(t, test.expectedJSON, body)
+				assert.Equal(t, th.expectedStatus, status)
+			}
+		})
+	}
+}
+
+func TestUserDelivery_GetCsrf(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
+	mockService := mock.NewMockService(ctl)
+
+	token, _ := csrf.Tokens.Create("session", time.Now().Add(time.Hour).Unix())
+
+	tests := []struct {
+		name           string
+		expectedStatus int
+		expectedJSON   string
+		expectedError  bool
+		cookie         http.Cookie
+	}{
+		{
+			name:           "Handler returned status 200",
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":200,\"message\":\"" + token + "\"}\n",
+			expectedError:  false,
+			cookie: http.Cookie{
+				Name:     "Session_cookie",
+				Value:    "session",
+				HttpOnly: true,
+				Expires:  time.Now().Add(time.Hour),
+				SameSite: 0,
+			},
+		},
+		{
+			name:           "Handler returned status 500",
+			expectedStatus: http.StatusInternalServerError,
+			expectedError:  true,
+			cookie: http.Cookie{
+				Name:     "Wrong_Session_cookie",
+				Value:    "session",
+				HttpOnly: true,
+				Expires:  time.Now().Add(time.Hour),
+				SameSite: 0,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := echo.New()
+			th := test
+
+			req := httptest.NewRequest(echo.GET, "/api/v1/user/csrf", nil)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
+			ctx.Request().AddCookie(&th.cookie)
+
+			handler := NewHandler(mockService, logger)
+			handler.Register(server)
+			csrf := handler.GetCsrf()
+			_ = csrf(ctx)
 
 			body := rec.Body.String()
 			status := rec.Code
