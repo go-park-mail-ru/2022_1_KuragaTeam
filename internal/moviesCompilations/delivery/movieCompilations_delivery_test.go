@@ -6,18 +6,20 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"myapp/internal/mock"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"myapp/internal/moviesCompilations"
+	"myapp/mock"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestMoviesCompilationsDelivery_GetMoviesCompilations(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -89,8 +91,9 @@ func TestMoviesCompilationsDelivery_GetMoviesCompilations(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/movieCompilations", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			r.Register(server)
 			mainMC := r.GetMoviesCompilations()
 
@@ -110,11 +113,12 @@ func TestMoviesCompilationsDelivery_GetMoviesCompilations(t *testing.T) {
 }
 
 func TestMoviesCompilationsDelivery_GetMCByMovieID(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -186,12 +190,13 @@ func TestMoviesCompilationsDelivery_GetMCByMovieID(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/movieCompilations/movie/1", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 			if test.paramExists {
 				ctx.SetParamNames("movie_id")
 				ctx.SetParamValues(test.param)
 			}
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			r.Register(server)
 			MCByMovieID := r.GetMCByMovieID()
 
@@ -211,11 +216,11 @@ func TestMoviesCompilationsDelivery_GetMCByMovieID(t *testing.T) {
 }
 
 func TestMoviesCompilationsDelivery_GetMCByGenreID(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -287,12 +292,13 @@ func TestMoviesCompilationsDelivery_GetMCByGenreID(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/movieCompilations/genre/1", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 			if test.paramExists {
 				ctx.SetParamNames("genre_id")
 				ctx.SetParamValues(test.param)
 			}
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			r.Register(server)
 			MCByMovieID := r.GetMCByGenre()
 
@@ -312,11 +318,11 @@ func TestMoviesCompilationsDelivery_GetMCByGenreID(t *testing.T) {
 }
 
 func TestMoviesCompilationsDelivery_GetMCByPersonID(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -388,12 +394,13 @@ func TestMoviesCompilationsDelivery_GetMCByPersonID(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/movieCompilations/person/1", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 			if test.paramExists {
 				ctx.SetParamNames("person_id")
 				ctx.SetParamValues(test.param)
 			}
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			r.Register(server)
 			MCByMovieID := r.GetMCByPersonID()
 
@@ -413,11 +420,11 @@ func TestMoviesCompilationsDelivery_GetMCByPersonID(t *testing.T) {
 }
 
 func TestMoviesCompilationsDelivery_GetTopMC(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -479,12 +486,13 @@ func TestMoviesCompilationsDelivery_GetTopMC(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/movieCompilations/top", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 
 			if test.paramExists {
 				ctx.QueryParams().Set("limit", test.param)
 			}
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			r.Register(server)
 			mainMC := r.GetTopMC()
 
@@ -504,11 +512,11 @@ func TestMoviesCompilationsDelivery_GetTopMC(t *testing.T) {
 }
 
 func TestMoviesCompilationsDelivery_GetTopByYear(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -580,12 +588,13 @@ func TestMoviesCompilationsDelivery_GetTopByYear(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/movieCompilations/yearTop/2011", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 			if test.paramExists {
 				ctx.SetParamNames("year")
 				ctx.SetParamValues(test.param)
 			}
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			r.Register(server)
 			MCByYear := r.GetYearTopMC()
 
