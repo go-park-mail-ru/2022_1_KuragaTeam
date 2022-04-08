@@ -1,6 +1,7 @@
 package composites
 
 import (
+	"go.uber.org/zap"
 	"myapp/internal/api"
 	countryRepository "myapp/internal/country/repository"
 	genreRepository "myapp/internal/genre/repository"
@@ -17,13 +18,13 @@ type MovieComposite struct {
 	Handler api.Handler
 }
 
-func NewMovieComposite(postgresComposite *PostgresDBComposite) (*MovieComposite, error) {
+func NewMovieComposite(postgresComposite *PostgresDBComposite, logger *zap.SugaredLogger) (*MovieComposite, error) {
 	movieStorage := repository.NewStorage(postgresComposite.db)
 	genreStorage := genreRepository.NewStorage(postgresComposite.db)
 	countryStorage := countryRepository.NewStorage(postgresComposite.db)
 	staffStorage := personsRepository.NewStorage(postgresComposite.db)
 	service := usecase.NewService(movieStorage, genreStorage, countryStorage, staffStorage)
-	handler := delivery.NewHandler(service)
+	handler := delivery.NewHandler(service, logger)
 	return &MovieComposite{
 		Storage: movieStorage,
 		Service: service,

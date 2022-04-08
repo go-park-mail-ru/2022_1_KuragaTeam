@@ -6,18 +6,21 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"myapp/internal"
-	"myapp/internal/mock"
+	"myapp/mock"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestMovieDelivery_GetMainMovie(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -62,8 +65,9 @@ func TestMovieDelivery_GetMainMovie(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/mainMovie", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			r.Register(server)
 			mainMovie := r.GetMainMovie()
 
@@ -83,11 +87,11 @@ func TestMovieDelivery_GetMainMovie(t *testing.T) {
 }
 
 func TestMovieDelivery_GetMovie(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -167,12 +171,13 @@ func TestMovieDelivery_GetMovie(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/movie/1", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 			if test.paramExists {
 				ctx.SetParamNames("movie_id")
 				ctx.SetParamValues(test.param)
 			}
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			//r.Register(server)
 			movieByID := r.GetMovie()
 
@@ -192,11 +197,11 @@ func TestMovieDelivery_GetMovie(t *testing.T) {
 }
 
 func TestMovieDelivery_GetRandomMovies(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -267,12 +272,13 @@ func TestMovieDelivery_GetRandomMovies(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/movie/1", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 			if test.paramExists {
 				ctx.SetParamNames("movie_id")
 				ctx.SetParamValues(test.param)
 			}
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			//r.Register(server)
 			movieByID := r.GetRandomMovies()
 
