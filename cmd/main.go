@@ -55,7 +55,7 @@ func main() {
 	}
 	staffComposite.Handler.Register(echoServer)
 
-	moviesCompilationsComposite, err := composites.NewMoviesCompilationsComposite(postgresDBC)
+	moviesCompilationsComposite, err := composites.NewMoviesCompilationsComposite(postgresDBC, logger)
 	if err != nil {
 		logger.Fatal("moviesCompilations composite failed")
 	}
