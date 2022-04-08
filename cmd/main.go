@@ -4,7 +4,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
 	"log"
 	"myapp/internal/composites"
 )
@@ -22,46 +21,49 @@ func main() {
 
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	prLogger, _ := config.Build()
+	prLogger, err := config.Build()
+	if err != nil {
+		log.Fatal("zap logger build error")
+	}
 	logger := prLogger.Sugar()
 	defer prLogger.Sync()
 
 	postgresDBC, err := composites.NewPostgresDBComposite()
 	if err != nil {
-		log.Fatal("postgresdb composite failed")
+		logger.Fatal("postgres db composite failed")
 	}
 
 	redisComposite, err := composites.NewRedisComposite()
 	if err != nil {
-		log.Fatal("redis composite failed")
+		logger.Fatal("redis composite failed")
 	}
 
 	minioComposite, err := composites.NewMinioComposite()
 	if err != nil {
-		log.Fatal("minio composite failed")
+		logger.Fatal("minio composite failed")
 	}
 
-	movieComposite, err := composites.NewMovieComposite(postgresDBC)
+	movieComposite, err := composites.NewMovieComposite(postgresDBC, logger)
 	if err != nil {
-		log.Fatal("author composite failed")
+		logger.Fatal("author composite failed")
 	}
 	movieComposite.Handler.Register(echoServer)
 
 	staffComposite, err := composites.NewStaffComposite(postgresDBC)
 	if err != nil {
-		log.Fatal("staff composite failed")
+		logger.Fatal("staff composite failed")
 	}
 	staffComposite.Handler.Register(echoServer)
 
 	moviesCompilationsComposite, err := composites.NewMoviesCompilationsComposite(postgresDBC)
 	if err != nil {
-		log.Fatal("moviesCompilations composite failed")
+		logger.Fatal("moviesCompilations composite failed")
 	}
 	moviesCompilationsComposite.Handler.Register(echoServer)
 
 	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite, minioComposite, logger)
 	if err != nil {
-		log.Fatal("user composite failed")
+		logger.Fatal("user composite failed")
 	}
 
 	userComposite.Middleware.Register(echoServer)

@@ -35,3 +35,15 @@ func (ms *genreStorage) GetByMovieID(id int) ([]string, error) {
 
 	return genres, nil
 }
+
+//func (ms *genreStorage) GetByID(id int) (string, error) {
+//	var selectedGenre string
+//
+//	sqlScript := "SELECT name FROM genre WHERE id = $1"
+//	err := ms.db.QueryRow(sqlScript, id).Scan(&selectedGenre)
+//	if err != nil {
+//		return "", err
+//	}
+//
+//	return selectedGenre, nil
+//}
