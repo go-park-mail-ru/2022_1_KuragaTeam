@@ -49,7 +49,7 @@ func main() {
 	}
 	movieComposite.Handler.Register(echoServer)
 
-	staffComposite, err := composites.NewStaffComposite(postgresDBC)
+	staffComposite, err := composites.NewStaffComposite(postgresDBC, logger)
 	if err != nil {
 		logger.Fatal("staff composite failed")
 	}
