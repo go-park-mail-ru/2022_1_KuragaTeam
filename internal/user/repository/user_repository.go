@@ -122,7 +122,7 @@ func (r *redisStore) StoreSession(userID int64) (string, error) {
 		return "", err
 	}
 
-	_, err = connRedis.Do("SET", session, userID, "EX", int64(time.Hour.Seconds()))
+	_, err = connRedis.Do("SET", session, userID, "EX", int64(30*24*time.Hour.Seconds()))
 
 	if err != nil {
 		return "", err
