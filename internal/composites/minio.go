@@ -2,6 +2,7 @@ package composites
 
 import (
 	"context"
+	"log"
 	"myapp/internal/utils/constants"
 	"os"
 
@@ -53,7 +54,9 @@ func NewMinioComposite() (*MinioComposite, error) {
 		stat.Size(),
 		opts,
 	)
+
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 

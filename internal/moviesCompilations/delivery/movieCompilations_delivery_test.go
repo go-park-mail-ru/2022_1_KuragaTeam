@@ -6,6 +6,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"myapp/internal/moviesCompilations"
 	"myapp/mock"
 	"net/http/httptest"

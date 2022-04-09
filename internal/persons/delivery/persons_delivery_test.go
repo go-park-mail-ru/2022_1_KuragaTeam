@@ -6,6 +6,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"myapp/internal"
 	"myapp/mock"
 	"net/http/httptest"
@@ -13,11 +15,11 @@ import (
 )
 
 func TestPersonsDelivery_GetPerson(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -88,12 +90,13 @@ func TestPersonsDelivery_GetPerson(t *testing.T) {
 			req := httptest.NewRequest(echo.GET, "/api/v1/person/0", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
 			if test.paramExists {
 				ctx.SetParamNames("person_id")
 				ctx.SetParamValues(test.param)
 			}
 
-			r := NewHandler(test.useCaseMock)
+			r := NewHandler(test.useCaseMock, logger)
 			r.Register(server)
 			personFromDelivery := r.GetPerson()
 
