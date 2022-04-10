@@ -273,7 +273,7 @@ func TestUserRepository_GetUserProfile(t *testing.T) {
 			expected: &user.User{
 				Name:   "Ilias",
 				Email:  "Ilias@mail.ru",
-				Avatar: "http://localhost:9000/avatars/default_avatar.webp",
+				Avatar: "http://movie-space.ru:9000/avatars/default_avatar.webp",
 			},
 			expectedErr: nil,
 		},
@@ -293,12 +293,12 @@ func TestUserRepository_GetUserProfile(t *testing.T) {
 			th := test
 			th.mock()
 
-			user, err := storage.GetUserProfile(th.id)
+			selectedUser, err := storage.GetUserProfile(th.id)
 			if th.expectedErr != nil {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, th.expected, user)
+				assert.Equal(t, th.expected, selectedUser)
 			}
 		})
 	}

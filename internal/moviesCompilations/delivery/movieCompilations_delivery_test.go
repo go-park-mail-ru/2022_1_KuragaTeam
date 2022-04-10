@@ -20,6 +20,7 @@ func TestMoviesCompilationsDelivery_GetMoviesCompilations(t *testing.T) {
 	prLogger, _ := config.Build()
 	logger := prLogger.Sugar()
 	defer prLogger.Sync()
+
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -118,7 +119,6 @@ func TestMoviesCompilationsDelivery_GetMCByMovieID(t *testing.T) {
 	prLogger, _ := config.Build()
 	logger := prLogger.Sugar()
 	defer prLogger.Sync()
-
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

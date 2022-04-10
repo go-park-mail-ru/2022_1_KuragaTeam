@@ -5,8 +5,8 @@ import (
 	"errors"
 	"mime/multipart"
 	"myapp/internal/csrf"
-	"myapp/internal/mock"
 	"myapp/internal/user"
+	"myapp/mock"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -709,8 +709,8 @@ func TestUserDelivery_GetCsrf(t *testing.T) {
 
 			handler := NewHandler(mockService, logger)
 			handler.Register(server)
-			csrf := handler.GetCsrf()
-			_ = csrf(ctx)
+			funcCSRF := handler.GetCsrf()
+			_ = funcCSRF(ctx)
 
 			body := rec.Body.String()
 			status := rec.Code

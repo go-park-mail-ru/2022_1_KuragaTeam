@@ -5,8 +5,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"myapp/internal"
-	"myapp/internal/mock"
 	"myapp/internal/utils/images"
+	mock2 "myapp/mock"
 	"testing"
 )
 
@@ -38,13 +38,13 @@ func TestMovieUsecase_GetMainMovie(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		storageMock   *mock.MockMovieStorage
+		storageMock   *mock2.MockMovieStorage
 		expected      internal.MainMovieInfoDTO
 		expectedError bool
 	}{
 		{
 			name: "Get main movie",
-			storageMock: &mock.MockMovieStorage{
+			storageMock: &mock2.MockMovieStorage{
 				GetRandomMovieFunc: func() (*internal.MainMovieInfoDTO, error) {
 					return &movieFromStorage, nil
 				},
@@ -54,7 +54,7 @@ func TestMovieUsecase_GetMainMovie(t *testing.T) {
 		},
 		{
 			name: "Return error",
-			storageMock: &mock.MockMovieStorage{
+			storageMock: &mock2.MockMovieStorage{
 				GetRandomMovieFunc: func() (*internal.MainMovieInfoDTO, error) {
 					return nil, errors.New(testError)
 				},
@@ -146,31 +146,31 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 
 	tests := []struct {
 		name               string
-		movieStorageMock   *mock.MockMovieStorage
-		countryStorageMock *mock.MockCountryStorage
-		genreStorageMock   *mock.MockGenreStorage
-		personStorageMock  *mock.MockPersonsStorage
+		movieStorageMock   *mock2.MockMovieStorage
+		countryStorageMock *mock2.MockCountryStorage
+		genreStorageMock   *mock2.MockGenreStorage
+		personStorageMock  *mock2.MockPersonsStorage
 		expected           internal.Movie
 		expectedError      bool
 	}{
 		{
 			name: "Get one movie",
-			movieStorageMock: &mock.MockMovieStorage{
+			movieStorageMock: &mock2.MockMovieStorage{
 				GetOneFunc: func(id int) (*internal.Movie, error) {
 					return &movieFromStorage, nil
 				},
 			},
-			countryStorageMock: &mock.MockCountryStorage{
+			countryStorageMock: &mock2.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Country, nil
 				},
 			},
-			genreStorageMock: &mock.MockGenreStorage{
+			genreStorageMock: &mock2.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Genre, nil
 				},
 			},
-			personStorageMock: &mock.MockPersonsStorage{
+			personStorageMock: &mock2.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]internal.PersonInMovieDTO, error) {
 					return movie.Staff, nil
 				},
@@ -180,22 +180,22 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		},
 		{
 			name: "Movie storage error",
-			movieStorageMock: &mock.MockMovieStorage{
+			movieStorageMock: &mock2.MockMovieStorage{
 				GetOneFunc: func(id int) (*internal.Movie, error) {
 					return nil, errors.New(testError)
 				},
 			},
-			countryStorageMock: &mock.MockCountryStorage{
+			countryStorageMock: &mock2.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Country, nil
 				},
 			},
-			genreStorageMock: &mock.MockGenreStorage{
+			genreStorageMock: &mock2.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Genre, nil
 				},
 			},
-			personStorageMock: &mock.MockPersonsStorage{
+			personStorageMock: &mock2.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]internal.PersonInMovieDTO, error) {
 					return movie.Staff, nil
 				},
@@ -204,22 +204,22 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		},
 		{
 			name: "Country storage error",
-			movieStorageMock: &mock.MockMovieStorage{
+			movieStorageMock: &mock2.MockMovieStorage{
 				GetOneFunc: func(id int) (*internal.Movie, error) {
 					return &movieFromStorage, nil
 				},
 			},
-			countryStorageMock: &mock.MockCountryStorage{
+			countryStorageMock: &mock2.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return nil, errors.New(testError)
 				},
 			},
-			genreStorageMock: &mock.MockGenreStorage{
+			genreStorageMock: &mock2.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Genre, nil
 				},
 			},
-			personStorageMock: &mock.MockPersonsStorage{
+			personStorageMock: &mock2.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]internal.PersonInMovieDTO, error) {
 					return movie.Staff, nil
 				},
@@ -228,22 +228,22 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		},
 		{
 			name: "Genre storage error",
-			movieStorageMock: &mock.MockMovieStorage{
+			movieStorageMock: &mock2.MockMovieStorage{
 				GetOneFunc: func(id int) (*internal.Movie, error) {
 					return &movieFromStorage, nil
 				},
 			},
-			countryStorageMock: &mock.MockCountryStorage{
+			countryStorageMock: &mock2.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Country, nil
 				},
 			},
-			genreStorageMock: &mock.MockGenreStorage{
+			genreStorageMock: &mock2.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return nil, errors.New(testError)
 				},
 			},
-			personStorageMock: &mock.MockPersonsStorage{
+			personStorageMock: &mock2.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]internal.PersonInMovieDTO, error) {
 					return movie.Staff, nil
 				},
@@ -252,22 +252,22 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		},
 		{
 			name: "Staff storage error",
-			movieStorageMock: &mock.MockMovieStorage{
+			movieStorageMock: &mock2.MockMovieStorage{
 				GetOneFunc: func(id int) (*internal.Movie, error) {
 					return &movieFromStorage, nil
 				},
 			},
-			countryStorageMock: &mock.MockCountryStorage{
+			countryStorageMock: &mock2.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Country, nil
 				},
 			},
-			genreStorageMock: &mock.MockGenreStorage{
+			genreStorageMock: &mock2.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Genre, nil
 				},
 			},
-			personStorageMock: &mock.MockPersonsStorage{
+			personStorageMock: &mock2.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]internal.PersonInMovieDTO, error) {
 					return nil, errors.New(testError)
 				},
@@ -347,25 +347,25 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 
 	tests := []struct {
 		name               string
-		movieStorageMock   *mock.MockMovieStorage
-		countryStorageMock *mock.MockCountryStorage
-		genreStorageMock   *mock.MockGenreStorage
+		movieStorageMock   *mock2.MockMovieStorage
+		countryStorageMock *mock2.MockCountryStorage
+		genreStorageMock   *mock2.MockGenreStorage
 		expected           []internal.Movie
 		expectedError      bool
 	}{
 		{
 			name: "Get one movie",
-			movieStorageMock: &mock.MockMovieStorage{
+			movieStorageMock: &mock2.MockMovieStorage{
 				GetAllMoviesFunc: func(limit, offset int) ([]internal.Movie, error) {
 					return []internal.Movie{movieFromStorage}, nil
 				},
 			},
-			countryStorageMock: &mock.MockCountryStorage{
+			countryStorageMock: &mock2.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Country, nil
 				},
 			},
-			genreStorageMock: &mock.MockGenreStorage{
+			genreStorageMock: &mock2.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Genre, nil
 				},
@@ -375,17 +375,17 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 		},
 		{
 			name: "Movie storage error",
-			movieStorageMock: &mock.MockMovieStorage{
+			movieStorageMock: &mock2.MockMovieStorage{
 				GetAllMoviesFunc: func(limit, offset int) ([]internal.Movie, error) {
 					return nil, errors.New(testError)
 				},
 			},
-			countryStorageMock: &mock.MockCountryStorage{
+			countryStorageMock: &mock2.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Country, nil
 				},
 			},
-			genreStorageMock: &mock.MockGenreStorage{
+			genreStorageMock: &mock2.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Genre, nil
 				},
@@ -394,17 +394,17 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 		},
 		{
 			name: "Country storage error",
-			movieStorageMock: &mock.MockMovieStorage{
+			movieStorageMock: &mock2.MockMovieStorage{
 				GetAllMoviesFunc: func(limit, offset int) ([]internal.Movie, error) {
 					return []internal.Movie{movieFromStorage}, nil
 				},
 			},
-			countryStorageMock: &mock.MockCountryStorage{
+			countryStorageMock: &mock2.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return nil, errors.New(testError)
 				},
 			},
-			genreStorageMock: &mock.MockGenreStorage{
+			genreStorageMock: &mock2.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Genre, nil
 				},
@@ -413,17 +413,17 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 		},
 		{
 			name: "Genre storage error",
-			movieStorageMock: &mock.MockMovieStorage{
+			movieStorageMock: &mock2.MockMovieStorage{
 				GetAllMoviesFunc: func(limit, offset int) ([]internal.Movie, error) {
 					return []internal.Movie{movieFromStorage}, nil
 				},
 			},
-			countryStorageMock: &mock.MockCountryStorage{
+			countryStorageMock: &mock2.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return movie.Country, nil
 				},
 			},
-			genreStorageMock: &mock.MockGenreStorage{
+			genreStorageMock: &mock2.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return nil, errors.New(testError)
 				},
