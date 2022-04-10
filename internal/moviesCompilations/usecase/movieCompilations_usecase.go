@@ -45,123 +45,123 @@ func (s *service) GetMainCompilations() ([]moviesCompilations.MovieCompilation, 
 	if err != nil {
 		return nil, err
 	}
-	MC = append(MC, nextMC)
+	MC = append(MC, *nextMC)
 
 	nextMC, err = s.GetTopByYear(2011)
 	if err != nil {
 		return nil, err
 	}
-	MC = append(MC, nextMC)
+	MC = append(MC, *nextMC)
 
 	nextMC, err = s.GetByGenre(2) // Боевик
 	if err != nil {
 		return nil, err
 	}
-	MC = append(MC, nextMC)
+	MC = append(MC, *nextMC)
 
 	nextMC, err = s.GetByCountry(3) // США
 	if err != nil {
 		return nil, err
 	}
-	MC = append(MC, nextMC)
+	MC = append(MC, *nextMC)
 
 	return MC, nil
 }
 
-func (s *service) GetByMovie(movieID int) (moviesCompilations.MovieCompilation, error) {
+func (s *service) GetByMovie(movieID int) (*moviesCompilations.MovieCompilation, error) {
 	MC, err := s.MCStorage.GetByMovie(movieID)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.fillGenres(&MC)
+	err = s.fillGenres(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.concatUrls(&MC)
+	err = s.concatUrls(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
 	return MC, nil
 }
 
-func (s *service) GetByGenre(genreID int) (moviesCompilations.MovieCompilation, error) {
+func (s *service) GetByGenre(genreID int) (*moviesCompilations.MovieCompilation, error) {
 	MC, err := s.MCStorage.GetByGenre(genreID)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.fillGenres(&MC)
+	err = s.fillGenres(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.concatUrls(&MC)
+	err = s.concatUrls(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
 	return MC, nil
 }
 
-func (s *service) GetByCountry(countryID int) (moviesCompilations.MovieCompilation, error) {
+func (s *service) GetByCountry(countryID int) (*moviesCompilations.MovieCompilation, error) {
 	MC, err := s.MCStorage.GetByCountry(countryID)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.fillGenres(&MC)
+	err = s.fillGenres(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.concatUrls(&MC)
+	err = s.concatUrls(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
 	return MC, nil
 }
 
-func (s *service) GetByPerson(personID int) (moviesCompilations.MovieCompilation, error) {
+func (s *service) GetByPerson(personID int) (*moviesCompilations.MovieCompilation, error) {
 	MC, err := s.MCStorage.GetByPerson(personID)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.fillGenres(&MC)
+	err = s.fillGenres(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.concatUrls(&MC)
+	err = s.concatUrls(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
 	return MC, nil
 }
-func (s *service) GetTopByYear(year int) (moviesCompilations.MovieCompilation, error) {
+func (s *service) GetTopByYear(year int) (*moviesCompilations.MovieCompilation, error) {
 	MC, err := s.MCStorage.GetTopByYear(year)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.fillGenres(&MC)
+	err = s.fillGenres(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.concatUrls(&MC)
+	err = s.concatUrls(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
 	return MC, nil
 }
-func (s *service) GetTop(limit int) (moviesCompilations.MovieCompilation, error) {
+func (s *service) GetTop(limit int) (*moviesCompilations.MovieCompilation, error) {
 	if limit > 40 {
 		limit = 40
 	}
 
 	MC, err := s.MCStorage.GetTop(limit)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.fillGenres(&MC)
+	err = s.fillGenres(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
-	err = s.concatUrls(&MC)
+	err = s.concatUrls(MC)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
 	return MC, nil
 }

@@ -154,8 +154,8 @@ func TestMoviesCompilationsDelivery_GetMCByMovieID(t *testing.T) {
 			paramExists: true,
 			param:       "1",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetByMovieFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetByMovieFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			expected:      MC1,
@@ -166,8 +166,8 @@ func TestMoviesCompilationsDelivery_GetMCByMovieID(t *testing.T) {
 			paramExists: true,
 			param:       "1",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetByMovieFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetByMovieFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
 			},
 			expectedError: true,
@@ -176,8 +176,8 @@ func TestMoviesCompilationsDelivery_GetMCByMovieID(t *testing.T) {
 			name:        "No param",
 			paramExists: false,
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetByMovieFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetByMovieFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			expectedError: true,
@@ -256,8 +256,8 @@ func TestMoviesCompilationsDelivery_GetMCByGenreID(t *testing.T) {
 			paramExists: true,
 			param:       "1",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetByGenreFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetByGenreFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			expected:      MC1,
@@ -268,8 +268,8 @@ func TestMoviesCompilationsDelivery_GetMCByGenreID(t *testing.T) {
 			paramExists: true,
 			param:       "1",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetByGenreFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetByGenreFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
 			},
 			expectedError: true,
@@ -278,8 +278,8 @@ func TestMoviesCompilationsDelivery_GetMCByGenreID(t *testing.T) {
 			name:        "No param",
 			paramExists: false,
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetByGenreFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetByGenreFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			expectedError: true,
@@ -358,8 +358,8 @@ func TestMoviesCompilationsDelivery_GetMCByPersonID(t *testing.T) {
 			paramExists: true,
 			param:       "1",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetByPersonFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetByPersonFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			expected:      MC1,
@@ -370,8 +370,8 @@ func TestMoviesCompilationsDelivery_GetMCByPersonID(t *testing.T) {
 			paramExists: true,
 			param:       "1",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetByPersonFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetByPersonFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
 			},
 			expectedError: true,
@@ -380,8 +380,8 @@ func TestMoviesCompilationsDelivery_GetMCByPersonID(t *testing.T) {
 			name:        "No param",
 			paramExists: false,
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetByPersonFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetByPersonFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			expectedError: true,
@@ -460,8 +460,8 @@ func TestMoviesCompilationsDelivery_GetTopMC(t *testing.T) {
 			paramExists: true,
 			param:       "15",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetTopFunc: func(limit int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetTopFunc: func(limit int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			expected:      MC1,
@@ -472,8 +472,8 @@ func TestMoviesCompilationsDelivery_GetTopMC(t *testing.T) {
 			paramExists: true,
 			param:       "10",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetTopFunc: func(limit int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetTopFunc: func(limit int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
 			},
 			expectedError: true,
@@ -552,8 +552,8 @@ func TestMoviesCompilationsDelivery_GetTopByYear(t *testing.T) {
 			paramExists: true,
 			param:       "2011",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetTopByYearFunc: func(year int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetTopByYearFunc: func(year int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			expected:      MC1,
@@ -564,8 +564,8 @@ func TestMoviesCompilationsDelivery_GetTopByYear(t *testing.T) {
 			paramExists: true,
 			param:       "2011",
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetTopByYearFunc: func(year int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetTopByYearFunc: func(year int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
 			},
 			expectedError: true,
@@ -574,8 +574,8 @@ func TestMoviesCompilationsDelivery_GetTopByYear(t *testing.T) {
 			name:        "No param",
 			paramExists: false,
 			useCaseMock: &mock.MockMovieCompilationService{
-				GetTopByYearFunc: func(year int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetTopByYearFunc: func(year int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			expectedError: true,

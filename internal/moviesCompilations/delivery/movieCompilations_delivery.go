@@ -59,7 +59,7 @@ func (h *handler) GetMoviesCompilations() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return context.JSON(http.StatusOK, &mainMoviesCompilations)
+		return context.JSON(http.StatusOK, mainMoviesCompilations)
 	}
 }
 
@@ -94,7 +94,7 @@ func (h *handler) GetMCByMovieID() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return context.JSON(http.StatusOK, &selectedMC)
+		return context.JSON(http.StatusOK, selectedMC)
 	}
 }
 
@@ -129,7 +129,7 @@ func (h *handler) GetMCByGenre() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return context.JSON(http.StatusOK, &selectedMC)
+		return context.JSON(http.StatusOK, selectedMC)
 	}
 }
 
@@ -164,7 +164,7 @@ func (h *handler) GetMCByPersonID() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return context.JSON(http.StatusOK, &selectedMC)
+		return context.JSON(http.StatusOK, selectedMC)
 	}
 }
 
@@ -192,7 +192,7 @@ func (h *handler) GetTopMC() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return context.JSON(http.StatusOK, &selectedMC)
+		return context.JSON(http.StatusOK, selectedMC)
 	}
 }
 
@@ -227,6 +227,6 @@ func (h *handler) GetYearTopMC() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return context.JSON(http.StatusOK, &selectedMC)
+		return context.JSON(http.StatusOK, selectedMC)
 	}
 }

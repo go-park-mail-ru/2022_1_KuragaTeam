@@ -11,11 +11,6 @@ import (
 )
 
 func TestMovieCompilationsUsecase_GetMainCompilations(t *testing.T) {
-	//config := zap.NewDevelopmentConfig()
-	//config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	//prLogger, _ := config.Build()
-	//logger := prLogger.Sugar()
-	//defer prLogger.Sync()
 	const testError = "test error"
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -89,17 +84,17 @@ func TestMovieCompilationsUsecase_GetMainCompilations(t *testing.T) {
 		{
 			name: "Get main compilations",
 			MCstorageMock: &mock2.MockMovieCompilationStorage{
-				GetTopFunc: func(limit int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetTopFunc: func(limit int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
-				GetTopByYearFunc: func(year int) (moviesCompilations.MovieCompilation, error) {
-					return MC2, nil
+				GetTopByYearFunc: func(year int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC2, nil
 				},
-				GetByGenreFunc: func(genreID int) (moviesCompilations.MovieCompilation, error) {
-					return MC3, nil
+				GetByGenreFunc: func(genreID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC3, nil
 				},
-				GetByCountryFunc: func(countryID int) (moviesCompilations.MovieCompilation, error) {
-					return MC4, nil
+				GetByCountryFunc: func(countryID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC4, nil
 				},
 			},
 			genreStorageMock: &mock2.MockGenreStorage{
@@ -138,17 +133,17 @@ func TestMovieCompilationsUsecase_GetMainCompilations(t *testing.T) {
 		{
 			name: "MC storage top func return error",
 			MCstorageMock: &mock2.MockMovieCompilationStorage{
-				GetTopFunc: func(limit int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetTopFunc: func(limit int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
-				GetTopByYearFunc: func(year int) (moviesCompilations.MovieCompilation, error) {
-					return MC2, nil
+				GetTopByYearFunc: func(year int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC2, nil
 				},
-				GetByGenreFunc: func(genreID int) (moviesCompilations.MovieCompilation, error) {
-					return MC3, nil
+				GetByGenreFunc: func(genreID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC3, nil
 				},
-				GetByCountryFunc: func(countryID int) (moviesCompilations.MovieCompilation, error) {
-					return MC4, nil
+				GetByCountryFunc: func(countryID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC4, nil
 				},
 			},
 			genreStorageMock: &mock2.MockGenreStorage{
@@ -187,17 +182,17 @@ func TestMovieCompilationsUsecase_GetMainCompilations(t *testing.T) {
 		{
 			name: "MC storage top by year func return error",
 			MCstorageMock: &mock2.MockMovieCompilationStorage{
-				GetTopFunc: func(limit int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetTopFunc: func(limit int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
-				GetTopByYearFunc: func(year int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetTopByYearFunc: func(year int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
-				GetByGenreFunc: func(genreID int) (moviesCompilations.MovieCompilation, error) {
-					return MC3, nil
+				GetByGenreFunc: func(genreID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC3, nil
 				},
-				GetByCountryFunc: func(countryID int) (moviesCompilations.MovieCompilation, error) {
-					return MC4, nil
+				GetByCountryFunc: func(countryID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC4, nil
 				},
 			},
 			genreStorageMock: &mock2.MockGenreStorage{
@@ -236,17 +231,17 @@ func TestMovieCompilationsUsecase_GetMainCompilations(t *testing.T) {
 		{
 			name: "MC storage get by genre func return error",
 			MCstorageMock: &mock2.MockMovieCompilationStorage{
-				GetTopFunc: func(limit int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetTopFunc: func(limit int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
-				GetTopByYearFunc: func(year int) (moviesCompilations.MovieCompilation, error) {
-					return MC2, nil
+				GetTopByYearFunc: func(year int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC2, nil
 				},
-				GetByGenreFunc: func(genreID int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetByGenreFunc: func(genreID int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
-				GetByCountryFunc: func(countryID int) (moviesCompilations.MovieCompilation, error) {
-					return MC4, nil
+				GetByCountryFunc: func(countryID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC4, nil
 				},
 			},
 			genreStorageMock: &mock2.MockGenreStorage{
@@ -285,17 +280,17 @@ func TestMovieCompilationsUsecase_GetMainCompilations(t *testing.T) {
 		{
 			name: "MC storage get by country func return error",
 			MCstorageMock: &mock2.MockMovieCompilationStorage{
-				GetTopFunc: func(limit int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetTopFunc: func(limit int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
-				GetTopByYearFunc: func(year int) (moviesCompilations.MovieCompilation, error) {
-					return MC2, nil
+				GetTopByYearFunc: func(year int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC2, nil
 				},
-				GetByGenreFunc: func(genreID int) (moviesCompilations.MovieCompilation, error) {
-					return MC3, nil
+				GetByGenreFunc: func(genreID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC3, nil
 				},
-				GetByCountryFunc: func(countryID int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetByCountryFunc: func(countryID int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
 			},
 			genreStorageMock: &mock2.MockGenreStorage{
@@ -334,17 +329,17 @@ func TestMovieCompilationsUsecase_GetMainCompilations(t *testing.T) {
 		{
 			name: "Genre storage returns error",
 			MCstorageMock: &mock2.MockMovieCompilationStorage{
-				GetTopFunc: func(limit int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetTopFunc: func(limit int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
-				GetTopByYearFunc: func(year int) (moviesCompilations.MovieCompilation, error) {
-					return MC2, nil
+				GetTopByYearFunc: func(year int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC2, nil
 				},
-				GetByGenreFunc: func(genreID int) (moviesCompilations.MovieCompilation, error) {
-					return MC3, nil
+				GetByGenreFunc: func(genreID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC3, nil
 				},
-				GetByCountryFunc: func(countryID int) (moviesCompilations.MovieCompilation, error) {
-					return MC4, nil
+				GetByCountryFunc: func(countryID int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC4, nil
 				},
 			},
 			genreStorageMock: &mock2.MockGenreStorage{
@@ -442,8 +437,8 @@ func TestMovieCompilationsUsecase_GetByPerson(t *testing.T) {
 		{
 			name: "Get compilation by person",
 			MCstorageMock: &mock2.MockMovieCompilationStorage{
-				GetByPersonFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetByPersonFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			genreStorageMock: &mock2.MockGenreStorage{
@@ -468,8 +463,8 @@ func TestMovieCompilationsUsecase_GetByPerson(t *testing.T) {
 		{
 			name: "MC storage returns error",
 			MCstorageMock: &mock2.MockMovieCompilationStorage{
-				GetByPersonFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return moviesCompilations.MovieCompilation{}, errors.New(testError)
+				GetByPersonFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return nil, errors.New(testError)
 				},
 			},
 			genreStorageMock: &mock2.MockGenreStorage{
@@ -490,8 +485,8 @@ func TestMovieCompilationsUsecase_GetByPerson(t *testing.T) {
 		{
 			name: "MC storage returns error",
 			MCstorageMock: &mock2.MockMovieCompilationStorage{
-				GetByPersonFunc: func(id int) (moviesCompilations.MovieCompilation, error) {
-					return MC1, nil
+				GetByPersonFunc: func(id int) (*moviesCompilations.MovieCompilation, error) {
+					return &MC1, nil
 				},
 			},
 			genreStorageMock: &mock2.MockGenreStorage{
@@ -513,7 +508,7 @@ func TestMovieCompilationsUsecase_GetByPerson(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, test.expected, mainMC)
+				assert.Equal(t, test.expected, *mainMC)
 			}
 		})
 	}
