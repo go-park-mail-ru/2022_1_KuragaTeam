@@ -31,121 +31,139 @@ const (
 	getTopByYearSQL = "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating DESC"
 )
 
-func (ms *movieCompilationsStorage) GetByGenre(genreID int) (moviesCompilations.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) GetByGenre(genreID int) (*moviesCompilations.MovieCompilation, error) {
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 
 	err := ms.db.QueryRow(getGenreNameSQL, genreID).Scan(&selectedMovieCompilation.Name)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
 
 	rows, err := ms.db.Query(getByGenreSQL, genreID)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
 		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
 		if err != nil {
-			return moviesCompilations.MovieCompilation{}, err
+			return nil, err
 		}
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, selectedMovie)
 	}
-	return selectedMovieCompilation, nil
+	return &selectedMovieCompilation, nil
 }
 
-func (ms *movieCompilationsStorage) GetByCountry(countryID int) (moviesCompilations.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) GetByCountry(countryID int) (*moviesCompilations.MovieCompilation, error) {
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 
 	err := ms.db.QueryRow(getCountryNameSQL, countryID).Scan(&selectedMovieCompilation.Name)
 	if err != nil {
-		return moviesCompilations.MovieCompilation{}, err
+		return nil, err
 	}
 
 	rows, err := ms.db.Query(getByCountrySQL, countryID)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
 		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
 		if err != nil {
-			return moviesCompilations.MovieCompilation{}, err
+			return nil, err
 		}
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, selectedMovie)
 	}
-	return selectedMovieCompilation, nil
+	return &selectedMovieCompilation, nil
 }
 
-func (ms *movieCompilationsStorage) GetByMovie(movieID int) (moviesCompilations.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) GetByMovie(movieID int) (*moviesCompilations.MovieCompilation, error) {
 	var selectedMC moviesCompilations.MovieCompilation
 	selectedMC.Name = "Похожие по жанру"
 
 	rows, err := ms.db.Query(getByMovieSQL, movieID)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
 		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
 		if err != nil {
-			return moviesCompilations.MovieCompilation{}, err
+			return nil, err
 		}
 		// Костыль запроса. Необходимо добавить в запрос исключение исходного фильма
 		if selectedMovie.ID != movieID {
 			selectedMC.Movies = append(selectedMC.Movies, selectedMovie)
 		}
 	}
-	return selectedMC, nil
+	return &selectedMC, nil
 }
 
-func (ms *movieCompilationsStorage) GetByPerson(personID int) (moviesCompilations.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) GetByPerson(personID int) (*moviesCompilations.MovieCompilation, error) {
 
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 	selectedMovieCompilation.Name = "Фильмография"
 	rows, err := ms.db.Query(getByPersonSQL, personID)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
 		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
 		if err != nil {
-			return moviesCompilations.MovieCompilation{}, err
+			return nil, err
 		}
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, selectedMovie)
 	}
-	return selectedMovieCompilation, nil
+	return &selectedMovieCompilation, nil
 }
 
-func (ms *movieCompilationsStorage) GetTop(limit int) (moviesCompilations.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) GetTop(limit int) (*moviesCompilations.MovieCompilation, error) {
 
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 	selectedMovieCompilation.Name = "Топ рейтинга"
 	rows, err := ms.db.Query(getTopSQL, limit)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
 		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
 		if err != nil {
-			return moviesCompilations.MovieCompilation{}, err
+			return nil, err
 		}
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, selectedMovie)
 	}
-	return selectedMovieCompilation, nil
+	return &selectedMovieCompilation, nil
 }
 
-func (ms *movieCompilationsStorage) GetTopByYear(year int) (moviesCompilations.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) GetTopByYear(year int) (*moviesCompilations.MovieCompilation, error) {
 
 	var selectedMovieCompilation moviesCompilations.MovieCompilation
 	selectedMovieCompilation.Name = fmt.Sprintf("Лучшее за %d год", year)
 	rows, err := ms.db.Query(getTopByYearSQL, year)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var selectedMovie moviesCompilations.Movie
 		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
 		if err != nil {
-			return moviesCompilations.MovieCompilation{}, err
+			return nil, err
 		}
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, selectedMovie)
 	}
-	return selectedMovieCompilation, nil
+	return &selectedMovieCompilation, nil
 }
