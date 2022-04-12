@@ -3,15 +3,16 @@ package delivery
 import (
 	"encoding/json"
 	"errors"
+	"myapp/internal"
+	"myapp/internal/mock"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"myapp/internal"
-	"myapp/mock"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestPersonsDelivery_GetPerson(t *testing.T) {
