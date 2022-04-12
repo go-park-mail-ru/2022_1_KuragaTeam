@@ -304,3 +304,16 @@ func (i imageStorage) DeleteFile(name string) error {
 
 	return nil
 }
+
+func (us userStorage) GetAvatar(userID int64) (string, error) {
+	sqlScript := "SELECT avatar FROM users WHERE id=$1"
+
+	var avatar string
+	err := us.db.QueryRow(sqlScript, userID).Scan(&avatar)
+
+	if err != nil {
+		return "", err
+	}
+
+	return avatar, nil
+}

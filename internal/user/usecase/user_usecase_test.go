@@ -694,3 +694,58 @@ func TestUserUseCase_UploadAvatar(t *testing.T) {
 		})
 	}
 }
+
+func TestUserUseCase_GetAvatar(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+	mockStorage := mock.NewMockStorage(ctl)
+	mockRedis := mock.NewMockRedisStore(ctl)
+	mockImages := mock.NewMockImageStorage(ctl)
+
+	tests := []struct {
+		name        string
+		mock        func()
+		input       int64
+		expected    string
+		expectedErr error
+	}{
+		{
+			name: "Successfully",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().GetAvatar(int64(1)).Return(constants.DefaultImage, nil),
+				)
+			},
+			input:       int64(1),
+			expected:    constants.DefaultImage,
+			expectedErr: nil,
+		},
+		{
+			name: "Error occurred in GetAvatar",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().GetAvatar(int64(1)).Return("", errors.New("error")),
+				)
+			},
+			input:       int64(1),
+			expectedErr: errors.New("error"),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			service := NewService(mockStorage, mockRedis, mockImages)
+
+			avatar, err := service.GetAvatar(th.input)
+
+			if th.expectedErr != nil {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, th.expected, avatar)
+			}
+		})
+	}
+}

@@ -37,3 +37,20 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+  dockergo:
+    image: docker-golang-image:latest
+    links:
+      - postgres:postgres
+      - redis:redis
+      - minio:minio
+    ports:
+      - "1323:1323"
+  nginx:
+    image: nginx:latest
+    links:
+      - dockergo:dockergo
+      - minio:minio
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    ports:
+      - "8000:80"

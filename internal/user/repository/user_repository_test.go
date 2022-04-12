@@ -273,7 +273,7 @@ func TestUserRepository_GetUserProfile(t *testing.T) {
 			expected: &user.User{
 				Name:   "Ilias",
 				Email:  "Ilias@mail.ru",
-				Avatar: "http://localhost:9000/avatars/default_avatar.webp",
+				Avatar: "http://localhost:8000/avatars/default_avatar.webp",
 			},
 			expectedErr: nil,
 		},
@@ -583,6 +583,60 @@ func TestRedisStore_DeleteSession(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestUserRepository_GetAvatar(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	storage := NewStorage(db)
+
+	tests := []struct {
+		name        string
+		mock        func()
+		id          int64
+		expected    string
+		expectedErr error
+	}{
+		{
+			name: "Get avatar",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"avatar"}).AddRow(constants.DefaultImage)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT avatar FROM users WHERE id=$1`)).
+					WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			id:          int64(1),
+			expected:    "default_avatar.webp",
+			expectedErr: nil,
+		},
+		{
+			name: "Error occurred during SELECT request",
+			mock: func() {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT avatar FROM users WHERE id=$1`)).
+					WithArgs(driver.Value(1)).WillReturnError(errors.New("Error occurred during request "))
+			},
+			id:          int64(1),
+			expectedErr: errors.New("Error occurred during request "),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			avatar, err := storage.GetAvatar(th.id)
+			if th.expectedErr != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, th.expected, avatar)
 			}
 		})
 	}

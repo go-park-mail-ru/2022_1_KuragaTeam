@@ -4,6 +4,7 @@ import (
 	"myapp/internal/csrf"
 	"myapp/internal/user"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -19,6 +20,7 @@ const (
 	editURL    = "/api/v1/edit"
 	avatarURL  = "/api/v1/avatar"
 	csrfURL    = "/api/v1/csrf"
+	authURL    = "/api/v1/auth"
 )
 
 const (
@@ -59,6 +61,75 @@ func (h *handler) Register(router *echo.Echo) {
 	router.PUT(editURL, h.EditProfile())
 	router.PUT(avatarURL, h.EditAvatar())
 	router.GET(csrfURL, h.GetCsrf())
+	router.GET(authURL, h.Auth())
+}
+
+func (h *handler) Auth() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID := ctx.Get("REQUEST_ID").(string)
+		userID, ok := ctx.Get("USER_ID").(int64)
+
+		if !ok {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
+				Status:  http.StatusInternalServerError,
+				Message: SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &user.Response{
+				Status:  http.StatusUnauthorized,
+				Message: UserIsUnauthorized,
+			})
+		}
+
+		avatarName := strings.ReplaceAll(ctx.Request().Header.Get("Req"), "/avatars/", "")
+
+		userAvatar, err := h.userService.GetAvatar(userID)
+		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &user.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		if avatarName != userAvatar {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", "wrong avatar"),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusForbidden, &user.Response{
+				Status:  http.StatusForbidden,
+				Message: "wrong avatar",
+			})
+		}
+
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &user.Response{
+			Status:  http.StatusOK,
+			Message: "ok",
+		})
+	}
 }
 
 func (h *handler) SignUp() echo.HandlerFunc {
