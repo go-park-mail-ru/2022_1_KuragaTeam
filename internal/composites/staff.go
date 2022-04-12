@@ -1,6 +1,7 @@
 package composites
 
 import (
+	"go.uber.org/zap"
 	"myapp/internal/api"
 	"myapp/internal/persons"
 	"myapp/internal/persons/delivery"
@@ -15,11 +16,11 @@ type StaffComposite struct {
 	Handler api.Handler
 }
 
-func NewStaffComposite(postgresComposite *PostgresDBComposite) (*StaffComposite, error) {
+func NewStaffComposite(postgresComposite *PostgresDBComposite, logger *zap.SugaredLogger) (*StaffComposite, error) {
 	staffStorage := repository.NewStorage(postgresComposite.db)
 	personsStorage := positionsRepository.NewStorage(postgresComposite.db)
 	service := usecase.NewService(staffStorage, personsStorage)
-	handler := delivery.NewHandler(service)
+	handler := delivery.NewHandler(service, logger)
 	return &StaffComposite{
 		Storage: staffStorage,
 		Service: service,
