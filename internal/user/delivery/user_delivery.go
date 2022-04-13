@@ -1,7 +1,6 @@
 package delivery
 
 import (
-	"log"
 	"myapp/internal/csrf"
 	"myapp/internal/user"
 	"net/http"
@@ -97,7 +96,7 @@ func (h *handler) Auth() echo.HandlerFunc {
 		avatarName := strings.ReplaceAll(ctx.Request().Header.Get("Req"), "/api/v1/avatars/", "")
 
 		userAvatar, err := h.userService.GetAvatar(userID)
-		log.Println(avatarName, userAvatar)
+
 		if err != nil {
 			h.logger.Error(
 				zap.String("ID", requestID),
@@ -434,6 +433,7 @@ func (h *handler) EditAvatar() echo.HandlerFunc {
 		buffer := make([]byte, file.Size)
 		_, err = src.Read(buffer)
 		src.Close()
+
 		if err != nil {
 			h.logger.Error(
 				zap.String("ID", requestID),
