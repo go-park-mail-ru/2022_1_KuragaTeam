@@ -3,7 +3,7 @@ package middleware
 import (
 	"errors"
 	"myapp/internal/csrf"
-	"myapp/internal/mock"
+	"myapp/mock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -215,8 +215,8 @@ func TestMiddleware_CSRF(t *testing.T) {
 			middleware := NewMiddleware(mockService, logger)
 			middleware.Register(server)
 
-			csrf := middleware.CSRF()
-			handlerFunc := csrf(func(c echo.Context) error {
+			receivedCSRF := middleware.CSRF()
+			handlerFunc := receivedCSRF(func(c echo.Context) error {
 				return nil
 			})
 			_ = handlerFunc(ctx)

@@ -293,12 +293,12 @@ func TestUserRepository_GetUserProfile(t *testing.T) {
 			th := test
 			th.mock()
 
-			user, err := storage.GetUserProfile(th.id)
+			selectedUser, err := storage.GetUserProfile(th.id)
 			if th.expectedErr != nil {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, th.expected, user)
+				assert.Equal(t, th.expected, selectedUser)
 			}
 		})
 	}
