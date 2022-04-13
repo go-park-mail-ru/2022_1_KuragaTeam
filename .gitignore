@@ -1,5 +1,6 @@
 .idea
 .env
 cover.out
+cover.out.tmp
 internal/mock
 mock
