@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kennygrant/sanitize"
 	"github.com/labstack/echo/v4"
-	"github.com/microcosm-cc/bluemonday"
 	"go.uber.org/zap"
 )
 
@@ -311,10 +311,9 @@ func (h *handler) GetUserProfile() echo.HandlerFunc {
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
 
-		sanitizer := bluemonday.UGCPolicy()
-		userData.Avatar = sanitizer.Sanitize(userData.Avatar)
-		userData.Name = sanitizer.Sanitize(userData.Name)
-		userData.Email = sanitizer.Sanitize(userData.Email)
+		userData.Avatar = sanitize.HTML(userData.Avatar)
+		userData.Name = sanitize.HTML(userData.Name)
+		userData.Email = sanitize.HTML(userData.Email)
 
 		return ctx.JSON(http.StatusOK, &user.ResponseUserProfile{
 			Status:   http.StatusOK,
