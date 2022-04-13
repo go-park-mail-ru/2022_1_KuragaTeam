@@ -273,7 +273,7 @@ func TestUserRepository_GetUserProfile(t *testing.T) {
 			expected: &user.User{
 				Name:   "Ilias",
 				Email:  "Ilias@mail.ru",
-				Avatar: "http://localhost:8000/avatars/default_avatar.webp",
+				Avatar: "http://localhost:8000/api/v1/avatars/default_avatar.webp",
 			},
 			expectedErr: nil,
 		},

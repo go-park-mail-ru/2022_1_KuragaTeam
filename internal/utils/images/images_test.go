@@ -53,7 +53,7 @@ func TestGenerateFileURL(t *testing.T) {
 			name:     "GenerateFileUR",
 			fileName: "name1",
 			bucket:   "bucket1",
-			result:   fmt.Sprintf("http://%s/%s/%s", "localhost:8000", "bucket1", "name1"),
+			result:   fmt.Sprintf("http://%s/%s/%s", "localhost:8000/api/v1", "bucket1", "name1"),
 		},
 	}
 

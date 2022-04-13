@@ -18,22 +18,26 @@ mockgen -source=./internal/user/repository.go -destination=./mock/userRepository
 mockgen -source=./internal/user/usecase.go -destination=./mock/userUsecaseMock.go -package=mock
 
 touch .env
-printf "DBHOST=89.208.228.163
+printf "DBHOST=postgres
 DBPORT=5432
 DBUSER=docker
 DBPASSWORD=docker
 DBNAME=docker
-REDISHOST=localhost
+REDISHOST=redis
 REDISPORT=6379
 REDISPROTOCOL=tcp
-MINIOURL=movie-space.ru:9000
+MINIOURL=minio:9000
+NGINX=localhost:8000
 MINIOUSER=minio
-MINIOPASSWORD=minio123\n" > .env
+MINIOPASSWORD=minio123
+CSRF_SECRET=secret\n" > .env
 
 cp .env ./internal/movie/usecase
 cp .env ./internal/moviesCompilations/usecase
 cp .env ./internal/persons/usecase
 cp .env ./internal/user/usecase
+cp .env ./internal/user/repository
+cp .env ./internal/utils/images
 
 go test -coverpkg=./... -coverprofile cover.out.tmp ./...
 cat cover.out.tmp | grep -v "monitoring" | grep -v "easyjson" | grep -v "mock_*" | grep -v ".pb.go" | grep -v ".pb" | grep -v "middleware.go" | grep -v "/cmd*"> cover.out
