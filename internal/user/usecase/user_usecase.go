@@ -151,3 +151,7 @@ func (s *service) UploadAvatar(file io.Reader, size int64, contentType string, u
 
 	return s.imageStorage.UploadFile(uploadImage)
 }
+
+func (s *service) GetAvatar(userID int64) (string, error) {
+	return s.storage.GetAvatar(userID)
+}

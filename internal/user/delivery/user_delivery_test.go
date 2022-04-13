@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"myapp/internal/csrf"
 	"myapp/internal/user"
+	"myapp/internal/utils/constants"
 	"myapp/mock"
 	"net/http"
 	"net/http/httptest"
@@ -98,7 +99,7 @@ func TestUserDelivery_SignUp(t *testing.T) {
 			server := echo.New()
 			th := test
 
-			req := httptest.NewRequest(echo.POST, "/api/v1/user/signup", strings.NewReader(th.data))
+			req := httptest.NewRequest(echo.POST, "/api/v1/signup", strings.NewReader(th.data))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
@@ -199,7 +200,7 @@ func TestUserDelivery_LogIn(t *testing.T) {
 			server := echo.New()
 			th := test
 
-			req := httptest.NewRequest(echo.POST, "/api/v1/user/login", strings.NewReader(th.data))
+			req := httptest.NewRequest(echo.POST, "/api/v1/login", strings.NewReader(th.data))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
@@ -302,7 +303,7 @@ func TestUserDelivery_GetUserProfile(t *testing.T) {
 			server := echo.New()
 			th := test
 
-			req := httptest.NewRequest(echo.GET, "/api/v1/user/profile", nil)
+			req := httptest.NewRequest(echo.GET, "/api/v1/profile", nil)
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
@@ -405,7 +406,7 @@ func TestUserDelivery_LogOut(t *testing.T) {
 			server := echo.New()
 			th := test
 
-			req := httptest.NewRequest(echo.DELETE, "/api/v1/user/logout", nil)
+			req := httptest.NewRequest(echo.DELETE, "/api/v1/logout", nil)
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
@@ -508,7 +509,7 @@ func TestUserDelivery_EditAvatar(t *testing.T) {
 			part.Write(th.content)
 			writer.Close()
 
-			req := httptest.NewRequest(echo.PUT, "/api/v1/user/avatar", body_file)
+			req := httptest.NewRequest(echo.PUT, "/api/v1/avatar", body_file)
 			req.Header.Set("Content-Type", writer.FormDataContentType())
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
@@ -621,7 +622,7 @@ func TestUserDelivery_EditProfile(t *testing.T) {
 			server := echo.New()
 			th := test
 
-			req := httptest.NewRequest(echo.PUT, "/api/v1/user/edit", strings.NewReader(th.data))
+			req := httptest.NewRequest(echo.PUT, "/api/v1/edit", strings.NewReader(th.data))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
@@ -701,7 +702,7 @@ func TestUserDelivery_GetCsrf(t *testing.T) {
 			server := echo.New()
 			th := test
 
-			req := httptest.NewRequest(echo.GET, "/api/v1/user/csrf", nil)
+			req := httptest.NewRequest(echo.GET, "/api/v1/csrf", nil)
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.Set("REQUEST_ID", "1")
@@ -711,6 +712,119 @@ func TestUserDelivery_GetCsrf(t *testing.T) {
 			handler.Register(server)
 			funcCSRF := handler.GetCsrf()
 			_ = funcCSRF(ctx)
+
+			body := rec.Body.String()
+			status := rec.Code
+
+			if test.expectedError {
+				assert.Equal(t, th.expectedStatus, status)
+			} else {
+				assert.Equal(t, test.expectedJSON, body)
+				assert.Equal(t, th.expectedStatus, status)
+			}
+		})
+	}
+}
+
+func TestUserDelivery_Auth(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
+	mockService := mock.NewMockService(ctl)
+
+	tests := []struct {
+		name           string
+		mock           func()
+		expectedStatus int
+		expectedJSON   string
+		expectedError  bool
+		userIDKey      string
+		userIDValue    int64
+	}{
+		{
+			name: "Handler returned status 200",
+			mock: func() {
+				gomock.InOrder(
+					mockService.EXPECT().GetAvatar(int64(1)).Return(constants.DefaultImage, nil),
+				)
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":200,\"message\":\"ok\"}\n",
+			expectedError:  false,
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+		},
+		{
+			name:           "Handler returned status 500, ctx hasn't USER_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedError:  true,
+			userIDKey:      "WRONG_USER_ID",
+			userIDValue:    int64(-1),
+		},
+		{
+			name:           "Handler returned status 401, User is unauthorized",
+			mock:           func() {},
+			expectedStatus: http.StatusUnauthorized,
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedError:  true,
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(-1),
+		},
+		{
+			name: "Handler returned status 500, usecase GetAvatar error",
+			mock: func() {
+				gomock.InOrder(
+					mockService.EXPECT().GetAvatar(int64(1)).Return("", errors.New("error")),
+				)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedError:  true,
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+		},
+		{
+			name: "Handler returned status 403",
+			mock: func() {
+				gomock.InOrder(
+					mockService.EXPECT().GetAvatar(int64(1)).Return("wrong_avatar.webp", nil),
+				)
+			},
+			expectedStatus: http.StatusForbidden,
+			expectedJSON:   "{\"status\":403,\"message\":\"wrong avatar\"}\n",
+			expectedError:  false,
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := echo.New()
+			th := test
+
+			req := httptest.NewRequest(echo.GET, "/api/v1/auth", nil)
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			req.Header.Set("Req", "/avatars/default_avatar.webp")
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+			ctx.Set("REQUEST_ID", "1")
+			ctx.Set(th.userIDKey, th.userIDValue)
+
+			th.mock()
+
+			handler := NewHandler(mockService, logger)
+			handler.Register(server)
+			auth := handler.Auth()
+			_ = auth(ctx)
 
 			body := rec.Body.String()
 			status := rec.Code

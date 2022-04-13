@@ -23,5 +23,5 @@ func GenerateFileURL(fileName string, bucket string) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("http://%s/%s/%s", os.Getenv("MINIOURL"), bucket, fileName), nil
+	return fmt.Sprintf("http://%s/api/v1/%s/%s", os.Getenv("NGINX"), bucket, fileName), nil
 }

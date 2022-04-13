@@ -7,6 +7,7 @@ type Storage interface {
 	GetUserProfile(userID int64) (*User, error)
 	EditProfile(user *User) error
 	EditAvatar(user *User) (string, error)
+	GetAvatar(userID int64) (string, error)
 }
 
 type RedisStore interface {

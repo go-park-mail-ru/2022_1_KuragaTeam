@@ -1,6 +1,8 @@
 package user
 
-import "io"
+import (
+	"io"
+)
 
 type Service interface {
 	SignUp(dto *CreateUserDTO) (string, string, error)
@@ -11,4 +13,5 @@ type Service interface {
 	EditProfile(dto *EditProfileDTO) error
 	EditAvatar(dto *EditAvatarDTO) error
 	UploadAvatar(file io.Reader, size int64, contentType string, userID int64) (string, error)
+	GetAvatar(userID int64) (string, error)
 }
