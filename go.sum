@@ -191,6 +191,8 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stroiman/go-automapper v0.0.0-20200419053654-7c63d5bb0eb4 h1:6PbE7SyfOv/4KuponuUyyK2LiIek2J6zgwtqtUBJ0Pw=
+github.com/stroiman/go-automapper v0.0.0-20200419053654-7c63d5bb0eb4/go.mod h1:2NNN85ECgLDlK6FsYvzzLM3xspN6qyxV1sNxo9hKVAg=
 github.com/swaggo/swag v1.7.9 h1:6vCG5mm43ebDzGlZPMGYrYI4zKFfOr5kicQX8qjeDwc=
 github.com/swaggo/swag v1.7.9/go.mod h1:gZ+TJ2w/Ve1RwQsA2IRoSOTidHz6DX+PIG8GWvbnoLU=
 github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/XcUArI=

@@ -17,8 +17,8 @@ type StaffComposite struct {
 }
 
 func NewStaffComposite(postgresComposite *PostgresDBComposite, logger *zap.SugaredLogger) (*StaffComposite, error) {
-	staffStorage := repository.NewStorage(postgresComposite.db)
-	personsStorage := positionsRepository.NewStorage(postgresComposite.db)
+	staffStorage := repository.NewStorage(postgresComposite.Db)
+	personsStorage := positionsRepository.NewStorage(postgresComposite.Db)
 	service := usecase.NewService(staffStorage, personsStorage)
 	handler := delivery.NewHandler(service, logger)
 	return &StaffComposite{

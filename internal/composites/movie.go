@@ -19,10 +19,10 @@ type MovieComposite struct {
 }
 
 func NewMovieComposite(postgresComposite *PostgresDBComposite, logger *zap.SugaredLogger) (*MovieComposite, error) {
-	movieStorage := repository.NewStorage(postgresComposite.db)
-	genreStorage := genreRepository.NewStorage(postgresComposite.db)
-	countryStorage := countryRepository.NewStorage(postgresComposite.db)
-	staffStorage := personsRepository.NewStorage(postgresComposite.db)
+	movieStorage := repository.NewStorage(postgresComposite.Db)
+	genreStorage := genreRepository.NewStorage(postgresComposite.Db)
+	countryStorage := countryRepository.NewStorage(postgresComposite.Db)
+	staffStorage := personsRepository.NewStorage(postgresComposite.Db)
 	service := usecase.NewService(movieStorage, genreStorage, countryStorage, staffStorage)
 	handler := delivery.NewHandler(service, logger)
 	return &MovieComposite{
