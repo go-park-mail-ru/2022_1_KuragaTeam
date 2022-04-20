@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = "./";
+
+message GetMovieOptions {
+  int64 MovieID = 1;
+}
+
+message GetMovieResponse {
+  int64 MovieID = 1;
+  string Title = 2;
+}
+
+service Movies {
+  rpc GetMovie(GetMovieOptions) returns(GetMovieResponse) {}
+}
