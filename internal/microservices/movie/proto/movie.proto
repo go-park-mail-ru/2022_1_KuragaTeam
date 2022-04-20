@@ -1,6 +1,14 @@
 syntax = "proto3";
 
-option go_package = "./";
+option go_package = "myapp/internal/microservices/movie/proto";
+
+// protoc --go_out=. --go_opt=paths=source_relative \
+// --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+// movie.proto
+
+service Movies {
+  rpc GetMovie(GetMovieOptions) returns(GetMovieResponse) {}
+}
 
 message GetMovieOptions {
   int64 MovieID = 1;
@@ -9,8 +17,4 @@ message GetMovieOptions {
 message GetMovieResponse {
   int64 MovieID = 1;
   string Title = 2;
-}
-
-service Movies {
-  rpc GetMovie(GetMovieOptions) returns(GetMovieResponse) {}
 }
