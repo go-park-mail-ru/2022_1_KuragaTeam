@@ -22,7 +22,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MoviesClient interface {
-	GetMovie(ctx context.Context, in *GetMovieOptions, opts ...grpc.CallOption) (*GetMovieResponse, error)
+	GetByID(ctx context.Context, in *GetMovieOptions, opts ...grpc.CallOption) (*Movie, error)
+	GetRandom(ctx context.Context, in *GetRandomOptions, opts ...grpc.CallOption) (*MoviesArr, error)
+	GetMainMovie(ctx context.Context, in *GetMainMovieOptions, opts ...grpc.CallOption) (*MainMovie, error)
 }
 
 type moviesClient struct {
@@ -33,9 +35,27 @@ func NewMoviesClient(cc grpc.ClientConnInterface) MoviesClient {
 	return &moviesClient{cc}
 }
 
-func (c *moviesClient) GetMovie(ctx context.Context, in *GetMovieOptions, opts ...grpc.CallOption) (*GetMovieResponse, error) {
-	out := new(GetMovieResponse)
-	err := c.cc.Invoke(ctx, "/Movies/GetMovie", in, out, opts...)
+func (c *moviesClient) GetByID(ctx context.Context, in *GetMovieOptions, opts ...grpc.CallOption) (*Movie, error) {
+	out := new(Movie)
+	err := c.cc.Invoke(ctx, "/Movies/GetByID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *moviesClient) GetRandom(ctx context.Context, in *GetRandomOptions, opts ...grpc.CallOption) (*MoviesArr, error) {
+	out := new(MoviesArr)
+	err := c.cc.Invoke(ctx, "/Movies/GetRandom", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *moviesClient) GetMainMovie(ctx context.Context, in *GetMainMovieOptions, opts ...grpc.CallOption) (*MainMovie, error) {
+	out := new(MainMovie)
+	err := c.cc.Invoke(ctx, "/Movies/GetMainMovie", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +66,9 @@ func (c *moviesClient) GetMovie(ctx context.Context, in *GetMovieOptions, opts .
 // All implementations must embed UnimplementedMoviesServer
 // for forward compatibility
 type MoviesServer interface {
-	GetMovie(context.Context, *GetMovieOptions) (*GetMovieResponse, error)
+	GetByID(context.Context, *GetMovieOptions) (*Movie, error)
+	GetRandom(context.Context, *GetRandomOptions) (*MoviesArr, error)
+	GetMainMovie(context.Context, *GetMainMovieOptions) (*MainMovie, error)
 	mustEmbedUnimplementedMoviesServer()
 }
 
@@ -54,8 +76,14 @@ type MoviesServer interface {
 type UnimplementedMoviesServer struct {
 }
 
-func (UnimplementedMoviesServer) GetMovie(context.Context, *GetMovieOptions) (*GetMovieResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMovie not implemented")
+func (UnimplementedMoviesServer) GetByID(context.Context, *GetMovieOptions) (*Movie, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByID not implemented")
+}
+func (UnimplementedMoviesServer) GetRandom(context.Context, *GetRandomOptions) (*MoviesArr, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRandom not implemented")
+}
+func (UnimplementedMoviesServer) GetMainMovie(context.Context, *GetMainMovieOptions) (*MainMovie, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMainMovie not implemented")
 }
 func (UnimplementedMoviesServer) mustEmbedUnimplementedMoviesServer() {}
 
@@ -70,20 +98,56 @@ func RegisterMoviesServer(s grpc.ServiceRegistrar, srv MoviesServer) {
 	s.RegisterService(&Movies_ServiceDesc, srv)
 }
 
-func _Movies_GetMovie_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Movies_GetByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMovieOptions)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MoviesServer).GetMovie(ctx, in)
+		return srv.(MoviesServer).GetByID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Movies/GetMovie",
+		FullMethod: "/Movies/GetByID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MoviesServer).GetMovie(ctx, req.(*GetMovieOptions))
+		return srv.(MoviesServer).GetByID(ctx, req.(*GetMovieOptions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Movies_GetRandom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRandomOptions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoviesServer).GetRandom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Movies/GetRandom",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoviesServer).GetRandom(ctx, req.(*GetRandomOptions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Movies_GetMainMovie_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMainMovieOptions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoviesServer).GetMainMovie(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Movies/GetMainMovie",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoviesServer).GetMainMovie(ctx, req.(*GetMainMovieOptions))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -96,8 +160,16 @@ var Movies_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*MoviesServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetMovie",
-			Handler:    _Movies_GetMovie_Handler,
+			MethodName: "GetByID",
+			Handler:    _Movies_GetByID_Handler,
+		},
+		{
+			MethodName: "GetRandom",
+			Handler:    _Movies_GetRandom_Handler,
+		},
+		{
+			MethodName: "GetMainMovie",
+			Handler:    _Movies_GetMainMovie_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

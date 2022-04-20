@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	addr = flag.String("addr", "localhost:50051", "the address to connect to")
+	addr = flag.String("addr", "localhost:5001", "the address to connect to")
 )
 
 func main() {
@@ -26,9 +26,9 @@ func main() {
 	// Contact the server and print out its response.
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.GetMovie(ctx, &pb.GetMovieOptions{MovieID: 1})
+	r, err := c.GetByID(ctx, &pb.GetMovieOptions{MovieID: 1})
 	if err != nil {
 		log.Fatalf("could not get: %v", err)
 	}
-	log.Printf("Have: %s", r.Title)
+	log.Printf("Have: %s", r.Name)
 }

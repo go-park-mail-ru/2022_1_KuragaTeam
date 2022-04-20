@@ -6,15 +6,64 @@ option go_package = "myapp/internal/microservices/movie/proto";
 // --go-grpc_out=. --go-grpc_opt=paths=source_relative \
 // movie.proto
 
-service Movies {
-  rpc GetMovie(GetMovieOptions) returns(GetMovieResponse) {}
-}
-
 message GetMovieOptions {
   int64 MovieID = 1;
 }
 
-message GetMovieResponse {
-  int64 MovieID = 1;
-  string Title = 2;
+message GetRandomOptions {
+  int32 limut = 1;
+  int32 offset = 2;
+}
+
+message GetMainMovieOptions {}
+
+message Country {
+  string Name = 1;
+}
+
+message Genre {
+  string Name = 1;
+}
+message Staff {
+  int64 ID = 1;
+  string Name = 2;
+  string Photo = 3;
+  string Position = 4;
+}
+
+message Movie {
+  int64 ID = 1;
+  string Name = 2;
+  string NamePicture = 3;
+  int32 Year = 4;
+  string Duration = 5;
+  int32 AgeLimit = 6;
+  string Description = 7;
+  float KinopoiskRating = 8;
+  float Rating = 9;
+  string Tagline = 10;
+  string Picture = 11;
+  string Video = 12;
+  string Trailer = 13;
+
+  repeated Country Country = 14;
+  repeated Genre Genre = 15;
+  repeated Staff Staff = 16;
+}
+
+message MoviesArr {
+  repeated Movie Movie = 1;
+}
+
+message MainMovie {
+  int64 ID = 1;
+  string NamePicture = 2;
+  string Tagline = 3;
+  string Picture = 4;
+}
+
+service Movies {
+  rpc GetByID(GetMovieOptions) returns(Movie) {}
+  rpc GetRandom(GetRandomOptions) returns(MoviesArr) {}
+  rpc GetMainMovie(GetMainMovieOptions) returns(MainMovie) {}
 }
