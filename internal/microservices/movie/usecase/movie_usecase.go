@@ -10,7 +10,7 @@ import (
 	"myapp/internal/utils/images"
 )
 
-type service struct {
+type Service struct {
 	proto.UnimplementedMoviesServer
 
 	movieStorage   movie.Storage
@@ -20,12 +20,12 @@ type service struct {
 }
 
 func NewService(movieStorage movie.Storage, genreStorage genre.Storage,
-	countryStorage country.Storage, staffStorage persons.Storage) *service {
-	return &service{movieStorage: movieStorage, genreStorage: genreStorage,
+	countryStorage country.Storage, staffStorage persons.Storage) *Service {
+	return &Service{movieStorage: movieStorage, genreStorage: genreStorage,
 		countryStorage: countryStorage, staffStorage: staffStorage}
 }
 
-func (s *service) concatURLs(movie *proto.Movie) error {
+func (s *Service) concatURLs(movie *proto.Movie) error {
 	var err error
 	movie.Picture, err = images.GenerateFileURL(movie.Picture, "posters")
 	if err != nil {
@@ -50,7 +50,7 @@ func (s *service) concatURLs(movie *proto.Movie) error {
 	return nil
 }
 
-func (s *service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*proto.Movie, error) {
+func (s *Service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*proto.Movie, error) {
 	selectedMovie, err := s.movieStorage.GetOne(int(in.MovieID))
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (s *service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 	return selectedMovie, nil
 }
 
-func (s *service) GetRandom(ctx context.Context, in *proto.GetRandomOptions) (*proto.MoviesArr, error) {
+func (s *Service) GetRandom(ctx context.Context, in *proto.GetRandomOptions) (*proto.MoviesArr, error) {
 	movies, err := s.movieStorage.GetAllMovies(int(in.Limit), int(in.Offset))
 	for i := 0; i < len(movies); i++ {
 		movies[i].Genre, err = s.genreStorage.GetByMovieID(int(movies[i].ID))
@@ -109,7 +109,7 @@ func (s *service) GetRandom(ctx context.Context, in *proto.GetRandomOptions) (*p
 	return &proto.MoviesArr{Movie: movies}, err
 }
 
-func (s *service) GetMainMovie(ctx context.Context, in *proto.GetMainMovieOptions) (*proto.MainMovie, error) {
+func (s *Service) GetMainMovie(ctx context.Context, in *proto.GetMainMovieOptions) (*proto.MainMovie, error) {
 	selectedMovie, err := s.movieStorage.GetRandomMovie()
 	if err != nil {
 		return nil, err
