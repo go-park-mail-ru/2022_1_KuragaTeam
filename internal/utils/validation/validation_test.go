@@ -2,9 +2,9 @@ package validation
 
 import (
 	"errors"
+	"myapp/internal/models"
 	"testing"
 
-	"myapp/internal/user"
 	"myapp/internal/utils/constants"
 
 	"github.com/stretchr/testify/assert"
@@ -62,12 +62,12 @@ func TestPassword(t *testing.T) {
 func TestUser(t *testing.T) {
 	tests := []struct {
 		name string
-		pass user.User
+		pass models.User
 		err  error
 	}{
 		{
 			name: "NoFieldsAtAll",
-			pass: user.User{
+			pass: models.User{
 				ID:       0,
 				Name:     "Ivan",
 				Email:    "ivan@mail.ru",
@@ -78,7 +78,7 @@ func TestUser(t *testing.T) {
 		},
 		{
 			name: "NoFieldsAtAll",
-			pass: user.User{
+			pass: models.User{
 				ID:       0,
 				Name:     "Ivan",
 				Email:    "ivan@mail.ru",
@@ -89,7 +89,7 @@ func TestUser(t *testing.T) {
 		},
 		{
 			name: "NoFieldsAtAll",
-			pass: user.User{
+			pass: models.User{
 				ID:       0,
 				Name:     "",
 				Email:    "",

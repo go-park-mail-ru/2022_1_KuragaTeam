@@ -2,7 +2,7 @@ package images
 
 import (
 	"fmt"
-	"myapp/internal/user"
+	"myapp/internal/models"
 	"os"
 	"strconv"
 	"time"
@@ -10,7 +10,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func GenerateObjectName(input user.UploadInput) string {
+func GenerateObjectName(input models.UploadInput) string {
 	t := time.Now()
 	formatted := fmt.Sprintf("%d-%02d-%02dT%02d:%02d:%02d",
 		t.Year(), t.Month(), t.Day(),

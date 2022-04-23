@@ -5,7 +5,7 @@ import (
 	"errors"
 	"mime/multipart"
 	"myapp/internal/csrf"
-	"myapp/internal/user"
+	"myapp/internal/models"
 	"myapp/internal/utils/constants"
 	"myapp/mock"
 	"net/http"
@@ -44,7 +44,7 @@ func TestUserDelivery_SignUp(t *testing.T) {
 		{
 			name: "Handler returned status 201",
 			mock: func() {
-				userData := &user.CreateUserDTO{
+				userData := &models.CreateUserDTO{
 					Name:     "Olga",
 					Email:    "olga@mail.ru",
 					Password: "olga123321",
@@ -61,7 +61,7 @@ func TestUserDelivery_SignUp(t *testing.T) {
 		{
 			name: "Handler returned status 400, Email is not unique",
 			mock: func() {
-				userData := &user.CreateUserDTO{
+				userData := &models.CreateUserDTO{
 					Name:     "Olga",
 					Email:    "olga@mail.ru",
 					Password: "olga123321",
@@ -78,7 +78,7 @@ func TestUserDelivery_SignUp(t *testing.T) {
 		{
 			name: "Handler returned status 500, usecase SignUp error",
 			mock: func() {
-				userData := &user.CreateUserDTO{
+				userData := &models.CreateUserDTO{
 					Name:     "Olga",
 					Email:    "olga@mail.ru",
 					Password: "olga123321",
@@ -148,7 +148,7 @@ func TestUserDelivery_LogIn(t *testing.T) {
 		{
 			name: "Handler returned status 200",
 			mock: func() {
-				userData := &user.LogInUserDTO{
+				userData := &models.LogInUserDTO{
 					Email:    "olga@mail.ru",
 					Password: "olga123321",
 				}
@@ -164,7 +164,7 @@ func TestUserDelivery_LogIn(t *testing.T) {
 		{
 			name: "Handler returned status 404, User not found",
 			mock: func() {
-				userData := &user.LogInUserDTO{
+				userData := &models.LogInUserDTO{
 					Email:    "olga@mail.ru",
 					Password: "olga123321",
 				}
@@ -180,7 +180,7 @@ func TestUserDelivery_LogIn(t *testing.T) {
 		{
 			name: "Handler returned status 500, usecase LogIn error",
 			mock: func() {
-				userData := &user.LogInUserDTO{
+				userData := &models.LogInUserDTO{
 					Email:    "olga@mail.ru",
 					Password: "olga123321",
 				}
@@ -250,7 +250,7 @@ func TestUserDelivery_GetUserProfile(t *testing.T) {
 		{
 			name: "Handler returned status 200",
 			mock: func() {
-				userData := &user.ProfileUserDTO{
+				userData := &models.ProfileUserDTO{
 					Name:   "Olga",
 					Email:  "olga@mail.ru",
 					Avatar: "avatar",
@@ -581,7 +581,7 @@ func TestUserDelivery_EditProfile(t *testing.T) {
 		{
 			name: "Handler returned status 200",
 			mock: func() {
-				userData := &user.EditProfileDTO{
+				userData := &models.EditProfileDTO{
 					ID:       int64(1),
 					Name:     "Olga",
 					Password: "olga123321",
@@ -600,7 +600,7 @@ func TestUserDelivery_EditProfile(t *testing.T) {
 		{
 			name: "Handler returned status 500, usecase EditProfile error",
 			mock: func() {
-				userData := &user.EditProfileDTO{
+				userData := &models.EditProfileDTO{
 					ID:       int64(1),
 					Name:     "Olga",
 					Password: "olga123321",

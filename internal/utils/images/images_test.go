@@ -2,7 +2,7 @@ package images
 
 import (
 	"fmt"
-	"myapp/internal/user"
+	"myapp/internal/models"
 	"strconv"
 	"testing"
 	"time"
@@ -13,12 +13,12 @@ import (
 func TestGenerateObjectName(t *testing.T) {
 	tests := []struct {
 		name   string
-		user   user.UploadInput
+		user   models.UploadInput
 		result string
 	}{
 		{
 			name: "GenerateObjectName",
-			user: user.UploadInput{
+			user: models.UploadInput{
 				UserID:      0,
 				File:        nil,
 				Size:        0,

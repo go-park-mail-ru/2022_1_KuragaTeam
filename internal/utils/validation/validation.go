@@ -1,7 +1,7 @@
 package validation
 
 import (
-	"myapp/internal/user"
+	"myapp/internal/microservices/authorization/proto"
 	"myapp/internal/utils/constants"
 	"strings"
 	"unicode"
@@ -9,7 +9,7 @@ import (
 	"gopkg.in/validator.v2"
 )
 
-func ValidateUser(user *user.User) error {
+func ValidateUser(user *proto.SignUpData) error {
 	user.Name = strings.TrimSpace(user.Name)
 	if err := validator.Validate(user); err != nil {
 		return err

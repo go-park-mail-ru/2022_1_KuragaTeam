@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"myapp/internal/user"
+	"myapp/internal/models"
 	"myapp/internal/utils/constants"
 	"myapp/mock"
 	"strconv"
@@ -25,7 +25,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 	tests := []struct {
 		name            string
 		mock            func()
-		input           *user.CreateUserDTO
+		input           *models.CreateUserDTO
 		expectedSession string
 		expectedMsg     string
 		expectedErr     error
@@ -33,7 +33,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 		{
 			name: "Successfully",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Name:     "Danya",
 					Email:    "danya@mail.ru",
 					Password: "danya123321",
@@ -44,7 +44,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 					mockRedis.EXPECT().StoreSession(int64(1)).Return("session", nil),
 				)
 			},
-			input: &user.CreateUserDTO{
+			input: &models.CreateUserDTO{
 				Name:     "Danya",
 				Email:    "danya@mail.ru",
 				Password: "danya123321",
@@ -57,7 +57,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 			name: "Wrong validation",
 			mock: func() {
 			},
-			input: &user.CreateUserDTO{
+			input: &models.CreateUserDTO{
 				Name:     "Danya",
 				Email:    "danya@mail.ru",
 				Password: "danya",
@@ -69,7 +69,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 		{
 			name: "User is not unique",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Name:     "Danya",
 					Email:    "danya@mail.ru",
 					Password: "danya123321",
@@ -78,7 +78,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 					mockStorage.EXPECT().IsUserUnique(userModel).Return(false, nil),
 				)
 			},
-			input: &user.CreateUserDTO{
+			input: &models.CreateUserDTO{
 				Name:     "Danya",
 				Email:    "danya@mail.ru",
 				Password: "danya123321",
@@ -90,7 +90,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 		{
 			name: "Error occurred in IsUserUnique",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Name:     "Danya",
 					Email:    "danya@mail.ru",
 					Password: "danya123321",
@@ -99,7 +99,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 					mockStorage.EXPECT().IsUserUnique(userModel).Return(false, errors.New("error")),
 				)
 			},
-			input: &user.CreateUserDTO{
+			input: &models.CreateUserDTO{
 				Name:     "Danya",
 				Email:    "danya@mail.ru",
 				Password: "danya123321",
@@ -111,7 +111,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 		{
 			name: "Error occurred in CreateUser",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Name:     "Danya",
 					Email:    "danya@mail.ru",
 					Password: "danya123321",
@@ -121,7 +121,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 					mockStorage.EXPECT().CreateUser(userModel).Return(int64(1), errors.New("error")),
 				)
 			},
-			input: &user.CreateUserDTO{
+			input: &models.CreateUserDTO{
 				Name:     "Danya",
 				Email:    "danya@mail.ru",
 				Password: "danya123321",
@@ -133,7 +133,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 		{
 			name: "Error occurred in StoreSession",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Name:     "Danya",
 					Email:    "danya@mail.ru",
 					Password: "danya123321",
@@ -144,7 +144,7 @@ func TestUserUseCase_SignUp(t *testing.T) {
 					mockRedis.EXPECT().StoreSession(int64(1)).Return("", errors.New("error")),
 				)
 			},
-			input: &user.CreateUserDTO{
+			input: &models.CreateUserDTO{
 				Name:     "Danya",
 				Email:    "danya@mail.ru",
 				Password: "danya123321",
@@ -184,14 +184,14 @@ func TestUserUseCase_LogIn(t *testing.T) {
 	tests := []struct {
 		name            string
 		mock            func()
-		input           *user.LogInUserDTO
+		input           *models.LogInUserDTO
 		expectedSession string
 		expectedErr     error
 	}{
 		{
 			name: "Successfully, user exists",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Email:    "danya@mail.ru",
 					Password: "danya123321",
 				}
@@ -200,7 +200,7 @@ func TestUserUseCase_LogIn(t *testing.T) {
 					mockRedis.EXPECT().StoreSession(int64(1)).Return("session", nil),
 				)
 			},
-			input: &user.LogInUserDTO{
+			input: &models.LogInUserDTO{
 				Email:    "danya@mail.ru",
 				Password: "danya123321",
 			},
@@ -210,7 +210,7 @@ func TestUserUseCase_LogIn(t *testing.T) {
 		{
 			name: "Successfully, user not exists",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Email:    "danya@mail.ru",
 					Password: "danya123321",
 				}
@@ -218,7 +218,7 @@ func TestUserUseCase_LogIn(t *testing.T) {
 					mockStorage.EXPECT().IsUserExists(userModel).Return(int64(0), false, nil),
 				)
 			},
-			input: &user.LogInUserDTO{
+			input: &models.LogInUserDTO{
 				Email:    "danya@mail.ru",
 				Password: "danya123321",
 			},
@@ -228,7 +228,7 @@ func TestUserUseCase_LogIn(t *testing.T) {
 		{
 			name: "Error occurred in IsUserExists",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Email:    "danya@mail.ru",
 					Password: "danya123321",
 				}
@@ -236,7 +236,7 @@ func TestUserUseCase_LogIn(t *testing.T) {
 					mockStorage.EXPECT().IsUserExists(userModel).Return(int64(0), false, errors.New("eroor")),
 				)
 			},
-			input: &user.LogInUserDTO{
+			input: &models.LogInUserDTO{
 				Email:    "danya@mail.ru",
 				Password: "danya123321",
 			},
@@ -246,7 +246,7 @@ func TestUserUseCase_LogIn(t *testing.T) {
 		{
 			name: "Error occurred in StoreSession",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Email:    "danya@mail.ru",
 					Password: "danya123321",
 				}
@@ -255,7 +255,7 @@ func TestUserUseCase_LogIn(t *testing.T) {
 					mockRedis.EXPECT().StoreSession(int64(1)).Return("", errors.New("error")),
 				)
 			},
-			input: &user.LogInUserDTO{
+			input: &models.LogInUserDTO{
 				Email:    "danya@mail.ru",
 				Password: "danya123321",
 			},
@@ -402,13 +402,13 @@ func TestUserUseCase_GetUserProfile(t *testing.T) {
 		name        string
 		mock        func()
 		input       int64
-		expected    *user.ProfileUserDTO
+		expected    *models.ProfileUserDTO
 		expectedErr error
 	}{
 		{
 			name: "Successfully",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					Name:   "Danya",
 					Email:  "danya@mail.ru",
 					Avatar: "avatar.webp",
@@ -418,7 +418,7 @@ func TestUserUseCase_GetUserProfile(t *testing.T) {
 				)
 			},
 			input: int64(1),
-			expected: &user.ProfileUserDTO{
+			expected: &models.ProfileUserDTO{
 				Name:   "Danya",
 				Email:  "danya@mail.ru",
 				Avatar: "avatar.webp",
@@ -466,13 +466,13 @@ func TestUserUseCase_EditProfile(t *testing.T) {
 	tests := []struct {
 		name        string
 		mock        func()
-		input       *user.EditProfileDTO
+		input       *models.EditProfileDTO
 		expectedErr error
 	}{
 		{
 			name: "Successfully",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					ID:       int64(1),
 					Name:     "Danya",
 					Password: "danya123321",
@@ -481,7 +481,7 @@ func TestUserUseCase_EditProfile(t *testing.T) {
 					mockStorage.EXPECT().EditProfile(userModel).Return(nil),
 				)
 			},
-			input: &user.EditProfileDTO{
+			input: &models.EditProfileDTO{
 				ID:       int64(1),
 				Name:     "Danya",
 				Password: "danya123321",
@@ -491,7 +491,7 @@ func TestUserUseCase_EditProfile(t *testing.T) {
 		{
 			name: "Error occurred in EditProfile",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					ID:       int64(1),
 					Name:     "Danya",
 					Password: "danya123321",
@@ -500,7 +500,7 @@ func TestUserUseCase_EditProfile(t *testing.T) {
 					mockStorage.EXPECT().EditProfile(userModel).Return(errors.New("error")),
 				)
 			},
-			input: &user.EditProfileDTO{
+			input: &models.EditProfileDTO{
 				ID:       int64(1),
 				Name:     "Danya",
 				Password: "danya123321",
@@ -536,13 +536,13 @@ func TestUserUseCase_EditAvatar(t *testing.T) {
 	tests := []struct {
 		name        string
 		mock        func()
-		input       *user.EditAvatarDTO
+		input       *models.EditAvatarDTO
 		expectedErr error
 	}{
 		{
 			name: "Successfully",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					ID:     int64(1),
 					Avatar: "avatar.webp",
 				}
@@ -551,7 +551,7 @@ func TestUserUseCase_EditAvatar(t *testing.T) {
 					mockImages.EXPECT().DeleteFile("old_avatar").Return(nil),
 				)
 			},
-			input: &user.EditAvatarDTO{
+			input: &models.EditAvatarDTO{
 				ID:     int64(1),
 				Avatar: "avatar.webp",
 			},
@@ -560,7 +560,7 @@ func TestUserUseCase_EditAvatar(t *testing.T) {
 		{
 			name: "Error occurred in EditAvatar",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					ID:     int64(1),
 					Avatar: "avatar.webp",
 				}
@@ -568,7 +568,7 @@ func TestUserUseCase_EditAvatar(t *testing.T) {
 					mockStorage.EXPECT().EditAvatar(userModel).Return("", errors.New("error")),
 				)
 			},
-			input: &user.EditAvatarDTO{
+			input: &models.EditAvatarDTO{
 				ID:     int64(1),
 				Avatar: "avatar.webp",
 			},
@@ -577,7 +577,7 @@ func TestUserUseCase_EditAvatar(t *testing.T) {
 		{
 			name: "Error occurred in DeleteFile",
 			mock: func() {
-				userModel := &user.User{
+				userModel := &models.User{
 					ID:     int64(1),
 					Avatar: "avatar.webp",
 				}
@@ -586,7 +586,7 @@ func TestUserUseCase_EditAvatar(t *testing.T) {
 					mockImages.EXPECT().DeleteFile("old_avatar").Return(errors.New("error")),
 				)
 			},
-			input: &user.EditAvatarDTO{
+			input: &models.EditAvatarDTO{
 				ID:     int64(1),
 				Avatar: "avatar.webp",
 			},
@@ -631,7 +631,7 @@ func TestUserUseCase_UploadAvatar(t *testing.T) {
 		{
 			name: "Successfully",
 			mock: func() {
-				userModel := user.UploadInput{
+				userModel := models.UploadInput{
 					UserID:      int64(1),
 					File:        *new(io.Reader),
 					Size:        int64(5),
@@ -658,7 +658,7 @@ func TestUserUseCase_UploadAvatar(t *testing.T) {
 		{
 			name: "Error occurred in UploadFile",
 			mock: func() {
-				userModel := user.UploadInput{
+				userModel := models.UploadInput{
 					UserID:      int64(1),
 					File:        *new(io.Reader),
 					Size:        int64(5),

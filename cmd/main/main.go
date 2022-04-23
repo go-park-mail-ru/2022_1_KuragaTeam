@@ -1,12 +1,34 @@
 package main
 
 import (
+	"log"
+	api "myapp/internal/api/delivery"
+	"myapp/internal/composites"
+	authMicroservice "myapp/internal/microservices/authorization/proto"
+	"myapp/internal/middleware"
+
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"log"
-	"myapp/internal/composites"
+	"google.golang.org/grpc"
 )
+
+func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient, []*grpc.ClientConn) {
+	connections := make([]*grpc.ClientConn, 0)
+
+	authConn, err := grpc.Dial(
+		"localhost:5555",
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		server.Logger.Fatal("cant connect to grpc")
+	}
+	connections = append(connections, authConn)
+
+	authorizationManager := authMicroservice.NewAuthorizationClient(authConn)
+
+	return authorizationManager, connections
+}
 
 // @title Movie Space API
 // @version 1.0
@@ -28,14 +50,27 @@ func main() {
 	logger := prLogger.Sugar()
 	defer prLogger.Sync()
 
+	auth, conn := LoadMicroservices(echoServer)
+	defer func() {
+		if len(conn) == 0 {
+			return
+		}
+		for _, c := range conn {
+			err := c.Close()
+			if err != nil {
+				log.Fatalf("Error occurred during closing connection: %s", err.Error())
+			}
+		}
+	}()
+
+	appHandler := api.NewAPIMicroservices(logger, auth)
+	appHandler.Register(echoServer)
+
+	///////////////////////////////////////////////////////
+
 	postgresDBC, err := composites.NewPostgresDBComposite()
 	if err != nil {
 		logger.Fatal("postgres db composite failed")
-	}
-
-	redisComposite, err := composites.NewRedisComposite()
-	if err != nil {
-		logger.Fatal("redis composite failed")
 	}
 
 	minioComposite, err := composites.NewMinioComposite()
@@ -61,12 +96,13 @@ func main() {
 	}
 	moviesCompilationsComposite.Handler.Register(echoServer)
 
-	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite, minioComposite, logger)
+	userComposite, err := composites.NewUserComposite(postgresDBC, minioComposite, logger)
 	if err != nil {
 		logger.Fatal("user composite failed")
 	}
 
-	userComposite.Middleware.Register(echoServer)
+	middlwares := middleware.NewMiddleware(auth, logger)
+	middlwares.Register(echoServer)
 	userComposite.Handler.Register(echoServer)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))

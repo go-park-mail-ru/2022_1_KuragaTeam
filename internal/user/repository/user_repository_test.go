@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql/driver"
 	"errors"
-	"myapp/internal/user"
+	"myapp/internal/models"
 	"myapp/internal/utils/constants"
 	"myapp/internal/utils/hash"
 	"regexp"
@@ -28,7 +28,7 @@ func TestUserRepository_IsUserExists(t *testing.T) {
 	tests := []struct {
 		name           string
 		mock           func()
-		input          user.User
+		input          models.User
 		expectedID     int64
 		expectedResult bool
 		expectedErr    error
@@ -45,7 +45,7 @@ func TestUserRepository_IsUserExists(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
 					WithArgs(driver.Value("Ilias@mail.ru")).WillReturnRows(rows)
 			},
-			input: user.User{
+			input: models.User{
 				Email:    "Ilias@mail.ru",
 				Password: "Pass123321",
 			},
@@ -60,7 +60,7 @@ func TestUserRepository_IsUserExists(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
 					WithArgs(driver.Value("Ilias@mail.ru")).WillReturnRows(rows)
 			},
-			input: user.User{
+			input: models.User{
 				Email:    "Ilias@mail.ru",
 				Password: "Pass123321",
 			},
@@ -80,7 +80,7 @@ func TestUserRepository_IsUserExists(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
 					WithArgs(driver.Value("Ilias@mail.ru")).WillReturnRows(rows)
 			},
-			input: user.User{
+			input: models.User{
 				Email:    "Ilias@mail.ru",
 				Password: "Pass123321",
 			},
@@ -94,7 +94,7 @@ func TestUserRepository_IsUserExists(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, salt FROM users WHERE email=$1`)).
 					WithArgs(driver.Value("Ilias@mail.ru")).WillReturnError(errors.New("Error occurred during request "))
 			},
-			input: user.User{
+			input: models.User{
 				Email:    "Ilias@mail.ru",
 				Password: "Pass123321",
 			},
@@ -133,7 +133,7 @@ func TestUserRepository_IsUserUnique(t *testing.T) {
 	tests := []struct {
 		name        string
 		mock        func()
-		input       user.User
+		input       models.User
 		expected    bool
 		expectedErr error
 	}{
@@ -144,7 +144,7 @@ func TestUserRepository_IsUserUnique(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE email=$1`)).
 					WithArgs(driver.Value("Ilias@mail.ru")).WillReturnRows(rows)
 			},
-			input: user.User{
+			input: models.User{
 				Email: "Ilias@mail.ru",
 			},
 			expected:    true,
@@ -157,7 +157,7 @@ func TestUserRepository_IsUserUnique(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE email=$1`)).
 					WithArgs(driver.Value("Ilias@mail.ru")).WillReturnRows(rows)
 			},
-			input: user.User{
+			input: models.User{
 				Email: "Ilias@mail.ru",
 			},
 			expected:    false,
@@ -169,7 +169,7 @@ func TestUserRepository_IsUserUnique(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE email=$1`)).
 					WithArgs(driver.Value("Ilias@mail.ru")).WillReturnError(errors.New("Error occurred during request "))
 			},
-			input: user.User{
+			input: models.User{
 				Email: "Ilias@mail.ru",
 			},
 			expectedErr: errors.New("Error occurred during request "),
@@ -204,7 +204,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 	tests := []struct {
 		name        string
 		mock        func()
-		input       user.User
+		input       models.User
 		expectedID  int64
 		expectedErr error
 	}{
@@ -220,7 +220,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 						driver.Value(constants.DefaultImage),
 					).WillReturnError(errors.New("Error occurred during request "))
 			},
-			input: user.User{
+			input: models.User{
 				Name:     "Ilias",
 				Email:    "Ilias@mail.ru",
 				Password: "IliasPassword",
@@ -259,7 +259,7 @@ func TestUserRepository_GetUserProfile(t *testing.T) {
 		name        string
 		mock        func()
 		id          int64
-		expected    *user.User
+		expected    *models.User
 		expectedErr error
 	}{
 		{
@@ -270,7 +270,7 @@ func TestUserRepository_GetUserProfile(t *testing.T) {
 					WithArgs(driver.Value(1)).WillReturnRows(rows)
 			},
 			id: int64(1),
-			expected: &user.User{
+			expected: &models.User{
 				Name:   "Ilias",
 				Email:  "Ilias@mail.ru",
 				Avatar: "http://localhost:8000/api/v1/avatars/default_avatar.webp",
@@ -316,7 +316,7 @@ func TestUserRepository_EditProfile(t *testing.T) {
 	tests := []struct {
 		name        string
 		mock        func()
-		user        *user.User
+		user        *models.User
 		expectedErr error
 	}{
 		{
@@ -331,7 +331,7 @@ func TestUserRepository_EditProfile(t *testing.T) {
 						driver.Value("Ivan"),
 					).WillReturnError(nil).WillReturnResult(sqlmock.NewResult(1, 1))
 			},
-			user: &user.User{
+			user: &models.User{
 				Name: "Ivan",
 			},
 			expectedErr: nil,
@@ -342,7 +342,7 @@ func TestUserRepository_EditProfile(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT username, password, salt FROM users WHERE id=$1`)).
 					WithArgs(driver.Value(0)).WillReturnError(errors.New("Error occurred during request "))
 			},
-			user: &user.User{
+			user: &models.User{
 				Name:     "Ilias",
 				Avatar:   "avatar",
 				Password: "pass123321",
@@ -361,7 +361,7 @@ func TestUserRepository_EditProfile(t *testing.T) {
 						driver.Value("Ivan"),
 					).WillReturnError(errors.New("Error occurred during request ")).WillReturnResult(sqlmock.NewResult(1, 1))
 			},
-			user: &user.User{
+			user: &models.User{
 				Name: "Ivan",
 			},
 			expectedErr: errors.New("Error occurred during request "),
@@ -395,7 +395,7 @@ func TestUserRepository_EditAvatar(t *testing.T) {
 	tests := []struct {
 		name              string
 		mock              func()
-		user              *user.User
+		user              *models.User
 		expectedOldAvatar string
 		expectedErr       error
 	}{
@@ -411,7 +411,7 @@ func TestUserRepository_EditAvatar(t *testing.T) {
 						driver.Value("new_avatar"),
 					).WillReturnError(nil).WillReturnResult(sqlmock.NewResult(1, 1))
 			},
-			user: &user.User{
+			user: &models.User{
 				Avatar: "new_avatar",
 			},
 			expectedOldAvatar: "avatar",
@@ -423,7 +423,7 @@ func TestUserRepository_EditAvatar(t *testing.T) {
 				mock.ExpectQuery(regexp.QuoteMeta(`SELECT avatar FROM users WHERE id=$1`)).
 					WithArgs(driver.Value(0)).WillReturnError(errors.New("Error occurred during request "))
 			},
-			user: &user.User{
+			user: &models.User{
 				Avatar: "new_avatar",
 			},
 			expectedOldAvatar: "",
@@ -442,7 +442,7 @@ func TestUserRepository_EditAvatar(t *testing.T) {
 					).WillReturnError(errors.New("Error occurred during request ")).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
-			user: &user.User{
+			user: &models.User{
 				Name:   "Ivan",
 				Avatar: "new_avatar",
 			},
@@ -462,7 +462,7 @@ func TestUserRepository_EditAvatar(t *testing.T) {
 					).WillReturnError(nil).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
-			user: &user.User{
+			user: &models.User{
 				Name: "Ivan",
 			},
 			expectedOldAvatar: "",

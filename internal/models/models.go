@@ -1,4 +1,4 @@
-package user
+package models
 
 import "io"
 
@@ -10,17 +10,6 @@ type User struct {
 	Salt                string `json:"salt" form:"salt"`
 	Avatar              string `json:"avatar" form:"avatar"`
 	SubscriptionExpires string `json:"subscription_expires" form:"subscription_expires"`
-}
-
-type CreateUserDTO struct {
-	Name     string `json:"username" form:"username"`
-	Email    string `json:"email" form:"email"`
-	Password string `json:"password" form:"password"`
-}
-
-type LogInUserDTO struct {
-	Email    string `json:"email" form:"email"`
-	Password string `json:"password" form:"password"`
 }
 
 type ProfileUserDTO struct {

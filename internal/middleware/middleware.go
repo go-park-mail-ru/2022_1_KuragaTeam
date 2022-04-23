@@ -1,8 +1,10 @@
 package middleware
 
 import (
+	"context"
 	"myapp/internal/csrf"
-	"myapp/internal/user"
+	authorization "myapp/internal/microservices/authorization/proto"
+	"myapp/internal/models"
 	"net/http"
 	"time"
 
@@ -13,14 +15,14 @@ import (
 )
 
 type Middleware struct {
-	userService user.Service
-	logger      *zap.SugaredLogger
+	authMicroservice authorization.AuthorizationClient
+	logger           *zap.SugaredLogger
 }
 
-func NewMiddleware(service user.Service, logger *zap.SugaredLogger) *Middleware {
+func NewMiddleware(authMicroservice authorization.AuthorizationClient, logger *zap.SugaredLogger) *Middleware {
 	return &Middleware{
-		userService: service,
-		logger:      logger,
+		authMicroservice: authMicroservice,
+		logger:           logger,
 	}
 }
 
@@ -38,13 +40,15 @@ func (m Middleware) CheckAuthorization() echo.MiddlewareFunc {
 			var userID int64
 			userID = -1
 			if err == nil {
-				userID, err = m.userService.CheckAuthorization(cookie.Value)
+				data := &authorization.Cookie{Cookie: cookie.Value}
+				id, err := m.authMicroservice.CheckAuthorization(context.Background(), data)
 				if err != nil {
 					cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
 					ctx.SetCookie(cookie)
 					ctx.Set("USER_ID", int64(-1))
 					return next(ctx)
 				}
+				userID = id.ID
 			}
 			if err != nil {
 				cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
@@ -105,7 +109,7 @@ func (m Middleware) CSRF() echo.MiddlewareFunc {
 						zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 					)
 
-					return ctx.JSON(http.StatusInternalServerError, &user.Response{
+					return ctx.JSON(http.StatusInternalServerError, &models.Response{
 						Status:  http.StatusInternalServerError,
 						Message: err.Error(),
 					})
@@ -115,14 +119,14 @@ func (m Middleware) CSRF() echo.MiddlewareFunc {
 
 				isValidCsrf, err := csrf.Tokens.Check(cookie.Value, GetToken)
 				if err != nil {
-					return ctx.JSON(http.StatusInternalServerError, &user.Response{
+					return ctx.JSON(http.StatusInternalServerError, &models.Response{
 						Status:  http.StatusInternalServerError,
 						Message: err.Error(),
 					})
 				}
 
 				if !isValidCsrf {
-					return ctx.JSON(http.StatusForbidden, &user.Response{
+					return ctx.JSON(http.StatusForbidden, &models.Response{
 						Status:  http.StatusForbidden,
 						Message: "Wrong csrf token",
 					})
