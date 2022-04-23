@@ -1,11 +1,20 @@
 package main
 
 import (
+	"flag"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"myapp/internal/api/delivery"
 	"myapp/internal/composites"
+	pb "myapp/internal/microservices/movie/proto"
+)
+
+var (
+	addr = flag.String("addr", "localhost:5001", "the address to connect to")
 )
 
 // @title Movie Space API
@@ -43,11 +52,23 @@ func main() {
 		logger.Fatal("minio composite failed")
 	}
 
-	movieComposite, err := composites.NewMovieComposite(postgresDBC, logger)
+	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		logger.Fatal("author composite failed")
+		log.Fatalf("did not connect: %v", err)
 	}
-	movieComposite.Handler.Register(echoServer)
+	defer conn.Close()
+
+	c := pb.NewMoviesClient(conn)
+
+	movieHandler := delivery.NewMovieHandler(c, logger)
+
+	movieHandler.Register(echoServer)
+
+	//movieComposite, err := composites.NewMovieComposite(postgresDBC, logger)
+	//if err != nil {
+	//	logger.Fatal("author composite failed")
+	//}
+	//movieComposite.Handler.Register(echoServer)
 
 	staffComposite, err := composites.NewStaffComposite(postgresDBC, logger)
 	if err != nil {
@@ -70,5 +91,4 @@ func main() {
 	userComposite.Handler.Register(echoServer)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))
-
 }

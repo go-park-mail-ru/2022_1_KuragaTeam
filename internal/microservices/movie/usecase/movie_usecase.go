@@ -86,14 +86,31 @@ func (s *service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 	if err != nil {
 		return nil, err
 	}
-	newStruct := proto.Movie{Name: "lALALALALA"}
+	newStruct := proto.Movie{
+		ID:              int64(selectedMovie.ID),
+		Name:            selectedMovie.Name,
+		NamePicture:     selectedMovie.NamePicture,
+		Year:            int32(selectedMovie.Year),
+		Duration:        selectedMovie.Duration,
+		AgeLimit:        int32(selectedMovie.AgeLimit),
+		Description:     selectedMovie.Description,
+		KinopoiskRating: selectedMovie.KinopoiskRating,
+		Rating:          selectedMovie.Rating,
+		Tagline:         selectedMovie.Tagline,
+		Picture:         selectedMovie.Picture,
+		Video:           selectedMovie.Video,
+		Trailer:         selectedMovie.Trailer,
+		Country:         nil,
+		Genre:           nil,
+		Staff:           nil,
+	}
 
 	//mapper.Map(selectedMovie, &newStruct)
 	return &newStruct, nil
 }
 
 func (s *service) GetRandom(ctx context.Context, in *proto.GetRandomOptions) (*proto.MoviesArr, error) {
-	movies, err := s.movieStorage.GetAllMovies(int(in.Limut), int(in.Offset))
+	movies, err := s.movieStorage.GetAllMovies(int(in.Limit), int(in.Offset))
 	for i := 0; i < len(movies); i++ {
 		movies[i].Genre, err = s.genreStorage.GetByMovieID(movies[i].ID)
 		if err != nil {
@@ -115,6 +132,7 @@ func (s *service) GetRandom(ctx context.Context, in *proto.GetRandomOptions) (*p
 	//return movies, err
 	return nil, nil
 }
+
 func (s *service) GetMainMovie(ctx context.Context, in *proto.GetMainMovieOptions) (*proto.MainMovie, error) {
 	selectedMovie, err := s.movieStorage.GetRandomMovie()
 	if err != nil {

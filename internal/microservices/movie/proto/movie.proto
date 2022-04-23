@@ -11,7 +11,7 @@ message GetMovieOptions {
 }
 
 message GetRandomOptions {
-  int32 limut = 1;
+  int32 limit = 1;
   int32 offset = 2;
 }
 
