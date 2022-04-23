@@ -17,14 +17,7 @@ message GetRandomOptions {
 
 message GetMainMovieOptions {}
 
-message Country {
-  string Name = 1;
-}
-
-message Genre {
-  string Name = 1;
-}
-message Staff {
+message PersonInMovie {
   int64 ID = 1;
   string Name = 2;
   string Photo = 3;
@@ -46,9 +39,9 @@ message Movie {
   string Video = 12;
   string Trailer = 13;
 
-  repeated Country Country = 14;
-  repeated Genre Genre = 15;
-  repeated Staff Staff = 16;
+  repeated string Country = 14;
+  repeated string Genre = 15;
+  repeated PersonInMovie Staff = 16;
 }
 
 message MoviesArr {

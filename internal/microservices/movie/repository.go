@@ -1,11 +1,11 @@
 package movie
 
 import (
-	"myapp/internal"
+	"myapp/internal/microservices/movie/proto"
 )
 
 type Storage interface {
-	GetOne(id int) (*internal.Movie, error)
-	GetAllMovies(limit, offset int) ([]internal.Movie, error)
-	GetRandomMovie() (*internal.MainMovieInfoDTO, error)
+	GetOne(id int) (*proto.Movie, error)
+	GetAllMovies(limit, offset int) ([]*proto.Movie, error)
+	GetRandomMovie() (*proto.MainMovie, error)
 }

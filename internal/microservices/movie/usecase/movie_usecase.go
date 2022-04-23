@@ -2,15 +2,12 @@ package usecase
 
 import (
 	"golang.org/x/net/context"
-	"myapp/internal"
 	"myapp/internal/country"
 	"myapp/internal/genre"
+	"myapp/internal/microservices/movie"
 	"myapp/internal/microservices/movie/proto"
-	"myapp/internal/movie"
 	"myapp/internal/persons"
 	"myapp/internal/utils/images"
-
-	mapper "github.com/stroiman/go-automapper"
 )
 
 type service struct {
@@ -28,7 +25,7 @@ func NewService(movieStorage movie.Storage, genreStorage genre.Storage,
 		countryStorage: countryStorage, staffStorage: staffStorage}
 }
 
-func (s *service) concatURLs(movie *internal.Movie) error {
+func (s *service) concatURLs(movie *proto.Movie) error {
 	var err error
 	movie.Picture, err = images.GenerateFileURL(movie.Picture, "posters")
 	if err != nil {
@@ -58,22 +55,22 @@ func (s *service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 	if err != nil {
 		return nil, err
 	}
-	selectedMovie.Genre, err = s.genreStorage.GetByMovieID(selectedMovie.ID)
+	selectedMovie.Genre, err = s.genreStorage.GetByMovieID(int(selectedMovie.ID))
 	if err != nil {
 		return nil, err
 	}
 
-	selectedMovie.Country, err = s.countryStorage.GetByMovieID(selectedMovie.ID)
+	selectedMovie.Country, err = s.countryStorage.GetByMovieID(int(selectedMovie.ID))
 	if err != nil {
 		return nil, err
 	}
 
-	selectedMovie.Staff, err = s.staffStorage.GetByMovieID(selectedMovie.ID)
+	selectedMovie.Staff, err = s.staffStorage.GetByMovieID(int(selectedMovie.ID))
 	if err != nil {
 		return nil, err
 	}
 
-	for i, _ := range selectedMovie.Staff {
+	for i := 0; i < len(selectedMovie.Staff); i++ {
 		selectedMovie.Staff[i].Photo, err = images.GenerateFileURL(selectedMovie.Staff[i].Photo, "persons")
 		if err != nil {
 			return nil, err
@@ -86,51 +83,30 @@ func (s *service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 	if err != nil {
 		return nil, err
 	}
-	newStruct := proto.Movie{
-		ID:              int64(selectedMovie.ID),
-		Name:            selectedMovie.Name,
-		NamePicture:     selectedMovie.NamePicture,
-		Year:            int32(selectedMovie.Year),
-		Duration:        selectedMovie.Duration,
-		AgeLimit:        int32(selectedMovie.AgeLimit),
-		Description:     selectedMovie.Description,
-		KinopoiskRating: selectedMovie.KinopoiskRating,
-		Rating:          selectedMovie.Rating,
-		Tagline:         selectedMovie.Tagline,
-		Picture:         selectedMovie.Picture,
-		Video:           selectedMovie.Video,
-		Trailer:         selectedMovie.Trailer,
-		Country:         nil,
-		Genre:           nil,
-		Staff:           nil,
-	}
-
-	//mapper.Map(selectedMovie, &newStruct)
-	return &newStruct, nil
+	return selectedMovie, nil
 }
 
 func (s *service) GetRandom(ctx context.Context, in *proto.GetRandomOptions) (*proto.MoviesArr, error) {
 	movies, err := s.movieStorage.GetAllMovies(int(in.Limit), int(in.Offset))
 	for i := 0; i < len(movies); i++ {
-		movies[i].Genre, err = s.genreStorage.GetByMovieID(movies[i].ID)
+		movies[i].Genre, err = s.genreStorage.GetByMovieID(int(movies[i].ID))
 		if err != nil {
 			return nil, err
 		}
-		movies[i].Country, err = s.countryStorage.GetByMovieID(movies[i].ID)
+		movies[i].Country, err = s.countryStorage.GetByMovieID(int(movies[i].ID))
 		if err != nil {
 			return nil, err
 		}
 
 		movies[i].Rating = 8.1 // пока что просто замокано
 
-		err = s.concatURLs(&movies[i])
+		err = s.concatURLs(movies[i])
 		if err != nil {
 			return nil, err
 		}
 
 	}
-	//return movies, err
-	return nil, nil
+	return &proto.MoviesArr{Movie: movies}, err
 }
 
 func (s *service) GetMainMovie(ctx context.Context, in *proto.GetMainMovieOptions) (*proto.MainMovie, error) {
@@ -147,8 +123,5 @@ func (s *service) GetMainMovie(ctx context.Context, in *proto.GetMainMovieOption
 		return nil, err
 	}
 
-	newStruct := proto.MainMovie{}
-
-	mapper.Map(selectedMovie, &newStruct)
-	return &newStruct, nil
+	return selectedMovie, nil
 }
