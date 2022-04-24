@@ -5,6 +5,7 @@ import (
 	"myapp/internal/composites"
 	"myapp/internal/microservices/authorization/proto"
 	"net"
+	"os"
 
 	"google.golang.org/grpc"
 )
@@ -25,17 +26,21 @@ func main() {
 		log.Fatal("user composite failed")
 	}
 
-	listen, err := net.Listen("tcp", "localhost:5555")
+	listen, err := net.Listen("tcp", os.Getenv("AUTH_MICROSERVICE_HOST")+":"+
+		os.Getenv("AUTH_MICROSERVICE_PORT"))
 	if err != nil {
-		log.Println("CANNOT LISTEN PORT: ", "localhost:5555", err.Error())
+		log.Fatal("CANNOT LISTEN PORT: ", os.Getenv("AUTH_MICROSERVICE_HOST")+":"+
+			os.Getenv("AUTH_MICROSERVICE_PORT"), err.Error())
 	}
 
 	server := grpc.NewServer()
 
 	proto.RegisterAuthorizationServer(server, authComposite.Service)
-	log.Printf("STARTED AUTHORIZATION MICROSERVICE ON %s", "localhost:5555")
+	log.Printf("STARTED AUTHORIZATION MICROSERVICE ON %s", os.Getenv("AUTH_MICROSERVICE_HOST")+":"+
+		os.Getenv("AUTH_MICROSERVICE_PORT"))
 	err = server.Serve(listen)
 	if err != nil {
-		log.Println("CANNOT LISTEN PORT: ", "localhost:5555", err.Error())
+		log.Println("CANNOT LISTEN PORT: ", os.Getenv("AUTH_MICROSERVICE_HOST")+":"+
+			os.Getenv("AUTH_MICROSERVICE_PORT"), err.Error())
 	}
 }

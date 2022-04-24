@@ -16,6 +16,7 @@ services:
       - APP_DB_NAME=docker
     volumes:
       - ./sql/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
   redis:
@@ -23,6 +24,8 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
   minio:
     image: minio/minio:latest
     command: server --console-address ":9001" /data/
@@ -37,20 +40,39 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-  dockergo:
-    image: docker-golang-image:latest
+    volumes:
+      - minio_data:/data
+  authorization:
+    build:
+      context: .
+      dockerfile: ./cmd/authorization/Dockerfile
     links:
-      - postgres:postgres
-      - redis:redis
-      - minio:minio
+      - postgres
+      - redis
+    ports:
+      - "5555:5555"
+  main:
+    build:
+      context: .
+      dockerfile: ./cmd/main/Dockerfile
+    links:
+      - postgres
+      - redis
+      - minio
+      - authorization
     ports:
       - "1323:1323"
   nginx:
     image: nginx:latest
     links:
-      - dockergo:dockergo
-      - minio:minio
+      - main
+      - minio
     volumes:
       - ./nginx:/etc/nginx/conf.d
     ports:
       - "8000:80"
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

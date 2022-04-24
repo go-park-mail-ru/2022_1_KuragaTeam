@@ -6,6 +6,7 @@ import (
 	"myapp/internal/composites"
 	authMicroservice "myapp/internal/microservices/authorization/proto"
 	"myapp/internal/middleware"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
@@ -17,7 +18,8 @@ func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient,
 	connections := make([]*grpc.ClientConn, 0)
 
 	authConn, err := grpc.Dial(
-		"localhost:5555",
+		os.Getenv("AUTH_HOST")+":"+
+			os.Getenv("AUTH_PORT"),
 		grpc.WithInsecure(),
 	)
 	if err != nil {

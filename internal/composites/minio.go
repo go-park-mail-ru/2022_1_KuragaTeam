@@ -5,7 +5,6 @@ import (
 	"myapp/internal/utils/constants"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -15,10 +14,6 @@ type MinioComposite struct {
 }
 
 func NewMinioComposite() (*MinioComposite, error) {
-	if err := godotenv.Load(".env"); err != nil {
-		return nil, err
-	}
-
 	minioClient, err := minio.New(os.Getenv("MINIOURL"), &minio.Options{
 		Creds:  credentials.NewStaticV4(os.Getenv("MINIOUSER"), os.Getenv("MINIOPASSWORD"), ""),
 		Secure: false,

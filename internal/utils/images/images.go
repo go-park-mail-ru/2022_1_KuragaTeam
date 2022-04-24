@@ -6,8 +6,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
 func GenerateObjectName(input models.UploadInput) string {
@@ -19,9 +17,5 @@ func GenerateObjectName(input models.UploadInput) string {
 }
 
 func GenerateFileURL(fileName string, bucket string) (string, error) {
-	if err := godotenv.Load(".env"); err != nil {
-		return "", err
-	}
-
 	return fmt.Sprintf("http://%s/api/v1/%s/%s", os.Getenv("NGINX"), bucket, fileName), nil
 }
