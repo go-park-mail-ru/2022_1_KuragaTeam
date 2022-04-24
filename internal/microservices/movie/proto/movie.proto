@@ -2,9 +2,9 @@ syntax = "proto3";
 
 option go_package = "myapp/internal/microservices/movie/proto";
 
-// protoc --go_out=. --go_opt=paths=source_relative \
-// --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-// movie.proto
+//protoc --go_out=. --go_opt=paths=source_relative \
+//--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+//movie.proto
 
 message GetMovieOptions {
   int64 MovieID = 1;
@@ -18,30 +18,48 @@ message GetRandomOptions {
 message GetMainMovieOptions {}
 
 message PersonInMovie {
-  int64 ID = 1;
-  string Name = 2;
-  string Photo = 3;
-  string Position = 4;
+  int64 ID = 1  [json_name="id"];
+  string Name = 2  [json_name="name"];
+  string Photo = 3  [json_name="photo"];
+  string Position = 4  [json_name="position"];
+}
+
+message Episode {
+  string ID = 1  [json_name="id"];
+  string Name = 2  [json_name="name"];
+  int32 Number = 3  [json_name="number"];
+  string Description = 4  [json_name="rating"];
+  string Video = 5  [json_name="video"];
+  string Picture = 6  [json_name="picture"];
+}
+
+message Season {
+  int32 ID = 1  [json_name="id"];
+  int32 Number = 2  [json_name="number"];
+  repeated Episode Episodes = 3  [json_name="episodes"];
 }
 
 message Movie {
-  int64 ID = 1;
-  string Name = 2;
-  string NamePicture = 3;
-  int32 Year = 4;
-  string Duration = 5;
-  int32 AgeLimit = 6;
-  string Description = 7;
-  float KinopoiskRating = 8;
-  float Rating = 9;
-  string Tagline = 10;
-  string Picture = 11;
-  string Video = 12;
-  string Trailer = 13;
+  int64 ID = 1 [json_name="id"];
+  string Name = 2 [json_name="name"];
+  bool IsMovie = 3 [json_name="is_movie"];
+  string NamePicture = 4 [json_name="name_picture"];
+  int32 Year = 5 [json_name="year"];
+  string Duration = 6 [json_name="duration"];
+  int32 AgeLimit = 7 [json_name="age_limit"];
+  string Description = 8 [json_name="description"];
+  float KinopoiskRating = 9 [json_name="kinopoisk_rating"];
+  float Rating = 10 [json_name="rating"];
+  string Tagline = 11 [json_name="tagline"];
+  string Picture = 12 [json_name="picture"];
+  string Video = 13  [json_name="video"];
+  string Trailer = 14  [json_name="trailer"];
 
-  repeated string Country = 14;
-  repeated string Genre = 15;
-  repeated PersonInMovie Staff = 16;
+  repeated Season Seasons = 15  [json_name="seasons"];
+
+  repeated string Country = 16  [json_name="country"];
+  repeated string Genre = 17  [json_name="genre"];
+  repeated PersonInMovie Staff = 18  [json_name="staff"];
 }
 
 message MoviesArr {
@@ -49,10 +67,10 @@ message MoviesArr {
 }
 
 message MainMovie {
-  int64 ID = 1;
-  string NamePicture = 2;
-  string Tagline = 3;
-  string Picture = 4;
+  int64 ID = 1  [json_name="id"];
+  string NamePicture = 2  [json_name="name_picture"];
+  string Tagline = 3  [json_name="tagline"];
+  string Picture = 4  [json_name="picture"];
 }
 
 service Movies {

@@ -15,11 +15,11 @@ func NewStorage(db *sql.DB) movie.Storage {
 }
 
 func (ms *movieStorage) GetOne(id int) (*proto.Movie, error) {
-	sqlScript := "SELECT id, name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
+	sqlScript := "SELECT id, name, is_movie, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
 		"picture, video, trailer FROM movies WHERE id=$1"
 
 	var selectedMovie proto.Movie
-	err := ms.db.QueryRow(sqlScript, id).Scan(&selectedMovie.ID, &selectedMovie.Name,
+	err := ms.db.QueryRow(sqlScript, id).Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.IsMovie,
 		&selectedMovie.NamePicture, &selectedMovie.Year, &selectedMovie.Duration, &selectedMovie.AgeLimit,
 		&selectedMovie.Description, &selectedMovie.KinopoiskRating, &selectedMovie.Tagline, &selectedMovie.Picture,
 		&selectedMovie.Video, &selectedMovie.Trailer)
@@ -28,6 +28,46 @@ func (ms *movieStorage) GetOne(id int) (*proto.Movie, error) {
 	}
 
 	return &selectedMovie, nil
+}
+
+func (ms *movieStorage) GetSeasonsAndEpisodes(seriesId int) ([]*proto.Season, error) {
+	sqlScript := "SELECT id, number FROM seasons WHERE movie_id = $1 ORDER BY number;"
+
+	selectedSeasons := make([]*proto.Season, 0)
+
+	rows, err := ms.db.Query(sqlScript, seriesId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var singleSeason proto.Season
+		if err = rows.Scan(&singleSeason.ID, &singleSeason.Number); err != nil {
+			return nil, err
+		}
+		selectedSeasons = append(selectedSeasons, &singleSeason)
+	}
+
+	sqlScript = "SELECT e.id, e.name, e.number, e.description, e.video, e.photo, s.id, s.number FROM episode AS e JOIN seasons s on e.season_id = s.id WHERE s.movie_id = $1 ORDER BY s.number, e.number;\n"
+
+	rows, err = ms.db.Query(sqlScript, seriesId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var singleEpisode proto.Episode
+		var seasonId, seasonNumber int32
+		if err = rows.Scan(&singleEpisode.ID, &singleEpisode.Name, &singleEpisode.Number, &singleEpisode.Description,
+			&singleEpisode.Video, &singleEpisode.Picture, &seasonId, &seasonNumber); err != nil {
+			return nil, err
+		}
+		selectedSeasons[seasonNumber-1].Episodes = append(selectedSeasons[seasonNumber-1].Episodes, &singleEpisode)
+	}
+
+	return selectedSeasons, nil
 }
 
 func (ms *movieStorage) GetAllMovies(limit, offset int) ([]*proto.Movie, error) {

@@ -55,6 +55,14 @@ func (s *Service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 	if err != nil {
 		return nil, err
 	}
+
+	if !selectedMovie.IsMovie {
+		selectedMovie.Seasons, err = s.movieStorage.GetSeasonsAndEpisodes(int(selectedMovie.ID))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	selectedMovie.Genre, err = s.genreStorage.GetByMovieID(int(selectedMovie.ID))
 	if err != nil {
 		return nil, err

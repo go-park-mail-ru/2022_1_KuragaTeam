@@ -71,7 +71,7 @@ func (h *handler) GetMovie() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, &selectedMovie)
+		return ctx.JSON(http.StatusOK, selectedMovie)
 	}
 }
 
@@ -94,7 +94,7 @@ func (h *handler) GetRandomMovies() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, &movies)
+		return ctx.JSON(http.StatusOK, &movies.Movie)
 	}
 }
 

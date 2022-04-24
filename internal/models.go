@@ -26,6 +26,7 @@ type PersonInMovieDTO struct {
 type Movie struct {
 	ID              int     `json:"id" form:"id"`
 	Name            string  `json:"name" form:"name"`
+	IsMovie         bool    `json:"is_movie" form:"is_movie"`
 	NamePicture     string  `json:"name_picture" form:"name_picture"`
 	Year            int     `json:"year" form:"year"`
 	Duration        string  `json:"duration" form:"duration"`
