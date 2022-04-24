@@ -616,10 +616,10 @@ type MainMovie struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ID          int64  `protobuf:"varint,1,opt,name=ID,json=id,proto3" json:"ID,omitempty"`
-	NamePicture string `protobuf:"bytes,2,opt,name=NamePicture,json=name_picture,proto3" json:"NamePicture,omitempty"`
-	Tagline     string `protobuf:"bytes,3,opt,name=Tagline,json=tagline,proto3" json:"Tagline,omitempty"`
-	Picture     string `protobuf:"bytes,4,opt,name=Picture,json=picture,proto3" json:"Picture,omitempty"`
+	ID          int64  `protobuf:"varint,1,opt,name=ID,json=id,proto3" json:"id,omitempty"`
+	NamePicture string `protobuf:"bytes,2,opt,name=NamePicture,json=name_picture,proto3" json:"name_picture,omitempty"`
+	Tagline     string `protobuf:"bytes,3,opt,name=Tagline,json=tagline,proto3" json:"tagline,omitempty"`
+	Picture     string `protobuf:"bytes,4,opt,name=Picture,json=picture,proto3" json:"picture,omitempty"`
 }
 
 func (x *MainMovie) Reset() {
