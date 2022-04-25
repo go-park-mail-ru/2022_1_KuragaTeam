@@ -73,3 +73,20 @@ func (s *Service) GetAvatar(ctx context.Context, userID *proto.UserID) (*proto.F
 
 	return &proto.FileName{Name: name}, nil
 }
+
+func (s *Service) AddLike(ctx context.Context, data *proto.LikeData) (*proto.Empty, error) {
+	err := s.storage.AddLike(data)
+	if err != nil {
+		return &proto.Empty{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return &proto.Empty{}, nil
+}
+func (s *Service) RemoveLike(ctx context.Context, data *proto.LikeData) (*proto.Empty, error) {
+	err := s.storage.RemoveLike(data)
+	if err != nil {
+		return &proto.Empty{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return &proto.Empty{}, nil
+}

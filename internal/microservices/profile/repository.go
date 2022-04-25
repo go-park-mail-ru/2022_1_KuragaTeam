@@ -11,4 +11,6 @@ type Storage interface {
 	GetAvatar(userID int64) (string, error)
 	UploadAvatar(data *proto.UploadInputFile) (string, error)
 	DeleteFile(string) error
+	AddLike(data *proto.LikeData) error
+	RemoveLike(data *proto.LikeData) error
 }

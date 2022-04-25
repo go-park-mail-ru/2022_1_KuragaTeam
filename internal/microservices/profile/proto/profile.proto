@@ -38,6 +38,11 @@ message UserID {
   int64 ID = 1;
 }
 
+message LikeData {
+  int64 userID = 1;
+  int64 movieID = 2;
+}
+
 message Empty { }
 
 service Profile {
@@ -46,4 +51,6 @@ service Profile {
   rpc EditAvatar(EditAvatarData) returns(Empty) {}
   rpc UploadAvatar(UploadInputFile) returns(FileName) {}
   rpc GetAvatar(UserID) returns(FileName) {}
+  rpc AddLike(LikeData) returns(Empty) {}
+  rpc RemoveLike(LikeData) returns(Empty) {}
 }

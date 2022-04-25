@@ -183,3 +183,25 @@ func (s Storage) DeleteFile(name string) error {
 
 	return nil
 }
+
+func (s Storage) AddLike(data *proto.LikeData) error {
+	sqlScript := "UPDATE users SET likes = array_append(likes, $2) WHERE id=$1"
+
+	_, err := s.db.Exec(sqlScript, data.UserID, data.MovieID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s Storage) RemoveLike(data *proto.LikeData) error {
+	sqlScript := "UPDATE users SET likes = array_remove(likes, $2) WHERE id=$1"
+
+	_, err := s.db.Exec(sqlScript, data.UserID, data.MovieID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -27,6 +27,8 @@ type ProfileClient interface {
 	EditAvatar(ctx context.Context, in *EditAvatarData, opts ...grpc.CallOption) (*Empty, error)
 	UploadAvatar(ctx context.Context, in *UploadInputFile, opts ...grpc.CallOption) (*FileName, error)
 	GetAvatar(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*FileName, error)
+	AddLike(ctx context.Context, in *LikeData, opts ...grpc.CallOption) (*Empty, error)
+	RemoveLike(ctx context.Context, in *LikeData, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type profileClient struct {
@@ -82,6 +84,24 @@ func (c *profileClient) GetAvatar(ctx context.Context, in *UserID, opts ...grpc.
 	return out, nil
 }
 
+func (c *profileClient) AddLike(ctx context.Context, in *LikeData, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/profile.Profile/AddLike", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) RemoveLike(ctx context.Context, in *LikeData, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/profile.Profile/RemoveLike", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProfileServer is the server API for Profile service.
 // All implementations should embed UnimplementedProfileServer
 // for forward compatibility
@@ -91,6 +111,8 @@ type ProfileServer interface {
 	EditAvatar(context.Context, *EditAvatarData) (*Empty, error)
 	UploadAvatar(context.Context, *UploadInputFile) (*FileName, error)
 	GetAvatar(context.Context, *UserID) (*FileName, error)
+	AddLike(context.Context, *LikeData) (*Empty, error)
+	RemoveLike(context.Context, *LikeData) (*Empty, error)
 }
 
 // UnimplementedProfileServer should be embedded to have forward compatible implementations.
@@ -111,6 +133,12 @@ func (UnimplementedProfileServer) UploadAvatar(context.Context, *UploadInputFile
 }
 func (UnimplementedProfileServer) GetAvatar(context.Context, *UserID) (*FileName, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAvatar not implemented")
+}
+func (UnimplementedProfileServer) AddLike(context.Context, *LikeData) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddLike not implemented")
+}
+func (UnimplementedProfileServer) RemoveLike(context.Context, *LikeData) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveLike not implemented")
 }
 
 // UnsafeProfileServer may be embedded to opt out of forward compatibility for this service.
@@ -214,6 +242,42 @@ func _Profile_GetAvatar_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Profile_AddLike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LikeData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).AddLike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile.Profile/AddLike",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).AddLike(ctx, req.(*LikeData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_RemoveLike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LikeData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).RemoveLike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile.Profile/RemoveLike",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).RemoveLike(ctx, req.(*LikeData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Profile_ServiceDesc is the grpc.ServiceDesc for Profile service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -240,6 +304,14 @@ var Profile_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAvatar",
 			Handler:    _Profile_GetAvatar_Handler,
+		},
+		{
+			MethodName: "AddLike",
+			Handler:    _Profile_AddLike_Handler,
+		},
+		{
+			MethodName: "RemoveLike",
+			Handler:    _Profile_RemoveLike_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
