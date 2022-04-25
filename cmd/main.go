@@ -49,7 +49,7 @@ func main() {
 
 	minioComposite, err := composites.NewMinioComposite()
 	if err != nil {
-		logger.Fatal("minio composite failed")
+		logger.Fatal("minio composite failed", err)
 	}
 
 	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
