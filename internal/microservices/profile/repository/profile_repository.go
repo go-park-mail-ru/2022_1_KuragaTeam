@@ -11,6 +11,7 @@ import (
 	"myapp/internal/microservices/profile/utils/images"
 
 	"github.com/gofrs/uuid"
+	"github.com/lib/pq"
 	"github.com/minio/minio-go/v7"
 )
 
@@ -185,9 +186,23 @@ func (s Storage) DeleteFile(name string) error {
 }
 
 func (s Storage) AddLike(data *proto.LikeData) error {
-	sqlScript := "UPDATE users SET likes = array_append(likes, $2) WHERE id=$1"
+	sqlScript := "SELECT likes FROM users WHERE id=$1"
 
-	_, err := s.db.Exec(sqlScript, data.UserID, data.MovieID)
+	likes := make([]int64, 0)
+	err := s.db.QueryRow(sqlScript, data.UserID).Scan(pq.Array(&likes))
+	if err != nil {
+		return err
+	}
+
+	for _, a := range likes {
+		if a == data.MovieID {
+			return nil
+		}
+	}
+
+	sqlScript = "UPDATE users SET likes = array_append(likes, $2) WHERE id=$1"
+
+	_, err = s.db.Exec(sqlScript, data.UserID, data.MovieID)
 	if err != nil {
 		return err
 	}
@@ -196,12 +211,37 @@ func (s Storage) AddLike(data *proto.LikeData) error {
 }
 
 func (s Storage) RemoveLike(data *proto.LikeData) error {
-	sqlScript := "UPDATE users SET likes = array_remove(likes, $2) WHERE id=$1"
+	sqlScript := "SELECT likes FROM users WHERE id=$1"
 
-	_, err := s.db.Exec(sqlScript, data.UserID, data.MovieID)
+	likes := make([]int64, 0)
+	err := s.db.QueryRow(sqlScript, data.UserID).Scan(pq.Array(&likes))
 	if err != nil {
 		return err
 	}
 
+	for _, a := range likes {
+		if a == data.MovieID {
+			sqlScript = "UPDATE users SET likes = array_remove(likes, $2) WHERE id=$1"
+
+			_, err = s.db.Exec(sqlScript, data.UserID, data.MovieID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
+}
+
+func (s Storage) GetFavorites(userID int64) (*proto.Favorites, error) {
+	sqlScript := "SELECT likes FROM users WHERE id=$1"
+
+	likes := make([]int64, 0)
+	err := s.db.QueryRow(sqlScript, userID).Scan(pq.Array(&likes))
+	if err != nil {
+		return &proto.Favorites{}, err
+	}
+	favorites := &proto.Favorites{MovieId: likes}
+
+	return favorites, nil
 }

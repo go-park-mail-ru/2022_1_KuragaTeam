@@ -90,3 +90,12 @@ func (s *Service) RemoveLike(ctx context.Context, data *proto.LikeData) (*proto.
 
 	return &proto.Empty{}, nil
 }
+
+func (s *Service) GetFavorites(ctx context.Context, data *proto.UserID) (*proto.Favorites, error) {
+	favorites, err := s.storage.GetFavorites(data.ID)
+	if err != nil {
+		return &proto.Favorites{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return favorites, nil
+}

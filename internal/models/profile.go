@@ -20,3 +20,11 @@ type EditProfileDTO struct {
 	Name     string `json:"username" form:"username"`
 	Password string `json:"password" form:"password"`
 }
+
+type LikeDTO struct {
+	ID int `json:"id" form:"id"`
+}
+
+type FavoritesID struct {
+	ID []int64 `json:"id" form:"id"`
+}

@@ -13,7 +13,6 @@ import (
 func main() {
 	postgresDBC, err := composites.NewPostgresDBComposite()
 	if err != nil {
-		log.Println(err)
 		log.Fatal("postgres db composite failed")
 	}
 

@@ -13,4 +13,5 @@ type Storage interface {
 	DeleteFile(string) error
 	AddLike(data *proto.LikeData) error
 	RemoveLike(data *proto.LikeData) error
+	GetFavorites(userID int64) (*proto.Favorites, error)
 }

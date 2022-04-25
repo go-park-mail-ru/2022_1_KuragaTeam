@@ -2,7 +2,6 @@ package delivery
 
 import (
 	"context"
-	"log"
 	"myapp/internal/constants"
 	"myapp/internal/csrf"
 	authorization "myapp/internal/microservices/authorization/proto"
@@ -48,6 +47,9 @@ func (api *APIMicroservices) Register(router *echo.Echo) {
 	router.PUT(constants.AvatarURL, api.EditAvatar())
 	router.GET(constants.CsrfURL, api.GetCsrf())
 	router.GET(constants.AuthURL, api.Auth())
+	router.POST(constants.AddLikeUrl, api.AddLike())
+	router.DELETE(constants.RemoveLikeUrl, api.RemoveLike())
+	router.GET(constants.FavoritesUrl, api.GetFavorites())
 }
 
 func (api *APIMicroservices) ParseError(ctx echo.Context, requestID string, err error) error {
@@ -103,11 +105,8 @@ func (api *APIMicroservices) LogIn() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userData := models.LogInUserDTO{}
 
-		log.Println("dfg")
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
-		log.Println("sdf")
 		if !ok {
-			log.Println("vbhj")
 			api.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
@@ -128,17 +127,14 @@ func (api *APIMicroservices) LogIn() echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
-		log.Println(userData)
 
 		data := &authorization.LogInData{}
 		automapper.MapLoose(userData, data)
-		log.Println(data)
+
 		session, err := api.authMicroservice.LogIn(context.Background(), data)
 		if err != nil {
-			log.Println(err)
 			return api.ParseError(ctx, requestID, err)
 		}
-		log.Println(session)
 
 		cookie := http.Cookie{
 			Name:     "Session_cookie",
@@ -416,9 +412,7 @@ func (api *APIMicroservices) GetUserProfile() echo.HandlerFunc {
 		}
 
 		sanitizer := bluemonday.UGCPolicy()
-		profileData.Avatar = sanitizer.Sanitize(profileData.Avatar)
 		profileData.Name = sanitizer.Sanitize(profileData.Name)
-		profileData.Email = sanitizer.Sanitize(profileData.Email)
 
 		return ctx.JSON(http.StatusOK, &models.ResponseUserProfile{
 			Status:   http.StatusOK,
@@ -696,6 +690,225 @@ func (api *APIMicroservices) GetCsrf() echo.HandlerFunc {
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusOK,
 			Message: token,
+		})
+	}
+}
+
+func (api *APIMicroservices) AddLike() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		movieID := models.LikeDTO{}
+
+		if err := ctx.Bind(&movieID); err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		data := &profile.LikeData{
+			UserID:  userID,
+			MovieID: int64(movieID.ID),
+		}
+
+		_, err := api.profileMicroservice.AddLike(context.Background(), data)
+		if err != nil {
+			return api.ParseError(ctx, requestID, err)
+		}
+
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: constants.LikeIsEdited,
+		})
+	}
+}
+
+func (api *APIMicroservices) RemoveLike() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		movieID := models.LikeDTO{}
+
+		if err := ctx.Bind(&movieID); err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		data := &profile.LikeData{
+			UserID:  userID,
+			MovieID: int64(movieID.ID),
+		}
+
+		_, err := api.profileMicroservice.RemoveLike(context.Background(), data)
+		if err != nil {
+			return api.ParseError(ctx, requestID, err)
+		}
+
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: constants.LikeIsRemoved,
+		})
+	}
+}
+
+func (api *APIMicroservices) GetFavorites() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		data := &profile.UserID{ID: userID}
+		userData, err := api.profileMicroservice.GetFavorites(context.Background(), data)
+
+		if err != nil {
+			return api.ParseError(ctx, requestID, err)
+		}
+
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		responseData := &models.FavoritesID{ID: userData.MovieId}
+
+		return ctx.JSON(http.StatusOK, &models.ResponseFavorites{
+			Status:        http.StatusOK,
+			FavoritesData: responseData,
 		})
 	}
 }

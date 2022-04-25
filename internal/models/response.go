@@ -9,3 +9,8 @@ type ResponseUserProfile struct {
 	Status   int             `json:"status"`
 	UserData *ProfileUserDTO `json:"user"`
 }
+
+type ResponseFavorites struct {
+	Status        int          `json:"status"`
+	FavoritesData *FavoritesID `json:"favorites"`
+}

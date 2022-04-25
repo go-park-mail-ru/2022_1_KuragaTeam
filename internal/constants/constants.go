@@ -15,7 +15,6 @@ const (
 	UserObjectsBucketName = "avatars"
 	DefaultImage          = "default_avatar.webp"
 
-	UserNotFound           = "User not found"
 	UserCanBeLoggedIn      = "User can be logged in"
 	UserCreated            = "User created"
 	SessionRequired        = "Session required"
@@ -23,18 +22,23 @@ const (
 	UserIsLoggedOut        = "User is logged out"
 	FileTypeIsNotSupported = "File type is not supported"
 	ProfileIsEdited        = "Profile is edited"
+	LikeIsEdited           = "Like is edited"
+	LikeIsRemoved          = "Like is removed"
 	NoRequestId            = "No RequestID in context"
 )
 
 const (
-	SignupURL  = "/api/v1/signup"
-	LoginURL   = "/api/v1/login"
-	LogoutURL  = "/api/v1/logout"
-	ProfileURL = "/api/v1/profile"
-	EditURL    = "/api/v1/edit"
-	AvatarURL  = "/api/v1/avatar"
-	CsrfURL    = "/api/v1/csrf"
-	AuthURL    = "/api/v1/auth"
+	SignupURL     = "/api/v1/signup"
+	LoginURL      = "/api/v1/login"
+	LogoutURL     = "/api/v1/logout"
+	ProfileURL    = "/api/v1/profile"
+	EditURL       = "/api/v1/edit"
+	AvatarURL     = "/api/v1/avatar"
+	CsrfURL       = "/api/v1/csrf"
+	AuthURL       = "/api/v1/auth"
+	AddLikeUrl    = "/api/v1/like"
+	RemoveLikeUrl = "/api/v1/dislike"
+	FavoritesUrl  = "/api/v1/favorites"
 )
 
 var (

@@ -43,6 +43,10 @@ message LikeData {
   int64 movieID = 2;
 }
 
+message Favorites {
+  repeated int64 id = 1 [json_name="id"];
+}
+
 message Empty { }
 
 service Profile {
@@ -53,4 +57,5 @@ service Profile {
   rpc GetAvatar(UserID) returns(FileName) {}
   rpc AddLike(LikeData) returns(Empty) {}
   rpc RemoveLike(LikeData) returns(Empty) {}
+  rpc GetFavorites(UserID) returns(Favorites) {}
 }
