@@ -5,6 +5,7 @@ import (
 	api "myapp/internal/api/delivery"
 	"myapp/internal/composites"
 	authMicroservice "myapp/internal/microservices/authorization/proto"
+	profileMicroservice "myapp/internal/microservices/profile/proto"
 	"myapp/internal/middleware"
 	"os"
 
@@ -14,7 +15,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient, []*grpc.ClientConn) {
+func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient,
+	profileMicroservice.ProfileClient, []*grpc.ClientConn) {
 	connections := make([]*grpc.ClientConn, 0)
 
 	authConn, err := grpc.Dial(
@@ -22,14 +24,28 @@ func LoadMicroservices(server *echo.Echo) (authMicroservice.AuthorizationClient,
 			os.Getenv("AUTH_PORT"),
 		grpc.WithInsecure(),
 	)
+
 	if err != nil {
-		server.Logger.Fatal("cant connect to grpc")
+		server.Logger.Fatal("authorization cant connect to grpc")
 	}
 	connections = append(connections, authConn)
 
 	authorizationManager := authMicroservice.NewAuthorizationClient(authConn)
 
-	return authorizationManager, connections
+	profileConn, err := grpc.Dial(
+		os.Getenv("PROFILE_HOST")+":"+
+			os.Getenv("PROFILE_PORT"),
+		grpc.WithInsecure(),
+	)
+
+	if err != nil {
+		server.Logger.Fatal("profile cant connect to grpc")
+	}
+	connections = append(connections, profileConn)
+
+	profileManager := profileMicroservice.NewProfileClient(profileConn)
+
+	return authorizationManager, profileManager, connections
 }
 
 // @title Movie Space API
@@ -52,7 +68,7 @@ func main() {
 	logger := prLogger.Sugar()
 	defer prLogger.Sync()
 
-	auth, conn := LoadMicroservices(echoServer)
+	auth, profile, conn := LoadMicroservices(echoServer)
 	defer func() {
 		if len(conn) == 0 {
 			return
@@ -65,7 +81,7 @@ func main() {
 		}
 	}()
 
-	appHandler := api.NewAPIMicroservices(logger, auth)
+	appHandler := api.NewAPIMicroservices(logger, auth, profile)
 	appHandler.Register(echoServer)
 
 	///////////////////////////////////////////////////////
@@ -73,11 +89,6 @@ func main() {
 	postgresDBC, err := composites.NewPostgresDBComposite()
 	if err != nil {
 		logger.Fatal("postgres db composite failed")
-	}
-
-	minioComposite, err := composites.NewMinioComposite()
-	if err != nil {
-		logger.Fatal("minio composite failed")
 	}
 
 	movieComposite, err := composites.NewMovieComposite(postgresDBC, logger)
@@ -98,14 +109,8 @@ func main() {
 	}
 	moviesCompilationsComposite.Handler.Register(echoServer)
 
-	userComposite, err := composites.NewUserComposite(postgresDBC, minioComposite, logger)
-	if err != nil {
-		logger.Fatal("user composite failed")
-	}
-
 	middlwares := middleware.NewMiddleware(auth, logger)
 	middlwares.Register(echoServer)
-	userComposite.Handler.Register(echoServer)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))
 

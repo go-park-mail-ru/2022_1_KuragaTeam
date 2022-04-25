@@ -3,10 +3,10 @@ package usecase
 import (
 	"context"
 	"errors"
+	"myapp/internal/constants"
 	"myapp/internal/microservices/authorization"
 	"myapp/internal/microservices/authorization/proto"
-	"myapp/internal/utils/constants"
-	"myapp/internal/utils/validation"
+	"myapp/internal/microservices/authorization/utils/validation"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -4,9 +4,9 @@ import (
 	"myapp/internal"
 	"myapp/internal/country"
 	"myapp/internal/genre"
+	"myapp/internal/microservices/profile/utils/images"
 	"myapp/internal/movie"
 	"myapp/internal/persons"
-	"myapp/internal/utils/images"
 )
 
 type service struct {

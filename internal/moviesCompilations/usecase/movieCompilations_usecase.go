@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"myapp/internal/genre"
+	"myapp/internal/microservices/profile/utils/images"
 	"myapp/internal/moviesCompilations"
-	"myapp/internal/utils/images"
 )
 
 type service struct {

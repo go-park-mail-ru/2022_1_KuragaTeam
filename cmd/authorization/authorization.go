@@ -13,6 +13,7 @@ import (
 func main() {
 	postgresDBC, err := composites.NewPostgresDBComposite()
 	if err != nil {
+		log.Println(err)
 		log.Fatal("postgres db composite failed")
 	}
 
@@ -23,7 +24,7 @@ func main() {
 
 	authComposite, err := composites.NewAuthComposite(postgresDBC, redisComposite)
 	if err != nil {
-		log.Fatal("user composite failed")
+		log.Fatal("auth composite failed")
 	}
 
 	listen, err := net.Listen("tcp", os.Getenv("AUTH_MICROSERVICE_HOST")+":"+

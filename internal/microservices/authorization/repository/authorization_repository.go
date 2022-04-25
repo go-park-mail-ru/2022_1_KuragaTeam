@@ -2,10 +2,10 @@ package repository
 
 import (
 	"database/sql"
+	"myapp/internal/constants"
 	"myapp/internal/microservices/authorization"
 	"myapp/internal/microservices/authorization/proto"
-	"myapp/internal/utils/constants"
-	"myapp/internal/utils/hash"
+	"myapp/internal/microservices/authorization/utils/hash"
 	"time"
 
 	"github.com/gofrs/uuid"

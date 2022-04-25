@@ -2,7 +2,7 @@ package composites
 
 import (
 	"context"
-	"myapp/internal/utils/constants"
+	"myapp/internal/constants"
 	"os"
 
 	"github.com/minio/minio-go/v7"

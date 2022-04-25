@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option go_package = "/";
+
+//protoc --go_out=. --go-grpc_opt=require_unimplemented_servers=false --go-grpc_out=. *.proto
+
+package profile;
+
+message ProfileData {
+  string Name = 1;
+  string Email = 2;
+  string Avatar = 3;
+}
+
+message EditProfileData {
+  int64 ID = 1;
+  string Name = 2;
+  string Password = 3;
+}
+
+message EditAvatarData {
+  int64 ID = 1;
+  string Avatar = 2;
+}
+
+message UploadInputFile {
+  int64 ID = 1;
+  bytes File = 2;
+  int64 Size = 3;
+  string ContentType = 4;
+}
+
+message FileName {
+  string name = 1;
+}
+
+message UserID {
+  int64 ID = 1;
+}
+
+message Empty { }
+
+service Profile {
+  rpc GetUserProfile(UserID) returns(ProfileData) {}
+  rpc EditProfile(EditProfileData) returns(Empty) {}
+  rpc EditAvatar(EditAvatarData) returns(Empty) {}
+  rpc UploadAvatar(UploadInputFile) returns(FileName) {}
+  rpc GetAvatar(UserID) returns(FileName) {}
+}

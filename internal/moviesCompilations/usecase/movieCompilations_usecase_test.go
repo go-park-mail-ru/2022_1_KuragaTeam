@@ -2,12 +2,13 @@ package usecase
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
+	"myapp/internal/microservices/profile/utils/images"
 	"myapp/internal/moviesCompilations"
-	"myapp/internal/utils/images"
 	mock2 "myapp/mock"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMovieCompilationsUsecase_GetMainCompilations(t *testing.T) {

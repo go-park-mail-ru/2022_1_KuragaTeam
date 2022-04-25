@@ -19,6 +19,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    networks:
+      - my-network
   redis:
     image: redis:latest
     restart: always
@@ -26,6 +28,8 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - my-network
   minio:
     image: minio/minio:latest
     command: server --console-address ":9001" /data/
@@ -42,37 +46,61 @@ services:
       retries: 3
     volumes:
       - minio_data:/data
+    networks:
+      - my-network
   authorization:
     build:
       context: .
       dockerfile: ./cmd/authorization/Dockerfile
     links:
-      - postgres
-      - redis
+      - postgres:postgres
+      - redis:redis
     ports:
       - "5555:5555"
+    networks:
+      - my-network
+  profile:
+    build:
+      context: .
+      dockerfile: ./cmd/profile/Dockerfile
+    links:
+      - postgres:postgres
+      - minio:minio
+    ports:
+      - "6666:6666"
+    networks:
+      - my-network
   main:
     build:
       context: .
       dockerfile: ./cmd/main/Dockerfile
     links:
-      - postgres
-      - redis
-      - minio
-      - authorization
+      - postgres:postgres
+      - redis:redis
+      - minio:minio
+      - authorization:authorization
+      - profile:profile
     ports:
       - "1323:1323"
+    networks:
+      - my-network
   nginx:
     image: nginx:latest
     links:
-      - main
-      - minio
+      - main:main
+      - minio:minio
     volumes:
       - ./nginx:/etc/nginx/conf.d
     ports:
       - "8000:80"
+    networks:
+      - my-network
 
 volumes:
   postgres_data:
   redis_data:
   minio_data:
+
+networks:
+  my-network:
+    driver: bridge

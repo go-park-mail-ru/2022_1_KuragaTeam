@@ -2,9 +2,9 @@ package usecase
 
 import (
 	"myapp/internal"
+	"myapp/internal/microservices/profile/utils/images"
 	"myapp/internal/persons"
 	"myapp/internal/position"
-	"myapp/internal/utils/images"
 )
 
 type service struct {

@@ -2,12 +2,13 @@ package usecase
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"myapp/internal"
-	"myapp/internal/utils/images"
+	"myapp/internal/microservices/profile/utils/images"
 	mock2 "myapp/mock"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPersonsUsecase_GetByID(t *testing.T) {

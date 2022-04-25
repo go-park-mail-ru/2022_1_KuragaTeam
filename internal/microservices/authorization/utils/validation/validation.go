@@ -1,8 +1,8 @@
 package validation
 
 import (
+	"myapp/internal/constants"
 	"myapp/internal/microservices/authorization/proto"
-	"myapp/internal/utils/constants"
 	"strings"
 	"unicode"
 

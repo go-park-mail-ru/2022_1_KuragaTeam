@@ -36,3 +36,10 @@ const (
 	CsrfURL    = "/api/v1/csrf"
 	AuthURL    = "/api/v1/auth"
 )
+
+var (
+	IMAGE_TYPES = map[string]interface{}{
+		"image/jpeg": nil,
+		"image/png":  nil,
+	}
+)

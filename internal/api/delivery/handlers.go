@@ -2,13 +2,18 @@ package delivery
 
 import (
 	"context"
+	"log"
+	"myapp/internal/constants"
+	"myapp/internal/csrf"
 	authorization "myapp/internal/microservices/authorization/proto"
+	profile "myapp/internal/microservices/profile/proto"
 	"myapp/internal/models"
-	"myapp/internal/utils/constants"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/stroiman/go-automapper"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
@@ -18,13 +23,16 @@ import (
 type APIMicroservices struct {
 	logger *zap.SugaredLogger
 
-	authMicroservice authorization.AuthorizationClient
+	authMicroservice    authorization.AuthorizationClient
+	profileMicroservice profile.ProfileClient
 }
 
-func NewAPIMicroservices(logger *zap.SugaredLogger, auth authorization.AuthorizationClient) APIMicroservices {
+func NewAPIMicroservices(logger *zap.SugaredLogger, auth authorization.AuthorizationClient,
+	profile profile.ProfileClient) APIMicroservices {
 	return APIMicroservices{
-		logger:           logger,
-		authMicroservice: auth,
+		logger:              logger,
+		authMicroservice:    auth,
+		profileMicroservice: profile,
 	}
 }
 
@@ -33,6 +41,13 @@ func (api *APIMicroservices) Register(router *echo.Echo) {
 	router.POST(constants.SignupURL, api.SignUp())
 	router.POST(constants.LoginURL, api.LogIn())
 	router.DELETE(constants.LogoutURL, api.LogOut())
+
+	//profile
+	router.GET(constants.ProfileURL, api.GetUserProfile())
+	router.PUT(constants.EditURL, api.EditProfile())
+	router.PUT(constants.AvatarURL, api.EditAvatar())
+	router.GET(constants.CsrfURL, api.GetCsrf())
+	router.GET(constants.AuthURL, api.Auth())
 }
 
 func (api *APIMicroservices) ParseError(ctx echo.Context, requestID string, err error) error {
@@ -68,8 +83,18 @@ func (api *APIMicroservices) ParseError(ctx echo.Context, requestID string, err 
 				Status:  http.StatusBadRequest,
 				Message: getErr.Message(),
 			})
-
+		case codes.Unavailable:
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: getErr.Message(),
+			})
 		}
+
 	}
 	return nil
 }
@@ -77,7 +102,20 @@ func (api *APIMicroservices) ParseError(ctx echo.Context, requestID string, err 
 func (api *APIMicroservices) LogIn() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userData := models.LogInUserDTO{}
-		requestID := ctx.Get("REQUEST_ID").(string)
+
+		log.Println("dfg")
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		log.Println("sdf")
+		if !ok {
+			log.Println("vbhj")
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
 
 		if err := ctx.Bind(&userData); err != nil {
 			api.logger.Error(
@@ -90,13 +128,17 @@ func (api *APIMicroservices) LogIn() echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
+		log.Println(userData)
 
 		data := &authorization.LogInData{}
 		automapper.MapLoose(userData, data)
+		log.Println(data)
 		session, err := api.authMicroservice.LogIn(context.Background(), data)
 		if err != nil {
+			log.Println(err)
 			return api.ParseError(ctx, requestID, err)
 		}
+		log.Println(session)
 
 		cookie := http.Cookie{
 			Name:     "Session_cookie",
@@ -123,7 +165,17 @@ func (api *APIMicroservices) LogIn() echo.HandlerFunc {
 func (api *APIMicroservices) SignUp() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userData := models.CreateUserDTO{}
-		requestID := ctx.Get("REQUEST_ID").(string)
+
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
 
 		if err := ctx.Bind(&userData); err != nil {
 			api.logger.Error(
@@ -173,7 +225,10 @@ func (api *APIMicroservices) LogOut() echo.HandlerFunc {
 			api.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.NoContent(http.StatusInternalServerError)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
 		}
 
 		cookie, err := ctx.Cookie("Session_cookie")
@@ -207,6 +262,440 @@ func (api *APIMicroservices) LogOut() echo.HandlerFunc {
 		return ctx.JSON(http.StatusOK, &models.Response{
 			Status:  http.StatusOK,
 			Message: constants.UserIsLoggedOut,
+		})
+	}
+}
+
+func (api *APIMicroservices) Auth() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		avatarName := strings.ReplaceAll(ctx.Request().Header.Get("Req"), "/api/v1/avatars/", "")
+
+		data := &profile.UserID{ID: userID}
+		userAvatar, err := api.profileMicroservice.GetAvatar(context.Background(), data)
+		if err != nil {
+			return api.ParseError(ctx, requestID, err)
+		}
+
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		if avatarName != userAvatar.Name {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", "wrong avatar"),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusForbidden, &models.Response{
+				Status:  http.StatusForbidden,
+				Message: "wrong avatar",
+			})
+		}
+
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: "ok",
+		})
+	}
+}
+
+func (api *APIMicroservices) GetUserProfile() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		data := &profile.UserID{ID: userID}
+		userData, err := api.profileMicroservice.GetUserProfile(context.Background(), data)
+		if err != nil {
+			return api.ParseError(ctx, requestID, err)
+		}
+
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		profileData := models.ProfileUserDTO{
+			Name:   userData.Name,
+			Email:  userData.Email,
+			Avatar: userData.Avatar,
+		}
+
+		sanitizer := bluemonday.UGCPolicy()
+		profileData.Avatar = sanitizer.Sanitize(profileData.Avatar)
+		profileData.Name = sanitizer.Sanitize(profileData.Name)
+		profileData.Email = sanitizer.Sanitize(profileData.Email)
+
+		return ctx.JSON(http.StatusOK, &models.ResponseUserProfile{
+			Status:   http.StatusOK,
+			UserData: &profileData,
+		})
+	}
+}
+
+func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		file, err := ctx.FormFile("file")
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		src, err := file.Open()
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		buffer := make([]byte, file.Size)
+		_, err = src.Read(buffer)
+		src.Close()
+
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		file, err = ctx.FormFile("file")
+		src, err = file.Open()
+		defer src.Close()
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		fileType := http.DetectContentType(buffer)
+
+		// Validate File Type
+		if _, ex := constants.IMAGE_TYPES[fileType]; !ex {
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.FileTypeIsNotSupported),
+				zap.Int("ANSWER STATUS", http.StatusBadRequest),
+			)
+			return ctx.JSON(http.StatusBadRequest, &models.Response{
+				Status:  http.StatusBadRequest,
+				Message: constants.FileTypeIsNotSupported,
+			})
+		}
+
+		uploadData := &profile.UploadInputFile{
+			ID:          userID,
+			File:        buffer,
+			Size:        file.Size,
+			ContentType: fileType,
+		}
+
+		fileName, err := api.profileMicroservice.UploadAvatar(context.Background(), uploadData)
+		if err != nil {
+			return api.ParseError(ctx, requestID, err)
+		}
+
+		editData := &profile.EditAvatarData{
+			ID:     userID,
+			Avatar: fileName.Name,
+		}
+
+		_, err = api.profileMicroservice.EditAvatar(context.Background(), editData)
+		if err != nil {
+			return api.ParseError(ctx, requestID, err)
+		}
+
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: constants.ProfileIsEdited,
+		})
+	}
+}
+
+func (api *APIMicroservices) EditProfile() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			api.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		userData := models.EditProfileDTO{}
+
+		if err := ctx.Bind(&userData); err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		data := &profile.EditProfileData{
+			ID:       userID,
+			Name:     userData.Name,
+			Password: userData.Password,
+		}
+
+		_, err := api.profileMicroservice.EditProfile(context.Background(), data)
+		if err != nil {
+			return api.ParseError(ctx, requestID, err)
+		}
+
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: constants.ProfileIsEdited,
+		})
+	}
+}
+
+func (api *APIMicroservices) GetCsrf() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			api.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		cookie, err := ctx.Cookie("Session_cookie")
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		token, err := csrf.Tokens.Create(cookie.Value, time.Now().Add(time.Hour).Unix())
+
+		if err != nil {
+			api.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		api.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: token,
 		})
 	}
 }
