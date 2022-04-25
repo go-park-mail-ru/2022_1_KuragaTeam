@@ -78,7 +78,12 @@ func (h *handler) GetMovie() echo.HandlerFunc {
 func (h *handler) GetRandomMovies() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID := ctx.Get("REQUEST_ID").(string)
-		movies, err := h.movieMicroservice.GetRandom(context.Background(), &movie.GetRandomOptions{Limit: randomCount, Offset: offset})
+		limitStr := ctx.QueryParam("limit")
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil {
+			limit = randomCount
+		}
+		movies, err := h.movieMicroservice.GetRandom(context.Background(), &movie.GetRandomOptions{Limit: int32(limit), Offset: offset})
 		if err != nil {
 			h.logger.Error(
 				zap.String("ID", requestID),
