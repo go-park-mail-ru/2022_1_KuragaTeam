@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	addr = flag.String("addr", "localhost:5001", "the address to connect to")
+	addr = flag.String("addr", "movie:5001", "the address to connect to")
 )
 
 // @title Movie Space API
