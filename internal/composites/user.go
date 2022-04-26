@@ -19,7 +19,7 @@ type UserComposite struct {
 }
 
 func NewUserComposite(postgresComposite *PostgresDBComposite, redisComposite *RedisComposite, minioComposite *MinioComposite, logger *zap.SugaredLogger) (*UserComposite, error) {
-	storage := repository.NewStorage(postgresComposite.db)
+	storage := repository.NewStorage(postgresComposite.Db)
 	redis := repository.NewRedisStore(redisComposite.redis)
 	minio := repository.NewImageStorage(minioComposite.client)
 	service := usecase.NewService(storage, redis, minio)

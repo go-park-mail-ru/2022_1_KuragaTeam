@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+option go_package = "myapp/internal/microservices/movie/proto";
+
+//protoc --go_out=. --go_opt=paths=source_relative \
+//--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+//movie.proto
+
+message GetMovieOptions {
+  int64 MovieID = 1;
+}
+
+message GetRandomOptions {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetMainMovieOptions {}
+
+message PersonInMovie {
+  int64 ID = 1;
+  string Name = 2;
+  string Photo = 3;
+  string Position = 4;
+}
+
+message Episode {
+  int32 ID = 1;
+  string Name = 2;
+  int32 Number = 3;
+  string Description = 4;
+  string Video = 5;
+  string Picture = 6;
+}
+
+message Season {
+  int32 ID = 1;
+  int32 Number = 2;
+  repeated Episode Episodes = 3;
+}
+
+message Movie {
+  int64 ID = 1;
+  string Name = 2;
+  bool IsMovie = 3;
+  string NamePicture = 4;
+  int32 Year = 5;
+  string Duration = 6;
+  int32 AgeLimit = 7;
+  string Description = 8;
+  float KinopoiskRating = 9;
+  float Rating = 10;
+  string Tagline = 11;
+  string Picture = 12;
+  string Video = 13;
+  string Trailer = 14;
+
+  repeated Season Seasons = 15;
+
+  repeated string Country = 16;
+  repeated string Genre = 17;
+  repeated PersonInMovie Staff = 18;
+}
+
+message MoviesArr {
+  repeated Movie Movie = 1;
+}
+
+message MainMovie {
+  int64 ID = 1;
+  string NamePicture = 2;
+  string Tagline = 3;
+  string Picture = 4;
+}
+
+service Movies {
+  rpc GetByID(GetMovieOptions) returns(Movie) {}
+  rpc GetRandom(GetRandomOptions) returns(MoviesArr) {}
+  rpc GetMainMovie(GetMainMovieOptions) returns(MainMovie) {}
+}

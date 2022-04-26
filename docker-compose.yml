@@ -1,4 +1,8 @@
 version: "3.9"
+
+volumes:
+  postgres_data:
+
 services:
   postgres:
     image: postgres
@@ -16,8 +20,9 @@ services:
       - APP_DB_NAME=docker
     volumes:
       - ./sql/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
   redis:
     image: redis:latest
     restart: always
@@ -37,14 +42,35 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-  dockergo:
-    image: docker-golang-image:latest
+
+  movie:
+    build:
+      context: .
+      dockerfile: ./cmd/movie/Dockerfile
     links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    ports:
+      - "5001:5001"
+
+  dockergo:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.multistage
+    links:
+      - movie:movie
       - postgres:postgres
       - redis:redis
       - minio:minio
+    depends_on:
+      - movie
+      - postgres
+      - redis
+      - minio
     ports:
       - "1323:1323"
+
   nginx:
     image: nginx:latest
     links:
