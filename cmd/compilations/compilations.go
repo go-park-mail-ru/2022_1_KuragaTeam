@@ -6,13 +6,13 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"myapp/internal/composites"
-	"myapp/internal/microservices/movie/proto"
+	"myapp/internal/microservices/compilations/proto"
 	"net"
 	"os"
 )
 
 func main() {
-	lis, err := net.Listen("tcp", ":"+os.Getenv("MOVIE_PORT"))
+	lis, err := net.Listen("tcp", ":"+os.Getenv("COMPILATIONS_PORT"))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -34,12 +34,12 @@ func main() {
 		logger.Fatal("postgres db composite failed")
 	}
 
-	composite, err := composites.NewMovieComposite(postgresDBC, logger)
+	composite, err := composites.NewMoviesCompilationsComposite(postgresDBC, logger)
 	if err != nil {
 		return
 	}
 
-	proto.RegisterMoviesServer(s, composite.Service)
+	proto.RegisterMovieCompilationsServer(s, composite.Service)
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)

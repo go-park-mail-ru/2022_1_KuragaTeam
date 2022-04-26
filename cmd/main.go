@@ -9,6 +9,7 @@ import (
 	"log"
 	"myapp/internal/api/delivery"
 	"myapp/internal/composites"
+	compilationsPB "myapp/internal/microservices/compilations/proto"
 	pb "myapp/internal/microservices/movie/proto"
 	"os"
 )
@@ -68,11 +69,25 @@ func main() {
 	}
 	staffComposite.Handler.Register(echoServer)
 
-	moviesCompilationsComposite, err := composites.NewMoviesCompilationsComposite(postgresDBC, logger)
+	conn2, err := grpc.Dial(
+		os.Getenv("COMPILATIONS_HOST")+":"+os.Getenv("COMPILATIONS_PORT"),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		logger.Fatal("moviesCompilations composite failed")
+		log.Fatalf("did not connect: %v", err)
 	}
-	moviesCompilationsComposite.Handler.Register(echoServer)
+	defer conn.Close()
+
+	c2 := compilationsPB.NewMovieCompilationsClient(conn2)
+
+	compilationsHandler := delivery.NewHandler(c2, logger)
+
+	compilationsHandler.Register(echoServer)
+
+	//moviesCompilationsComposite, err := composites.NewMoviesCompilationsComposite(postgresDBC, logger)
+	//if err != nil {
+	//	logger.Fatal("moviesCompilations composite failed")
+	//}
+	//moviesCompilationsComposite.Service.Register(echoServer)
 
 	userComposite, err := composites.NewUserComposite(postgresDBC, redisComposite, minioComposite, logger)
 	if err != nil {
