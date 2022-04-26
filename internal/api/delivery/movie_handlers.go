@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
+	"myapp/internal"
 	movie "myapp/internal/microservices/movie/proto"
 	"net/http"
 	"strconv"
@@ -26,6 +27,45 @@ type handler struct {
 	logger *zap.SugaredLogger
 
 	movieMicroservice movie.MoviesClient
+}
+
+func mapMovie(inputMovie *movie.Movie) *internal.Movie {
+	mappedMovie := &internal.Movie{
+		ID:              int(inputMovie.ID),
+		Name:            inputMovie.Name,
+		IsMovie:         inputMovie.IsMovie,
+		NamePicture:     inputMovie.NamePicture,
+		Year:            int(inputMovie.Year),
+		Duration:        inputMovie.Duration,
+		AgeLimit:        int(inputMovie.AgeLimit),
+		Description:     inputMovie.Description,
+		KinopoiskRating: inputMovie.KinopoiskRating,
+		Rating:          inputMovie.Rating,
+		Tagline:         inputMovie.Tagline,
+		Picture:         inputMovie.Picture,
+		Video:           inputMovie.Video,
+		Trailer:         inputMovie.Trailer,
+		Country:         inputMovie.Country,
+		Genre:           inputMovie.Genre,
+	}
+	for _, person := range inputMovie.Staff {
+		newPerson := internal.PersonInMovieDTO{
+			ID:       int(person.ID),
+			Name:     person.Name,
+			Photo:    person.Photo,
+			Position: person.Position,
+		}
+		mappedMovie.Staff = append(mappedMovie.Staff, newPerson)
+	}
+	return mappedMovie
+}
+func mapMainMovie(inputMovie *movie.MainMovie) *internal.MainMovieInfoDTO {
+	return &internal.MainMovieInfoDTO{
+		ID:          int(inputMovie.ID),
+		NamePicture: inputMovie.NamePicture,
+		Tagline:     inputMovie.Tagline,
+		Picture:     inputMovie.Picture,
+	}
 }
 
 func NewMovieHandler(client movie.MoviesClient, logger *zap.SugaredLogger) *handler {
@@ -71,7 +111,8 @@ func (h *handler) GetMovie() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, selectedMovie)
+
+		return ctx.JSON(http.StatusOK, mapMovie(selectedMovie))
 	}
 }
 
@@ -122,6 +163,6 @@ func (h *handler) GetMainMovie() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, &mainMovie)
+		return ctx.JSON(http.StatusOK, mapMainMovie(mainMovie))
 	}
 }
