@@ -25,7 +25,7 @@ message PersonInMovie {
 }
 
 message Episode {
-  string ID = 1;
+  int32 ID = 1;
   string Name = 2;
   int32 Number = 3;
   string Description = 4;

@@ -23,6 +23,21 @@ type PersonInMovieDTO struct {
 	Position string `json:"position" form:"position"`
 }
 
+type Episode struct {
+	ID          int    `json:"id" form:"id"`
+	Name        string `json:"name" form:"name"`
+	Number      int    `json:"number" form:"number"`
+	Description string `json:"description" form:"description"`
+	Video       string `json:"video" form:"video"`
+	Picture     string `json:"picture" form:"picture"`
+}
+
+type Season struct {
+	ID       int       `json:"id" form:"id"`
+	Number   int       `json:"number" form:"number"`
+	Episodes []Episode `json:"episodes" form:"episodes"`
+}
+
 type Movie struct {
 	ID              int     `json:"id" form:"id"`
 	Name            string  `json:"name" form:"name"`
@@ -39,6 +54,7 @@ type Movie struct {
 	Video           string  `json:"video" form:"video"`
 	Trailer         string  `json:"trailer" form:"trailer"`
 
+	Season  []Season           `json:"season"`
 	Country []string           `json:"country"`
 	Genre   []string           `json:"genre"`
 	Staff   []PersonInMovieDTO `json:"staff"`
