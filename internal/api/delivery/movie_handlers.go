@@ -16,11 +16,11 @@ type Response struct {
 }
 
 const (
-	movieURL     = "api/v1/movie/:movie_id"
-	moviesURL    = "api/v1/movies"
-	mainMovieURL = "api/v1/mainMovie"
-	randomCount  = 10
-	offset       = 0
+	movieURL      = "api/v1/movie/:movie_id"
+	moviesURL     = "api/v1/movies"
+	mainMovieURL  = "api/v1/mainMovie"
+	randomCount   = 10
+	defaultOffset = 0
 )
 
 type handler struct {
@@ -143,7 +143,14 @@ func (h *handler) GetRandomMovies() echo.HandlerFunc {
 		if err != nil {
 			limit = randomCount
 		}
-		movies, err := h.movieMicroservice.GetRandom(context.Background(), &movie.GetRandomOptions{Limit: int32(limit), Offset: offset})
+
+		offsetStr := ctx.QueryParam("offset")
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			offset = defaultOffset
+		}
+
+		movies, err := h.movieMicroservice.GetRandom(context.Background(), &movie.GetRandomOptions{Limit: int32(limit), Offset: int32(offset)})
 		if err != nil {
 			h.logger.Error(
 				zap.String("ID", requestID),
