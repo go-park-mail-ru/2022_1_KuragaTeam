@@ -50,7 +50,7 @@ func (s *Service) concatURLs(movie *proto.Movie) error {
 	if !movie.IsMovie {
 		for _, season := range movie.Seasons {
 			for _, episode := range (*season).Episodes {
-				episode.Picture, err = images.GenerateFileURL(episode.Picture, "seriesPictures")
+				episode.Picture, err = images.GenerateFileURL(episode.Picture, "posters")
 				episode.Video, err = images.GenerateFileURL(episode.Video, "series")
 			}
 		}
