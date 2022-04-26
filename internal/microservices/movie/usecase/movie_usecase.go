@@ -47,6 +47,15 @@ func (s *Service) concatURLs(movie *proto.Movie) error {
 		return err
 	}
 
+	if !movie.IsMovie {
+		for _, season := range movie.Seasons {
+			for _, episode := range (*season).Episodes {
+				episode.Picture, err = images.GenerateFileURL(episode.Picture, "seriesPictures")
+				episode.Video, err = images.GenerateFileURL(episode.Video, "series")
+			}
+		}
+	}
+
 	return nil
 }
 
