@@ -3,7 +3,7 @@ package compilations
 import "myapp/internal/microservices/compilations/proto"
 
 type Storage interface {
-	GetAllMovies(limit, offset int) (*proto.MovieCompilation, error)
+	GetAllMovies(limit, offset int, isMovie bool) (*proto.MovieCompilation, error)
 	GetByGenre(genreID int) (*proto.MovieCompilation, error)
 	GetByCountry(countryID int) (*proto.MovieCompilation, error)
 	GetByMovie(movieID int) (*proto.MovieCompilation, error)

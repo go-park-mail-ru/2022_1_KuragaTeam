@@ -42,7 +42,23 @@ func (s *Service) concatUrls(MC *proto.MovieCompilation) error {
 }
 
 func (s *Service) GetAllMovies(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset))
+	MC, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), true)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillGenres(MC)
+	if err != nil {
+		return nil, err
+	}
+	err = s.concatUrls(MC)
+	if err != nil {
+		return nil, err
+	}
+	return MC, nil
+}
+
+func (s *Service) GetAllSeries(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), false)
 	if err != nil {
 		return nil, err
 	}

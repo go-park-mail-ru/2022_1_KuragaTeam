@@ -16,7 +16,7 @@ func NewStorage(db *sql.DB) compilations.Storage {
 }
 
 const (
-	getAllMoviesSQL = "SELECT m.id, m.name, m.picture FROM movies AS m WHERE m.is_movie=true LIMIT $1 OFFSET $2"
+	getAllMoviesSQL = "SELECT m.id, m.name, m.picture FROM movies AS m WHERE m.is_movie=$1 LIMIT $2 OFFSET $3"
 	getByGenreSQL   = "SELECT m.id, m.name, m.picture FROM movies AS m JOIN movies_genre m_g ON " +
 		"m_g.movie_id = m.id WHERE m_g.genre_id=$1"
 	getGenreNameSQL = "SELECT name FROM genre WHERE id=$1"
@@ -33,10 +33,10 @@ const (
 	getTopByYearSQL = "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating DESC"
 )
 
-func (ms *movieCompilationsStorage) GetAllMovies(limit, offset int) (*proto.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) GetAllMovies(limit, offset int, isMovie bool) (*proto.MovieCompilation, error) {
 	var selectedMovieCompilation proto.MovieCompilation
 
-	rows, err := ms.db.Query(getAllMoviesSQL, limit, offset)
+	rows, err := ms.db.Query(getAllMoviesSQL, isMovie, limit, offset)
 	if err != nil {
 		return nil, err
 	}
