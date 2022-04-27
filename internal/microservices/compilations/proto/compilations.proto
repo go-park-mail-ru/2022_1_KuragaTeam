@@ -32,6 +32,8 @@ message GetCompilationOptions {
 }
 
 service MovieCompilations {
+  rpc GetAllMovies(GetCompilationOptions) returns(MovieCompilation) {}
+  rpc GetAllSeries(GetCompilationOptions) returns(MovieCompilation) {}
   rpc GetMainCompilations(GetMainCompilationsOptions) returns(MovieCompilationsArr) {}
   rpc GetByGenre(GetByIDOptions) returns(MovieCompilation) {}
   rpc GetByCountry(GetByIDOptions) returns(MovieCompilation) {}

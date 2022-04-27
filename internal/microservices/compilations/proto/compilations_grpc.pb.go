@@ -22,6 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MovieCompilationsClient interface {
+	GetAllMovies(ctx context.Context, in *GetCompilationOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
+	GetAllSeries(ctx context.Context, in *GetCompilationOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
 	GetMainCompilations(ctx context.Context, in *GetMainCompilationsOptions, opts ...grpc.CallOption) (*MovieCompilationsArr, error)
 	GetByGenre(ctx context.Context, in *GetByIDOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
 	GetByCountry(ctx context.Context, in *GetByIDOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
@@ -37,6 +39,24 @@ type movieCompilationsClient struct {
 
 func NewMovieCompilationsClient(cc grpc.ClientConnInterface) MovieCompilationsClient {
 	return &movieCompilationsClient{cc}
+}
+
+func (c *movieCompilationsClient) GetAllMovies(ctx context.Context, in *GetCompilationOptions, opts ...grpc.CallOption) (*MovieCompilation, error) {
+	out := new(MovieCompilation)
+	err := c.cc.Invoke(ctx, "/MovieCompilations/GetAllMovies", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *movieCompilationsClient) GetAllSeries(ctx context.Context, in *GetCompilationOptions, opts ...grpc.CallOption) (*MovieCompilation, error) {
+	out := new(MovieCompilation)
+	err := c.cc.Invoke(ctx, "/MovieCompilations/GetAllSeries", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *movieCompilationsClient) GetMainCompilations(ctx context.Context, in *GetMainCompilationsOptions, opts ...grpc.CallOption) (*MovieCompilationsArr, error) {
@@ -106,6 +126,8 @@ func (c *movieCompilationsClient) GetTop(ctx context.Context, in *GetCompilation
 // All implementations must embed UnimplementedMovieCompilationsServer
 // for forward compatibility
 type MovieCompilationsServer interface {
+	GetAllMovies(context.Context, *GetCompilationOptions) (*MovieCompilation, error)
+	GetAllSeries(context.Context, *GetCompilationOptions) (*MovieCompilation, error)
 	GetMainCompilations(context.Context, *GetMainCompilationsOptions) (*MovieCompilationsArr, error)
 	GetByGenre(context.Context, *GetByIDOptions) (*MovieCompilation, error)
 	GetByCountry(context.Context, *GetByIDOptions) (*MovieCompilation, error)
@@ -120,6 +142,12 @@ type MovieCompilationsServer interface {
 type UnimplementedMovieCompilationsServer struct {
 }
 
+func (UnimplementedMovieCompilationsServer) GetAllMovies(context.Context, *GetCompilationOptions) (*MovieCompilation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllMovies not implemented")
+}
+func (UnimplementedMovieCompilationsServer) GetAllSeries(context.Context, *GetCompilationOptions) (*MovieCompilation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllSeries not implemented")
+}
 func (UnimplementedMovieCompilationsServer) GetMainCompilations(context.Context, *GetMainCompilationsOptions) (*MovieCompilationsArr, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMainCompilations not implemented")
 }
@@ -152,6 +180,42 @@ type UnsafeMovieCompilationsServer interface {
 
 func RegisterMovieCompilationsServer(s grpc.ServiceRegistrar, srv MovieCompilationsServer) {
 	s.RegisterService(&MovieCompilations_ServiceDesc, srv)
+}
+
+func _MovieCompilations_GetAllMovies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCompilationOptions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MovieCompilationsServer).GetAllMovies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/MovieCompilations/GetAllMovies",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MovieCompilationsServer).GetAllMovies(ctx, req.(*GetCompilationOptions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MovieCompilations_GetAllSeries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCompilationOptions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MovieCompilationsServer).GetAllSeries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/MovieCompilations/GetAllSeries",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MovieCompilationsServer).GetAllSeries(ctx, req.(*GetCompilationOptions))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _MovieCompilations_GetMainCompilations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -287,6 +351,14 @@ var MovieCompilations_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "MovieCompilations",
 	HandlerType: (*MovieCompilationsServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetAllMovies",
+			Handler:    _MovieCompilations_GetAllMovies_Handler,
+		},
+		{
+			MethodName: "GetAllSeries",
+			Handler:    _MovieCompilations_GetAllSeries_Handler,
+		},
 		{
 			MethodName: "GetMainCompilations",
 			Handler:    _MovieCompilations_GetMainCompilations_Handler,

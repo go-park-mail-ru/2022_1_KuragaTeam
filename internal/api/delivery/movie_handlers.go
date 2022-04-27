@@ -17,7 +17,7 @@ import (
 
 const (
 	movieURL      = "api/v1/movie/:movie_id"
-	moviesURL     = "api/v1/movies"
+	moviesURL     = "api/v1/oldMovies"
 	mainMovieURL  = "api/v1/mainMovie"
 	randomCount   = 10
 	defaultOffset = 0

@@ -15,12 +15,13 @@ type Response struct {
 }
 
 const (
-	MCByPersonURL = "api/v1/movieCompilations/person/:person_id"
-	MCByMovieURL  = "api/v1/movieCompilations/movie/:movie_id"
-	MCByGenreURL  = "api/v1/movieCompilations/genre/:genre_id"
-	MCTopURL      = "api/v1/movieCompilations/top"
-	MCYearTopURL  = "api/v1/movieCompilations/yearTop/:year"
-	MCDefaultURL  = "/api/v1/movieCompilations"
+	MCAllMoviesURL = "api/v1/movies"
+	MCByPersonURL  = "api/v1/movieCompilations/person/:person_id"
+	MCByMovieURL   = "api/v1/movieCompilations/movie/:movie_id"
+	MCByGenreURL   = "api/v1/movieCompilations/genre/:genre_id"
+	MCTopURL       = "api/v1/movieCompilations/top"
+	MCYearTopURL   = "api/v1/movieCompilations/yearTop/:year"
+	MCDefaultURL   = "/api/v1/movieCompilations"
 )
 
 type compilationsHandler struct {
@@ -33,12 +34,48 @@ func NewHandler(service compilations.MovieCompilationsClient, logger *zap.Sugare
 }
 
 func (h *compilationsHandler) Register(router *echo.Echo) {
+	router.GET(MCAllMoviesURL, h.GetAllMovies())
 	router.GET(MCDefaultURL, h.GetMoviesCompilations())
 	router.GET(MCByMovieURL, h.GetMCByMovieID())
 	router.GET(MCByGenreURL, h.GetMCByGenre())
 	router.GET(MCByPersonURL, h.GetMCByPersonID())
 	router.GET(MCTopURL, h.GetTopMC())
 	router.GET(MCYearTopURL, h.GetYearTopMC())
+}
+
+func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID := ctx.Get("REQUEST_ID").(string)
+		limitStr := ctx.QueryParam("limit")
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil {
+			limit = randomCount
+		}
+
+		offsetStr := ctx.QueryParam("offset")
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			offset = defaultOffset
+		}
+
+		selectedMC, err := h.compilationsMicroservice.GetAllMovies(context.Background(), &compilations.GetCompilationOptions{Limit: int32(limit), Offset: int32(offset)})
+		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+		return ctx.JSON(http.StatusOK, selectedMC)
+	}
 }
 
 func (h *compilationsHandler) GetMoviesCompilations() echo.HandlerFunc {

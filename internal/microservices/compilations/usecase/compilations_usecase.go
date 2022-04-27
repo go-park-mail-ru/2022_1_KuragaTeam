@@ -41,6 +41,22 @@ func (s *Service) concatUrls(MC *proto.MovieCompilation) error {
 	return nil
 }
 
+func (s *Service) GetAllMovies(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset))
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillGenres(MC)
+	if err != nil {
+		return nil, err
+	}
+	err = s.concatUrls(MC)
+	if err != nil {
+		return nil, err
+	}
+	return MC, nil
+}
+
 func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainCompilationsOptions) (*proto.MovieCompilationsArr, error) {
 
 	MC := make([]*proto.MovieCompilation, 0)
