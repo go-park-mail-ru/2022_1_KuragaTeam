@@ -4,7 +4,6 @@ import (
 	"context"
 	"myapp/internal/constants"
 	"myapp/internal/csrf"
-	authorization "myapp/internal/microservices/authorization/proto"
 	profile "myapp/internal/microservices/profile/proto"
 	"myapp/internal/models"
 	"net/http"
@@ -13,50 +12,37 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/stroiman/go-automapper"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-type APIMicroservices struct {
+type profileHandler struct {
 	logger *zap.SugaredLogger
 
-	authMicroservice    authorization.AuthorizationClient
 	profileMicroservice profile.ProfileClient
 }
 
-func NewAPIMicroservices(logger *zap.SugaredLogger, auth authorization.AuthorizationClient,
-	profile profile.ProfileClient) APIMicroservices {
-	return APIMicroservices{
-		logger:              logger,
-		authMicroservice:    auth,
-		profileMicroservice: profile,
-	}
+func NewProfileHandler(logger *zap.SugaredLogger, profile profile.ProfileClient) *profileHandler {
+	return &profileHandler{profileMicroservice: profile, logger: logger}
 }
 
-func (api *APIMicroservices) Register(router *echo.Echo) {
-	//authorization
-	router.POST(constants.SignupURL, api.SignUp())
-	router.POST(constants.LoginURL, api.LogIn())
-	router.DELETE(constants.LogoutURL, api.LogOut())
-
-	//profile
-	router.GET(constants.ProfileURL, api.GetUserProfile())
-	router.PUT(constants.EditURL, api.EditProfile())
-	router.PUT(constants.AvatarURL, api.EditAvatar())
-	router.GET(constants.CsrfURL, api.GetCsrf())
-	router.GET(constants.AuthURL, api.Auth())
-	router.POST(constants.AddLikeUrl, api.AddLike())
-	router.DELETE(constants.RemoveLikeUrl, api.RemoveLike())
-	router.GET(constants.FavoritesUrl, api.GetFavorites())
+func (p *profileHandler) Register(router *echo.Echo) {
+	router.GET(constants.ProfileURL, p.GetUserProfile())
+	router.PUT(constants.EditURL, p.EditProfile())
+	router.PUT(constants.AvatarURL, p.EditAvatar())
+	router.GET(constants.CsrfURL, p.GetCsrf())
+	router.GET(constants.AuthURL, p.Auth())
+	router.POST(constants.AddLikeUrl, p.AddLike())
+	router.DELETE(constants.RemoveLikeUrl, p.RemoveLike())
+	router.GET(constants.FavoritesUrl, p.GetFavorites())
 }
 
-func (api *APIMicroservices) ParseError(ctx echo.Context, requestID string, err error) error {
+func (p *profileHandler) ParseError(ctx echo.Context, requestID string, err error) error {
 	if getErr, ok := status.FromError(err); ok == true {
 		switch getErr.Code() {
 		case codes.Internal:
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -66,7 +52,7 @@ func (api *APIMicroservices) ParseError(ctx echo.Context, requestID string, err 
 				Message: getErr.Message(),
 			})
 		case codes.NotFound:
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusNotFound),
@@ -76,7 +62,7 @@ func (api *APIMicroservices) ParseError(ctx echo.Context, requestID string, err 
 				Message: getErr.Message(),
 			})
 		case codes.InvalidArgument:
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusBadRequest),
@@ -86,7 +72,7 @@ func (api *APIMicroservices) ParseError(ctx echo.Context, requestID string, err 
 				Message: getErr.Message(),
 			})
 		case codes.Unavailable:
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -101,172 +87,11 @@ func (api *APIMicroservices) ParseError(ctx echo.Context, requestID string, err 
 	return nil
 }
 
-func (api *APIMicroservices) LogIn() echo.HandlerFunc {
-	return func(ctx echo.Context) error {
-		userData := models.LogInUserDTO{}
-
-		requestID, ok := ctx.Get("REQUEST_ID").(string)
-		if !ok {
-			api.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
-			})
-		}
-
-		if err := ctx.Bind(&userData); err != nil {
-			api.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-		}
-
-		data := &authorization.LogInData{}
-		automapper.MapLoose(userData, data)
-
-		session, err := api.authMicroservice.LogIn(context.Background(), data)
-		if err != nil {
-			return api.ParseError(ctx, requestID, err)
-		}
-
-		cookie := http.Cookie{
-			Name:     "Session_cookie",
-			Value:    session.Cookie,
-			HttpOnly: true,
-			Expires:  time.Now().Add(30 * 24 * time.Hour),
-			SameSite: 0,
-		}
-
-		ctx.SetCookie(&cookie)
-
-		api.logger.Info(
-			zap.String("ID", requestID),
-			zap.Int("ANSWER STATUS", http.StatusOK),
-		)
-
-		return ctx.JSON(http.StatusOK, &models.Response{
-			Status:  http.StatusOK,
-			Message: constants.UserCanBeLoggedIn,
-		})
-	}
-}
-
-func (api *APIMicroservices) SignUp() echo.HandlerFunc {
-	return func(ctx echo.Context) error {
-		userData := models.CreateUserDTO{}
-
-		requestID, ok := ctx.Get("REQUEST_ID").(string)
-		if !ok {
-			api.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
-			})
-		}
-
-		if err := ctx.Bind(&userData); err != nil {
-			api.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-		}
-
-		data := &authorization.SignUpData{}
-		automapper.MapLoose(userData, data)
-		session, err := api.authMicroservice.SignUp(context.Background(), data)
-		if err != nil {
-			return api.ParseError(ctx, requestID, err)
-		}
-
-		cookie := http.Cookie{
-			Name:     "Session_cookie",
-			Value:    session.Cookie,
-			HttpOnly: true,
-			Expires:  time.Now().Add(30 * 24 * time.Hour),
-			SameSite: 0,
-		}
-
-		ctx.SetCookie(&cookie)
-
-		api.logger.Info(
-			zap.String("ID", requestID),
-			zap.Int("ANSWER STATUS", http.StatusCreated),
-		)
-
-		return ctx.JSON(http.StatusCreated, &models.Response{
-			Status:  http.StatusCreated,
-			Message: constants.UserCreated,
-		})
-	}
-}
-
-func (api *APIMicroservices) LogOut() echo.HandlerFunc {
+func (p *profileHandler) Auth() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			api.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
-			})
-		}
-
-		cookie, err := ctx.Cookie("Session_cookie")
-		if err != nil {
-			api.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-		}
-
-		data := &authorization.Cookie{Cookie: cookie.Value}
-		_, err = api.authMicroservice.LogOut(context.Background(), data)
-		if err != nil {
-			return api.ParseError(ctx, requestID, err)
-		}
-
-		cookie.Expires = time.Now().AddDate(0, 0, -1)
-		ctx.SetCookie(cookie)
-
-		api.logger.Info(
-			zap.String("ID", requestID),
-			zap.Int("ANSWER STATUS", http.StatusOK),
-		)
-
-		return ctx.JSON(http.StatusOK, &models.Response{
-			Status:  http.StatusOK,
-			Message: constants.UserIsLoggedOut,
-		})
-	}
-}
-
-func (api *APIMicroservices) Auth() echo.HandlerFunc {
-	return func(ctx echo.Context) error {
-		requestID, ok := ctx.Get("REQUEST_ID").(string)
-		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
@@ -277,7 +102,7 @@ func (api *APIMicroservices) Auth() echo.HandlerFunc {
 
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.SessionRequired),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -289,7 +114,7 @@ func (api *APIMicroservices) Auth() echo.HandlerFunc {
 		}
 
 		if userID == -1 {
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.UserIsUnauthorized),
 				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
@@ -303,13 +128,13 @@ func (api *APIMicroservices) Auth() echo.HandlerFunc {
 		avatarName := strings.ReplaceAll(ctx.Request().Header.Get("Req"), "/api/v1/avatars/", "")
 
 		data := &profile.UserID{ID: userID}
-		userAvatar, err := api.profileMicroservice.GetAvatar(context.Background(), data)
+		userAvatar, err := p.profileMicroservice.GetAvatar(context.Background(), data)
 		if err != nil {
-			return api.ParseError(ctx, requestID, err)
+			return p.ParseError(ctx, requestID, err)
 		}
 
 		if err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -321,7 +146,7 @@ func (api *APIMicroservices) Auth() echo.HandlerFunc {
 		}
 
 		if avatarName != userAvatar.Name {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", "wrong avatar"),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -332,7 +157,7 @@ func (api *APIMicroservices) Auth() echo.HandlerFunc {
 			})
 		}
 
-		api.logger.Info(
+		p.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
@@ -344,11 +169,11 @@ func (api *APIMicroservices) Auth() echo.HandlerFunc {
 	}
 }
 
-func (api *APIMicroservices) GetUserProfile() echo.HandlerFunc {
+func (p *profileHandler) GetUserProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
@@ -359,7 +184,7 @@ func (api *APIMicroservices) GetUserProfile() echo.HandlerFunc {
 
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.SessionRequired),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -371,7 +196,7 @@ func (api *APIMicroservices) GetUserProfile() echo.HandlerFunc {
 		}
 
 		if userID == -1 {
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.UserIsUnauthorized),
 				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
@@ -383,13 +208,13 @@ func (api *APIMicroservices) GetUserProfile() echo.HandlerFunc {
 		}
 
 		data := &profile.UserID{ID: userID}
-		userData, err := api.profileMicroservice.GetUserProfile(context.Background(), data)
+		userData, err := p.profileMicroservice.GetUserProfile(context.Background(), data)
 		if err != nil {
-			return api.ParseError(ctx, requestID, err)
+			return p.ParseError(ctx, requestID, err)
 		}
 
 		if err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -400,7 +225,7 @@ func (api *APIMicroservices) GetUserProfile() echo.HandlerFunc {
 			})
 		}
 
-		api.logger.Info(
+		p.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
@@ -421,11 +246,11 @@ func (api *APIMicroservices) GetUserProfile() echo.HandlerFunc {
 	}
 }
 
-func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
+func (p *profileHandler) EditAvatar() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
@@ -436,7 +261,7 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.SessionRequired),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -448,7 +273,7 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 		}
 
 		if userID == -1 {
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.UserIsUnauthorized),
 				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
@@ -461,7 +286,7 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 
 		file, err := ctx.FormFile("file")
 		if err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -474,7 +299,7 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 
 		src, err := file.Open()
 		if err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -490,7 +315,7 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 		src.Close()
 
 		if err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -505,7 +330,7 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 		src, err = file.Open()
 		defer src.Close()
 		if err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -520,7 +345,7 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 
 		// Validate File Type
 		if _, ex := constants.IMAGE_TYPES[fileType]; !ex {
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.FileTypeIsNotSupported),
 				zap.Int("ANSWER STATUS", http.StatusBadRequest),
@@ -538,9 +363,9 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 			ContentType: fileType,
 		}
 
-		fileName, err := api.profileMicroservice.UploadAvatar(context.Background(), uploadData)
+		fileName, err := p.profileMicroservice.UploadAvatar(context.Background(), uploadData)
 		if err != nil {
-			return api.ParseError(ctx, requestID, err)
+			return p.ParseError(ctx, requestID, err)
 		}
 
 		editData := &profile.EditAvatarData{
@@ -548,12 +373,12 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 			Avatar: fileName.Name,
 		}
 
-		_, err = api.profileMicroservice.EditAvatar(context.Background(), editData)
+		_, err = p.profileMicroservice.EditAvatar(context.Background(), editData)
 		if err != nil {
-			return api.ParseError(ctx, requestID, err)
+			return p.ParseError(ctx, requestID, err)
 		}
 
-		api.logger.Info(
+		p.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
@@ -565,11 +390,11 @@ func (api *APIMicroservices) EditAvatar() echo.HandlerFunc {
 	}
 }
 
-func (api *APIMicroservices) EditProfile() echo.HandlerFunc {
+func (p *profileHandler) EditProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
@@ -580,7 +405,7 @@ func (api *APIMicroservices) EditProfile() echo.HandlerFunc {
 
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.SessionRequired),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -592,7 +417,7 @@ func (api *APIMicroservices) EditProfile() echo.HandlerFunc {
 		}
 
 		if userID == -1 {
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.UserIsUnauthorized),
 				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
@@ -606,7 +431,7 @@ func (api *APIMicroservices) EditProfile() echo.HandlerFunc {
 		userData := models.EditProfileDTO{}
 
 		if err := ctx.Bind(&userData); err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -623,12 +448,12 @@ func (api *APIMicroservices) EditProfile() echo.HandlerFunc {
 			Password: userData.Password,
 		}
 
-		_, err := api.profileMicroservice.EditProfile(context.Background(), data)
+		_, err := p.profileMicroservice.EditProfile(context.Background(), data)
 		if err != nil {
-			return api.ParseError(ctx, requestID, err)
+			return p.ParseError(ctx, requestID, err)
 		}
 
-		api.logger.Info(
+		p.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
@@ -640,11 +465,11 @@ func (api *APIMicroservices) EditProfile() echo.HandlerFunc {
 	}
 }
 
-func (api *APIMicroservices) GetCsrf() echo.HandlerFunc {
+func (p *profileHandler) GetCsrf() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
@@ -655,7 +480,7 @@ func (api *APIMicroservices) GetCsrf() echo.HandlerFunc {
 
 		cookie, err := ctx.Cookie("Session_cookie")
 		if err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -670,7 +495,7 @@ func (api *APIMicroservices) GetCsrf() echo.HandlerFunc {
 		token, err := csrf.Tokens.Create(cookie.Value, time.Now().Add(time.Hour).Unix())
 
 		if err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -682,7 +507,7 @@ func (api *APIMicroservices) GetCsrf() echo.HandlerFunc {
 			})
 		}
 
-		api.logger.Info(
+		p.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
@@ -694,11 +519,11 @@ func (api *APIMicroservices) GetCsrf() echo.HandlerFunc {
 	}
 }
 
-func (api *APIMicroservices) AddLike() echo.HandlerFunc {
+func (p *profileHandler) AddLike() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
@@ -709,7 +534,7 @@ func (api *APIMicroservices) AddLike() echo.HandlerFunc {
 
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.SessionRequired),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -721,7 +546,7 @@ func (api *APIMicroservices) AddLike() echo.HandlerFunc {
 		}
 
 		if userID == -1 {
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.UserIsUnauthorized),
 				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
@@ -735,7 +560,7 @@ func (api *APIMicroservices) AddLike() echo.HandlerFunc {
 		movieID := models.LikeDTO{}
 
 		if err := ctx.Bind(&movieID); err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -751,12 +576,12 @@ func (api *APIMicroservices) AddLike() echo.HandlerFunc {
 			MovieID: int64(movieID.ID),
 		}
 
-		_, err := api.profileMicroservice.AddLike(context.Background(), data)
+		_, err := p.profileMicroservice.AddLike(context.Background(), data)
 		if err != nil {
-			return api.ParseError(ctx, requestID, err)
+			return p.ParseError(ctx, requestID, err)
 		}
 
-		api.logger.Info(
+		p.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
@@ -768,11 +593,11 @@ func (api *APIMicroservices) AddLike() echo.HandlerFunc {
 	}
 }
 
-func (api *APIMicroservices) RemoveLike() echo.HandlerFunc {
+func (p *profileHandler) RemoveLike() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
@@ -783,7 +608,7 @@ func (api *APIMicroservices) RemoveLike() echo.HandlerFunc {
 
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.SessionRequired),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -795,7 +620,7 @@ func (api *APIMicroservices) RemoveLike() echo.HandlerFunc {
 		}
 
 		if userID == -1 {
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.UserIsUnauthorized),
 				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
@@ -809,7 +634,7 @@ func (api *APIMicroservices) RemoveLike() echo.HandlerFunc {
 		movieID := models.LikeDTO{}
 
 		if err := ctx.Bind(&movieID); err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -825,12 +650,12 @@ func (api *APIMicroservices) RemoveLike() echo.HandlerFunc {
 			MovieID: int64(movieID.ID),
 		}
 
-		_, err := api.profileMicroservice.RemoveLike(context.Background(), data)
+		_, err := p.profileMicroservice.RemoveLike(context.Background(), data)
 		if err != nil {
-			return api.ParseError(ctx, requestID, err)
+			return p.ParseError(ctx, requestID, err)
 		}
 
-		api.logger.Info(
+		p.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
@@ -842,11 +667,11 @@ func (api *APIMicroservices) RemoveLike() echo.HandlerFunc {
 	}
 }
 
-func (api *APIMicroservices) GetFavorites() echo.HandlerFunc {
+func (p *profileHandler) GetFavorites() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
@@ -857,7 +682,7 @@ func (api *APIMicroservices) GetFavorites() echo.HandlerFunc {
 
 		userID, ok := ctx.Get("USER_ID").(int64)
 		if !ok {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.SessionRequired),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -869,7 +694,7 @@ func (api *APIMicroservices) GetFavorites() echo.HandlerFunc {
 		}
 
 		if userID == -1 {
-			api.logger.Info(
+			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.UserIsUnauthorized),
 				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
@@ -881,14 +706,14 @@ func (api *APIMicroservices) GetFavorites() echo.HandlerFunc {
 		}
 
 		data := &profile.UserID{ID: userID}
-		userData, err := api.profileMicroservice.GetFavorites(context.Background(), data)
+		userData, err := p.profileMicroservice.GetFavorites(context.Background(), data)
 
 		if err != nil {
-			return api.ParseError(ctx, requestID, err)
+			return p.ParseError(ctx, requestID, err)
 		}
 
 		if err != nil {
-			api.logger.Error(
+			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
@@ -899,7 +724,7 @@ func (api *APIMicroservices) GetFavorites() echo.HandlerFunc {
 			})
 		}
 
-		api.logger.Info(
+		p.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)

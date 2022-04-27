@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"myapp/internal"
+	"myapp/internal/microservices/movie/proto"
 	"myapp/internal/persons"
 )
 
@@ -22,8 +23,8 @@ const (
 		"WHERE p.id = $1"
 )
 
-func (ss *staffStorage) GetByMovieID(id int) ([]internal.PersonInMovieDTO, error) {
-	movieStaff := make([]internal.PersonInMovieDTO, 0)
+func (ss *staffStorage) GetByMovieID(id int) ([]*proto.PersonInMovie, error) {
+	movieStaff := make([]*proto.PersonInMovie, 0)
 
 	rows, err := ss.db.Query(sqlGetByMovieID, id)
 	if err != nil {
@@ -32,11 +33,11 @@ func (ss *staffStorage) GetByMovieID(id int) ([]internal.PersonInMovieDTO, error
 	defer rows.Close()
 
 	for rows.Next() {
-		var nextPerson internal.PersonInMovieDTO
+		var nextPerson proto.PersonInMovie
 		if err = rows.Scan(&nextPerson.ID, &nextPerson.Name, &nextPerson.Photo, &nextPerson.Position); err != nil {
 			return nil, err
 		}
-		movieStaff = append(movieStaff, nextPerson)
+		movieStaff = append(movieStaff, &nextPerson)
 	}
 
 	return movieStaff, nil

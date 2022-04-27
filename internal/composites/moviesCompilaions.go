@@ -1,27 +1,25 @@
 package composites
 
 import (
-	"go.uber.org/zap"
-	"myapp/internal/api"
 	genreRepository "myapp/internal/genre/repository"
-	"myapp/internal/moviesCompilations"
-	"myapp/internal/moviesCompilations/delivery"
-	"myapp/internal/moviesCompilations/repository"
-	"myapp/internal/moviesCompilations/usecase"
+	"myapp/internal/microservices/compilations"
+	"myapp/internal/microservices/compilations/repository"
+	"myapp/internal/microservices/compilations/usecase"
+
+	"go.uber.org/zap"
 )
 
 type MoviesCompilationsComposite struct {
-	Service moviesCompilations.Service
-	Handler api.Handler
+	Service *usecase.Service
+	Storage compilations.Storage
 }
 
 func NewMoviesCompilationsComposite(postgresComposite *PostgresDBComposite, logger *zap.SugaredLogger) (*MoviesCompilationsComposite, error) {
 	MCStorage := repository.NewStorage(postgresComposite.db)
 	genreStorage := genreRepository.NewStorage(postgresComposite.db)
 	service := usecase.NewService(MCStorage, genreStorage)
-	handler := delivery.NewHandler(service, logger)
 	return &MoviesCompilationsComposite{
 		Service: service,
-		Handler: handler,
+		Storage: MCStorage,
 	}, nil
 }

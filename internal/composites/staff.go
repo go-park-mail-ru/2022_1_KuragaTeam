@@ -1,13 +1,14 @@
 package composites
 
 import (
-	"go.uber.org/zap"
 	"myapp/internal/api"
 	"myapp/internal/persons"
 	"myapp/internal/persons/delivery"
 	"myapp/internal/persons/repository"
 	"myapp/internal/persons/usecase"
 	positionsRepository "myapp/internal/position/repository"
+
+	"go.uber.org/zap"
 )
 
 type StaffComposite struct {

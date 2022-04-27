@@ -26,17 +26,17 @@ func main() {
 		log.Fatal("profile composite failed")
 	}
 
-	listen, err := net.Listen("tcp", ":"+os.Getenv("PROFILE_MICROSERVICE_PORT"))
+	listen, err := net.Listen("tcp", ":"+os.Getenv("PROFILE_PORT"))
 	if err != nil {
-		log.Fatal("CANNOT LISTEN PORT: ", ":"+os.Getenv("PROFILE_MICROSERVICE_PORT"), err.Error())
+		log.Fatal("CANNOT LISTEN PORT: ", ":"+os.Getenv("PROFILE_PORT"), err.Error())
 	}
 
 	server := grpc.NewServer()
 
 	proto.RegisterProfileServer(server, profileComposite.Service)
-	log.Printf("STARTED AUTHORIZATION MICROSERVICE ON %s", ":"+os.Getenv("PROFILE_MICROSERVICE_PORT"))
+	log.Printf("STARTED PROFILE MICROSERVICE ON %s", ":"+os.Getenv("PROFILE_PORT"))
 	err = server.Serve(listen)
 	if err != nil {
-		log.Println("CANNOT LISTEN PORT: ", ":"+os.Getenv("PROFILE_MICROSERVICE_PORT"), err.Error())
+		log.Println("CANNOT LISTEN PORT: ", ":"+os.Getenv("PROFILE_PORT"), err.Error())
 	}
 }
