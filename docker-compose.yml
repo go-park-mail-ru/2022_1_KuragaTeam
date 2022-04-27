@@ -1,5 +1,11 @@
 version: "3.9"
 
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  grafana_data:
+
 services:
   postgres:
     image: postgres
@@ -149,8 +155,4 @@ services:
       - ./monitoring:/etc/config
       - grafana_data:/var/lib/grafana
 
-volumes:
-  postgres_data:
-  redis_data:
-  minio_data:
 
