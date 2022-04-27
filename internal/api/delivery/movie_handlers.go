@@ -46,7 +46,6 @@ func mapMovie(inputMovie *movie.Movie) *internal.Movie {
 		Video:           inputMovie.Video,
 		Trailer:         inputMovie.Trailer,
 		Country:         inputMovie.Country,
-		Genre:           inputMovie.Genre,
 	}
 	for _, person := range inputMovie.Staff {
 		newPerson := internal.PersonInMovieDTO{
@@ -57,6 +56,15 @@ func mapMovie(inputMovie *movie.Movie) *internal.Movie {
 		}
 		mappedMovie.Staff = append(mappedMovie.Staff, newPerson)
 	}
+
+	for _, genre := range inputMovie.Genre {
+		newGenre := internal.Genre{
+			ID:   int(genre.ID),
+			Name: genre.Name,
+		}
+		mappedMovie.Genre = append(mappedMovie.Genre, newGenre)
+	}
+
 	if !inputMovie.IsMovie {
 		for _, season := range inputMovie.Seasons {
 			mappedSeason := internal.Season{

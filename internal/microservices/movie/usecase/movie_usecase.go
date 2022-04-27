@@ -25,6 +25,20 @@ func NewService(movieStorage movie.Storage, genreStorage genre.Storage,
 		countryStorage: countryStorage, staffStorage: staffStorage}
 }
 
+func (s *Service) fillGenres(movie *proto.Movie) error {
+	nextGenres, err := s.genreStorage.GetByMovieID(int(movie.ID))
+	if err != nil {
+		return err
+	}
+	for _, nextGenre := range nextGenres {
+		movie.Genre = append(movie.Genre, &proto.Genres{
+			ID:   int32(nextGenre.ID),
+			Name: nextGenre.Name,
+		})
+	}
+	return nil
+}
+
 func (s *Service) concatURLs(movie *proto.Movie) error {
 	var err error
 	movie.Picture, err = images.GenerateFileURL(movie.Picture, "posters")
@@ -72,7 +86,7 @@ func (s *Service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 		}
 	}
 
-	selectedMovie.Genre, err = s.genreStorage.GetByMovieID(int(selectedMovie.ID))
+	err = s.fillGenres(selectedMovie)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +120,7 @@ func (s *Service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 func (s *Service) GetRandom(ctx context.Context, in *proto.GetRandomOptions) (*proto.MoviesArr, error) {
 	movies, err := s.movieStorage.GetAllMovies(int(in.Limit), int(in.Offset))
 	for i := 0; i < len(movies); i++ {
-		movies[i].Genre, err = s.genreStorage.GetByMovieID(int(movies[i].ID))
+		err = s.fillGenres(movies[i])
 		if err != nil {
 			return nil, err
 		}

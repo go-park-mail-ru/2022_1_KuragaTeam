@@ -21,10 +21,15 @@ func NewService(MCStorage compilations.Storage, genreStorage genre.Storage) *Ser
 
 func (s *Service) fillGenres(MC *proto.MovieCompilation) error {
 	for i := 0; i < len(MC.Movies); i++ {
-		var err error
-		MC.Movies[i].Genre, err = s.genreStorage.GetByMovieID(int(MC.Movies[i].ID))
+		nextGenres, err := s.genreStorage.GetByMovieID(int(MC.Movies[i].ID))
 		if err != nil {
 			return err
+		}
+		for _, nextGenre := range nextGenres {
+			MC.Movies[i].Genre = append(MC.Movies[i].Genre, &proto.Genre{
+				ID:   int32(nextGenre.ID),
+				Name: nextGenre.Name,
+			})
 		}
 	}
 	return nil

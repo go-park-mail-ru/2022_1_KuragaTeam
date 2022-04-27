@@ -2,10 +2,15 @@ syntax = "proto3";
 
 option go_package = "microservices/compilations/proto";
 
+message Genre {
+  int32 ID = 1;
+  string Name = 2;
+}
+
 message MovieInfo {
   int64 ID = 1;
   string Name = 2;
-  repeated string Genre = 3;
+  repeated Genre Genre = 3;
   string Picture = 4;
 }
 
