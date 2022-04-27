@@ -64,3 +64,15 @@ type Movie struct {
 	Genre   []Genre            `json:"genre"`
 	Staff   []PersonInMovieDTO `json:"staff"`
 }
+
+type MovieInfo struct {
+	ID      int     `json:"id" form:"id"`
+	Name    string  `json:"name" form:"name"`
+	Genre   []Genre `json:"genre" form:"genre"`
+	Picture string  `json:"picture" form:"picture"`
+}
+
+type MovieCompilation struct {
+	Name   string      `json:"compilation_name"`
+	Movies []MovieInfo `json:"movies"`
+}

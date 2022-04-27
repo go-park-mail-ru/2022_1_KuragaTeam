@@ -1,19 +1,17 @@
 package main
 
 import (
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc"
 	"log"
 	"myapp/internal/composites"
 	"myapp/internal/microservices/compilations/proto"
 	"net"
-	"os"
-
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc"
 )
 
 func main() {
-	lis, err := net.Listen("tcp", ":"+os.Getenv("COMPILATIONS_PORT"))
+	lis, err := net.Listen("tcp", ":5002")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

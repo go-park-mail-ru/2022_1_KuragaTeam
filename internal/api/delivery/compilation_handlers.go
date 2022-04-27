@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"myapp/internal"
 	compilations "myapp/internal/microservices/compilations/proto"
 	"net/http"
 	"strconv"
@@ -46,6 +47,28 @@ func (h *compilationsHandler) Register(router *echo.Echo) {
 	router.GET(MCYearTopURL, h.GetYearTopMC())
 }
 
+func convertMC(in *compilations.MovieCompilation) *internal.MovieCompilation {
+	returnMC := internal.MovieCompilation{
+		Name: in.Name,
+	}
+
+	for _, movie := range in.Movies {
+		returnMovie := internal.MovieInfo{
+			ID:      int(movie.ID),
+			Name:    movie.Name,
+			Picture: movie.Picture,
+		}
+		for _, genre := range movie.Genre {
+			returnMovie.Genre = append(returnMovie.Genre, internal.Genre{
+				ID:   int(genre.ID),
+				Name: genre.Name,
+			})
+		}
+		returnMC.Movies = append(returnMC.Movies, returnMovie)
+	}
+	return &returnMC
+}
+
 func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID := ctx.Get("REQUEST_ID").(string)
@@ -77,7 +100,8 @@ func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, selectedMC.Movies)
+
+		return ctx.JSON(http.StatusOK, convertMC(selectedMC).Movies)
 	}
 }
 
@@ -112,7 +136,7 @@ func (h *compilationsHandler) GetAllSeries() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, selectedMC.Movies)
+		return ctx.JSON(http.StatusOK, convertMC(selectedMC).Movies)
 	}
 }
 
@@ -135,7 +159,14 @@ func (h *compilationsHandler) GetMoviesCompilations() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, mainMoviesCompilations)
+
+		var returnMCs []internal.MovieCompilation
+
+		for _, MC := range mainMoviesCompilations.MovieCompilations {
+			returnMCs = append(returnMCs, *convertMC(MC))
+		}
+
+		return ctx.JSON(http.StatusOK, returnMCs)
 	}
 }
 
@@ -170,7 +201,7 @@ func (h *compilationsHandler) GetMCByMovieID() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, selectedMC)
+		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
 	}
 }
 
@@ -205,7 +236,7 @@ func (h *compilationsHandler) GetMCByGenre() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, selectedMC)
+		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
 	}
 }
 
@@ -240,7 +271,7 @@ func (h *compilationsHandler) GetMCByPersonID() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusOK, selectedMC)
+		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
 	}
 }
 
@@ -268,7 +299,7 @@ func (h *compilationsHandler) GetTopMC() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusOK, selectedMC)
+		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
 	}
 }
 
@@ -303,6 +334,6 @@ func (h *compilationsHandler) GetYearTopMC() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusOK, selectedMC)
+		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
 	}
 }
