@@ -13,13 +13,6 @@ import (
 )
 
 func main() {
-	lis, err := net.Listen("tcp", ":"+os.Getenv("COMPILATIONS_PORT"))
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
-	s := grpc.NewServer()
-
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	prLogger, err := config.Build()
@@ -34,6 +27,13 @@ func main() {
 	if err != nil {
 		logger.Fatal("postgres db composite failed")
 	}
+
+	lis, err := net.Listen("tcp", ":"+os.Getenv("COMPILATIONS_PORT"))
+	if err != nil {
+		logger.Fatalf("failed to listen: %v", err)
+	}
+
+	s := grpc.NewServer()
 
 	composite, err := composites.NewMoviesCompilationsComposite(postgresDBC, logger)
 	if err != nil {
