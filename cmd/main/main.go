@@ -9,6 +9,7 @@ import (
 	movieMicroservice "myapp/internal/microservices/movie/proto"
 	profileMicroservice "myapp/internal/microservices/profile/proto"
 	"myapp/internal/middleware"
+	"myapp/internal/monitoring/delivery"
 	"os"
 
 	"github.com/labstack/echo/v4"
@@ -126,8 +127,10 @@ func main() {
 	}
 	staffComposite.Handler.Register(echoServer)
 
-	middlwares := middleware.NewMiddleware(auth, logger)
-	middlwares.Register(echoServer)
+	monitor := delivery.RegisterMonitoring(echoServer)
+
+	middlewares := middleware.NewMiddleware(auth, logger, monitor)
+	middlewares.Register(echoServer)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))
 

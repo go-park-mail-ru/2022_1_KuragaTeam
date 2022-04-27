@@ -5,7 +5,9 @@ import (
 	"myapp/internal/csrf"
 	authorization "myapp/internal/microservices/authorization/proto"
 	"myapp/internal/models"
+	"myapp/internal/monitoring/delivery"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -17,12 +19,14 @@ import (
 type Middleware struct {
 	authMicroservice authorization.AuthorizationClient
 	logger           *zap.SugaredLogger
+	metrics          *delivery.PrometheusMetrics
 }
 
-func NewMiddleware(authMicroservice authorization.AuthorizationClient, logger *zap.SugaredLogger) *Middleware {
+func NewMiddleware(authMicroservice authorization.AuthorizationClient, logger *zap.SugaredLogger, monitoring *delivery.PrometheusMetrics) *Middleware {
 	return &Middleware{
 		authMicroservice: authMicroservice,
 		logger:           logger,
+		metrics:          monitoring,
 	}
 }
 
@@ -92,6 +96,13 @@ func (m Middleware) AccessLog() echo.MiddlewareFunc {
 				zap.String("ID", id.String()),
 				zap.Duration("TIME FOR ANSWER", responseTime),
 			)
+
+			status := strconv.Itoa(ctx.Response().Status)
+			path := ctx.Request().URL.Path
+			method := ctx.Request().Method
+
+			m.metrics.Hits.WithLabelValues(status, path, method).Inc()
+			m.metrics.Duration.WithLabelValues(status, path, method).Observe(responseTime.Seconds())
 
 			return err
 		}
