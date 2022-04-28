@@ -2,6 +2,9 @@ version: "3.9"
 
 volumes:
   postgres_data:
+  redis_data:
+  minio_data:
+  grafana_data:
 
 services:
   postgres:
@@ -28,6 +31,8 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
   minio:
     image: minio/minio:latest
     command: server --console-address ":9001" /data/
@@ -42,7 +47,32 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-
+    volumes:
+      - minio_data:/data
+  authorization:
+    build:
+      context: .
+      dockerfile: ./cmd/authorization/Dockerfile
+    links:
+      - postgres:postgres
+      - redis:redis
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "5555:5555"
+  profile:
+    build:
+      context: .
+      dockerfile: ./cmd/profile/Dockerfile
+    links:
+      - postgres:postgres
+      - minio:minio
+    depends_on:
+      - postgres
+      - minio
+    ports:
+      - "6666:6666"
   movie:
     build:
       context: .
@@ -53,30 +83,76 @@ services:
       - postgres
     ports:
       - "5001:5001"
-
-  dockergo:
+  compilations:
     build:
       context: .
-      dockerfile: ./Dockerfile.multistage
+      dockerfile: ./cmd/compilations/Dockerfile
     links:
-      - movie:movie
+      - postgres:postgres
+    depends_on:
+      - postgres
+    ports:
+      - "5002:5002"
+  main:
+    build:
+      context: .
+      dockerfile: ./cmd/main/Dockerfile
+    links:
       - postgres:postgres
       - redis:redis
       - minio:minio
+      - authorization:authorization
+      - profile:profile
+      - movie:movie
+      - compilations:compilations
     depends_on:
-      - movie
       - postgres
       - redis
       - minio
+      - authorization
+      - profile
+      - movie
+      - compilations
     ports:
       - "1323:1323"
-
   nginx:
     image: nginx:latest
     links:
-      - dockergo:dockergo
+      - main:main
       - minio:minio
+    depends_on:
+      - movie
+      - minio
     volumes:
       - ./nginx:/etc/nginx/conf.d
     ports:
       - "8000:80"
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/config
+    command:
+      - '--config.file=/etc/config/prometheus.yml'
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    restart: always
+    ports:
+      - "9100:9100"
+    volumes:
+      - ./monitoring:/etc/config
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring:/etc/config
+      - grafana_data:/var/lib/grafana
+
+

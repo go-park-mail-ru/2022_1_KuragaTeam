@@ -1,13 +1,14 @@
 package composites
 
 import (
-	"go.uber.org/zap"
 	"myapp/internal/api"
 	"myapp/internal/persons"
 	"myapp/internal/persons/delivery"
 	"myapp/internal/persons/repository"
 	"myapp/internal/persons/usecase"
 	positionsRepository "myapp/internal/position/repository"
+
+	"go.uber.org/zap"
 )
 
 type StaffComposite struct {
@@ -17,8 +18,8 @@ type StaffComposite struct {
 }
 
 func NewStaffComposite(postgresComposite *PostgresDBComposite, logger *zap.SugaredLogger) (*StaffComposite, error) {
-	staffStorage := repository.NewStorage(postgresComposite.Db)
-	personsStorage := positionsRepository.NewStorage(postgresComposite.Db)
+	staffStorage := repository.NewStorage(postgresComposite.db)
+	personsStorage := positionsRepository.NewStorage(postgresComposite.db)
 	service := usecase.NewService(staffStorage, personsStorage)
 	handler := delivery.NewHandler(service, logger)
 	return &StaffComposite{

@@ -1,25 +1,18 @@
 package main
 
 import (
-	"flag"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc"
 	"log"
 	"myapp/internal/composites"
 	"myapp/internal/microservices/movie/proto"
 	"net"
+	"os"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc"
 )
 
 func main() {
-	flag.Parse()
-	lis, err := net.Listen("tcp", ":5001")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
-	s := grpc.NewServer()
-
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	prLogger, err := config.Build()
@@ -34,6 +27,13 @@ func main() {
 	if err != nil {
 		logger.Fatal("postgres db composite failed")
 	}
+
+	lis, err := net.Listen("tcp", ":"+os.Getenv("MOVIE_PORT"))
+	if err != nil {
+		logger.Fatalf("failed to listen: %v", err)
+	}
+
+	s := grpc.NewServer()
 
 	composite, err := composites.NewMovieComposite(postgresDBC, logger)
 	if err != nil {

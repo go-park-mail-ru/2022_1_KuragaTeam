@@ -1,23 +1,24 @@
 package delivery
 
 import (
-	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
-	"golang.org/x/net/context"
 	"myapp/internal"
 	movie "myapp/internal/microservices/movie/proto"
 	"net/http"
 	"strconv"
+
+	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
+	"golang.org/x/net/context"
 )
 
-type Response struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-}
+//type Response struct {
+//	Status  int    `json:"status"`
+//	Message string `json:"message"`
+//}
 
 const (
 	movieURL      = "api/v1/movie/:movie_id"
-	moviesURL     = "api/v1/movies"
+	moviesURL     = "api/v1/oldMovies"
 	mainMovieURL  = "api/v1/mainMovie"
 	randomCount   = 10
 	defaultOffset = 0
@@ -46,7 +47,6 @@ func mapMovie(inputMovie *movie.Movie) *internal.Movie {
 		Video:           inputMovie.Video,
 		Trailer:         inputMovie.Trailer,
 		Country:         inputMovie.Country,
-		Genre:           inputMovie.Genre,
 	}
 	for _, person := range inputMovie.Staff {
 		newPerson := internal.PersonInMovieDTO{
@@ -57,6 +57,15 @@ func mapMovie(inputMovie *movie.Movie) *internal.Movie {
 		}
 		mappedMovie.Staff = append(mappedMovie.Staff, newPerson)
 	}
+
+	for _, genre := range inputMovie.Genre {
+		newGenre := internal.Genre{
+			ID:   int(genre.ID),
+			Name: genre.Name,
+		}
+		mappedMovie.Genre = append(mappedMovie.Genre, newGenre)
+	}
+
 	if !inputMovie.IsMovie {
 		for _, season := range inputMovie.Seasons {
 			mappedSeason := internal.Season{

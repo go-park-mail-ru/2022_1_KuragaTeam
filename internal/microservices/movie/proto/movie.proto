@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "myapp/internal/microservices/movie/proto";
+option go_package = "microservices/movie/proto";
 
 //protoc --go_out=. --go_opt=paths=source_relative \
 //--go-grpc_out=. --go-grpc_opt=paths=source_relative \
@@ -39,6 +39,11 @@ message Season {
   repeated Episode Episodes = 3;
 }
 
+message Genres {
+  int32 ID = 1;
+  string Name = 2;
+}
+
 message Movie {
   int64 ID = 1;
   string Name = 2;
@@ -58,7 +63,7 @@ message Movie {
   repeated Season Seasons = 15;
 
   repeated string Country = 16;
-  repeated string Genre = 17;
+  repeated Genres Genre = 17;
   repeated PersonInMovie Staff = 18;
 }
 
