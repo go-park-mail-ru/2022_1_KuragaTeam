@@ -371,14 +371,12 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
       movie_id int not null
   );
 
-  DO
-  $do$
-      BEGIN
-          FOR i IN 1..8 LOOP
-                  INSERT INTO seasons(number, movie_id) VALUES (i, '14');
-              END LOOP;
-      END
-  $do$;
+  DO \$\$DECLARE i record;
+  BEGIN
+    FOR i IN 1..8 LOOP
+      INSERT INTO seasons(number, movie_id) VALUES (i, '14');
+    END LOOP;
+  END\$\$;
 
   CREATE TABLE IF NOT EXISTS episode (
        id serial constraint episode_pk primary key,
