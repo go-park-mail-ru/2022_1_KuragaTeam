@@ -35,7 +35,7 @@ func (p *profileHandler) Register(router *echo.Echo) {
 	router.GET(constants.AuthURL, p.Auth())
 	router.POST(constants.AddLikeUrl, p.AddLike())
 	router.DELETE(constants.RemoveLikeUrl, p.RemoveLike())
-	router.GET(constants.FavoritesUrl, p.GetFavorites())
+	router.GET(constants.LikesUrl, p.GetFavorites())
 }
 
 func (p *profileHandler) ParseError(ctx echo.Context, requestID string, err error) error {
@@ -710,18 +710,6 @@ func (p *profileHandler) GetFavorites() echo.HandlerFunc {
 
 		if err != nil {
 			return p.ParseError(ctx, requestID, err)
-		}
-
-		if err != nil {
-			p.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
 		}
 
 		p.logger.Info(

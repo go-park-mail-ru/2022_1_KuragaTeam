@@ -10,4 +10,5 @@ type Storage interface {
 	GetByPerson(personID int) (*proto.MovieCompilation, error)
 	GetTop(limit int) (*proto.MovieCompilation, error)
 	GetTopByYear(year int) (*proto.MovieCompilation, error)
+	GetFavorites(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error)
 }

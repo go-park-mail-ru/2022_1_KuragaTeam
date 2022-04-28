@@ -38,7 +38,7 @@ const (
 	AuthURL       = "/api/v1/auth"
 	AddLikeUrl    = "/api/v1/like"
 	RemoveLikeUrl = "/api/v1/dislike"
-	FavoritesUrl  = "/api/v1/favorites"
+	LikesUrl      = "/api/v1/likes"
 )
 
 var (

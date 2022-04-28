@@ -209,3 +209,19 @@ func (s *Service) GetTop(ctx context.Context, in *proto.GetCompilationOptions) (
 	}
 	return MC, nil
 }
+
+func (s *Service) GetFavorites(ctx context.Context, in *proto.GetFavoritesOptions) (*proto.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetFavorites(in)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillGenres(MC)
+	if err != nil {
+		return nil, err
+	}
+	err = s.concatUrls(MC)
+	if err != nil {
+		return nil, err
+	}
+	return MC, nil
+}

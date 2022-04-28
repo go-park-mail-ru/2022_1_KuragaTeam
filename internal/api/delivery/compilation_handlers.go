@@ -2,13 +2,19 @@ package delivery
 
 import (
 	"myapp/internal"
+	"myapp/internal/constants"
 	compilations "myapp/internal/microservices/compilations/proto"
+	profileMicroservice "myapp/internal/microservices/profile/proto"
+	"myapp/internal/models"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Response struct {
@@ -25,6 +31,7 @@ const (
 	MCTopURL       = "api/v1/movieCompilations/top"
 	MCYearTopURL   = "api/v1/movieCompilations/yearTop/:year"
 	MCDefaultURL   = "/api/v1/movieCompilations"
+	MCFavoritesURL = "/api/v1/favorites"
 )
 
 type compilationsHandler struct {
@@ -45,6 +52,7 @@ func (h *compilationsHandler) Register(router *echo.Echo) {
 	router.GET(MCByPersonURL, h.GetMCByPersonID())
 	router.GET(MCTopURL, h.GetTopMC())
 	router.GET(MCYearTopURL, h.GetYearTopMC())
+	router.GET(MCFavoritesURL, h.GetFavorites())
 }
 
 func convertMC(in *compilations.MovieCompilation) *internal.MovieCompilation {
@@ -335,5 +343,123 @@ func (h *compilationsHandler) GetYearTopMC() echo.HandlerFunc {
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
 		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+	}
+}
+
+func (h *compilationsHandler) GetFavorites() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			h.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		limitStr := ctx.QueryParam("limit")
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil {
+			limit = randomCount
+		}
+
+		offsetStr := ctx.QueryParam("offset")
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			offset = defaultOffset
+		}
+
+		profileConn, err := grpc.Dial(
+			os.Getenv("PROFILE_HOST")+":"+os.Getenv("PROFILE_PORT"),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		defer func() {
+			err := profileConn.Close()
+			if err != nil {
+				h.logger.Error(
+					zap.String("ID", requestID),
+					zap.String("ERROR", err.Error()),
+					zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+				)
+			}
+		}()
+
+		profileManager := profileMicroservice.NewProfileClient(profileConn)
+
+		data := &profileMicroservice.UserID{ID: userID}
+		favorites, err := profileManager.GetFavorites(context.Background(), data)
+		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		moviesData := &compilations.GetFavoritesOptions{
+			Id:     favorites.MovieId,
+			Limit:  int64(limit),
+			Offset: int64(offset),
+		}
+		selectedMC, err := h.compilationsMicroservice.GetFavorites(context.Background(), moviesData)
+		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, convertMC(selectedMC).Movies)
 	}
 }
