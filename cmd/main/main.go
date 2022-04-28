@@ -111,7 +111,7 @@ func main() {
 	profileHandlers.Register(echoServer)
 	movieHandlers := api.NewMovieHandler(movie, logger)
 	movieHandlers.Register(echoServer)
-	compilationsHandlers := api.NewCompilationsHandler(compilations, logger)
+	compilationsHandlers := api.NewCompilationsHandler(compilations, profile, logger)
 	compilationsHandlers.Register(echoServer)
 
 	///////////////////////////////////////////////////////

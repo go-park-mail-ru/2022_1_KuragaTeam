@@ -7,14 +7,11 @@ import (
 	profileMicroservice "myapp/internal/microservices/profile/proto"
 	"myapp/internal/models"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Response struct {
@@ -36,11 +33,14 @@ const (
 
 type compilationsHandler struct {
 	compilationsMicroservice compilations.MovieCompilationsClient
+	profileMicroservice      profileMicroservice.ProfileClient
 	logger                   *zap.SugaredLogger
 }
 
-func NewCompilationsHandler(service compilations.MovieCompilationsClient, logger *zap.SugaredLogger) *compilationsHandler {
-	return &compilationsHandler{compilationsMicroservice: service, logger: logger}
+func NewCompilationsHandler(service compilations.MovieCompilationsClient, profile profileMicroservice.ProfileClient,
+	logger *zap.SugaredLogger) *compilationsHandler {
+	return &compilationsHandler{compilationsMicroservice: service, logger: logger,
+		profileMicroservice: profile}
 }
 
 func (h *compilationsHandler) Register(router *echo.Echo) {
@@ -396,36 +396,8 @@ func (h *compilationsHandler) GetFavorites() echo.HandlerFunc {
 			offset = defaultOffset
 		}
 
-		profileConn, err := grpc.Dial(
-			os.Getenv("PROFILE_HOST")+":"+os.Getenv("PROFILE_PORT"),
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
-		)
-		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-		}
-		defer func() {
-			err := profileConn.Close()
-			if err != nil {
-				h.logger.Error(
-					zap.String("ID", requestID),
-					zap.String("ERROR", err.Error()),
-					zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-				)
-			}
-		}()
-
-		profileManager := profileMicroservice.NewProfileClient(profileConn)
-
 		data := &profileMicroservice.UserID{ID: userID}
-		favorites, err := profileManager.GetFavorites(context.Background(), data)
+		favorites, err := h.profileMicroservice.GetFavorites(context.Background(), data)
 		if err != nil {
 			h.logger.Error(
 				zap.String("ID", requestID),
