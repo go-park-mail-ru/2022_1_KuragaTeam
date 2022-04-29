@@ -262,6 +262,13 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 		return nil, err
 	}
 
+	for i, _ := range personsCompilations.Persons {
+		personsCompilations.Persons[i].Photo, err = images.GenerateFileURL(personsCompilations.Persons[i].Photo, "persons")
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	returnData := &proto.SearchCompilation{
 		Movies:  movieCompilations.Movies,
 		Series:  seriesCompilations.Movies,
