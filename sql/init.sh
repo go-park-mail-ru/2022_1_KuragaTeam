@@ -74,20 +74,23 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
          'противником, который, кажется, предугадывает каждый их ход. Врагом, увидеть которого мог бы лишь Кобб.',
          '8.7', 'Твой разум - место преступления', 'Inception.webp', 'Inception.mp4', 'InceptionTrailer.mp4') RETURNING id;
 
-  -- INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
-  -- VALUES('1+1', 'Intouchables.webp', true, '2011', '1 час 52 минуты', '16',
-  --        'Пострадав в результате несчастного случая, богатый аристократ ' ||
-  --        'Филипп нанимает в помощники человека, который менее всего подходит ' ||
-  --        'для этой работы, – молодого жителя предместья Дрисса, только что освободившегося из тюрьмы. ' ||
-  --        'Несмотря на то, что Филипп прикован к инвалидному креслу, Дриссу удается привнести в ' ||
-  --        'размеренную жизнь аристократа дух приключений.', '8.8', 'Sometimes you have to reach into someone else''s world to find out what''s missing in your own', 'Intouchables.webp', 'Intouchables.mp4',
-  --        'Intouchables.mp4') RETURNING id;
-  --
-  -- INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
-  -- VALUES('Игра в имитацию', 'TheImitationGame.webp', true, '2014', '1 час 54 минуты', '16',
-  --        'Английский математик и логик Алан Тьюринг пытается взломать' ||
-  --        ' код немецкой шифровальной машины Enigma во время Второй мировой войны.', '7.6', 'Основано на невероятной, но реальной истории',
-  --        'TheImitationGame.webp', 'TheImitationGame.mp4', 'TheImitationGame.mp4') RETURNING id;
+  INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
+  VALUES('1+1', 'Intouchables.webp', true, '2011', '1 час 52 минуты', '16',
+         'Пострадав в результате несчастного случая, богатый аристократ ' ||
+         'Филипп нанимает в помощники человека, который менее всего подходит ' ||
+         'для этой работы, – молодого жителя предместья Дрисса, только что освободившегося из тюрьмы. ' ||
+         'Несмотря на то, что Филипп прикован к инвалидному креслу, Дриссу удается привнести в ' ||
+         'размеренную жизнь аристократа дух приключений.', '8.8', 'Sometimes you have to reach into someone else''s world to find out what''s missing in your own', 'Intouchables.webp', 'Intouchables.mp4',
+         'Intouchables.mp4') RETURNING id;
+
+  INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
+  VALUES('Игра в имитацию', 'TheImitationGame.webp', true, '2014', '1 час 54 минуты', '16',
+         'Английский математик и логик Алан Тьюринг пытается взломать' ||
+         ' код немецкой шифровальной машины Enigma во время Второй мировой войны.', '7.6', 'Основано на невероятной, но реальной истории',
+         'TheImitationGame.webp', 'TheImitationGame.mp4', 'TheImitationGame.mp4') RETURNING id;
+
+  DELETE FROM movies WHERE id = 4;
+  DELETE FROM movies WHERE id = 5;
 
   INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
   VALUES('Интерстеллар', 'Interstellar.webp', true, '2014', '2 часа 49 минут', '16',
