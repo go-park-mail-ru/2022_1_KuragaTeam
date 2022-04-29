@@ -9,6 +9,9 @@ volumes:
 services:
   postgres:
     image: postgres
+    build:
+      context: .
+      dockerfile: sql/Dockerfile
     healthcheck:
       test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root" ]
       timeout: 45s

@@ -32,6 +32,7 @@ type MovieCompilationsClient interface {
 	GetTopByYear(ctx context.Context, in *GetByIDOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
 	GetTop(ctx context.Context, in *GetCompilationOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
 	GetFavorites(ctx context.Context, in *GetFavoritesOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
+	Find(ctx context.Context, in *SearchText, opts ...grpc.CallOption) (*SearchCompilation, error)
 }
 
 type movieCompilationsClient struct {
@@ -132,6 +133,15 @@ func (c *movieCompilationsClient) GetFavorites(ctx context.Context, in *GetFavor
 	return out, nil
 }
 
+func (c *movieCompilationsClient) Find(ctx context.Context, in *SearchText, opts ...grpc.CallOption) (*SearchCompilation, error) {
+	out := new(SearchCompilation)
+	err := c.cc.Invoke(ctx, "/MovieCompilations/Find", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MovieCompilationsServer is the server API for MovieCompilations service.
 // All implementations must embed UnimplementedMovieCompilationsServer
 // for forward compatibility
@@ -146,6 +156,7 @@ type MovieCompilationsServer interface {
 	GetTopByYear(context.Context, *GetByIDOptions) (*MovieCompilation, error)
 	GetTop(context.Context, *GetCompilationOptions) (*MovieCompilation, error)
 	GetFavorites(context.Context, *GetFavoritesOptions) (*MovieCompilation, error)
+	Find(context.Context, *SearchText) (*SearchCompilation, error)
 	mustEmbedUnimplementedMovieCompilationsServer()
 }
 
@@ -182,6 +193,9 @@ func (UnimplementedMovieCompilationsServer) GetTop(context.Context, *GetCompilat
 }
 func (UnimplementedMovieCompilationsServer) GetFavorites(context.Context, *GetFavoritesOptions) (*MovieCompilation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFavorites not implemented")
+}
+func (UnimplementedMovieCompilationsServer) Find(context.Context, *SearchText) (*SearchCompilation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
 }
 func (UnimplementedMovieCompilationsServer) mustEmbedUnimplementedMovieCompilationsServer() {}
 
@@ -376,6 +390,24 @@ func _MovieCompilations_GetFavorites_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MovieCompilations_Find_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchText)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MovieCompilationsServer).Find(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/MovieCompilations/Find",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MovieCompilationsServer).Find(ctx, req.(*SearchText))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MovieCompilations_ServiceDesc is the grpc.ServiceDesc for MovieCompilations service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -422,6 +454,10 @@ var MovieCompilations_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFavorites",
 			Handler:    _MovieCompilations_GetFavorites_Handler,
+		},
+		{
+			MethodName: "Find",
+			Handler:    _MovieCompilations_Find_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

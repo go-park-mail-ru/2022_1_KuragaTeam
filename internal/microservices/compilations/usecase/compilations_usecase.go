@@ -5,6 +5,8 @@ import (
 	"myapp/internal/microservices/compilations"
 	"myapp/internal/microservices/compilations/proto"
 	"myapp/internal/microservices/compilations/utils/images"
+	"myapp/internal/persons"
+	"strings"
 
 	"golang.org/x/net/context"
 )
@@ -14,10 +16,11 @@ type Service struct {
 
 	MCStorage    compilations.Storage
 	genreStorage genre.Storage
+	staffStorage persons.Storage
 }
 
-func NewService(MCStorage compilations.Storage, genreStorage genre.Storage) *Service {
-	return &Service{MCStorage: MCStorage, genreStorage: genreStorage}
+func NewService(MCStorage compilations.Storage, genreStorage genre.Storage, staffStorage persons.Storage) *Service {
+	return &Service{MCStorage: MCStorage, genreStorage: genreStorage, staffStorage: staffStorage}
 }
 
 func (s *Service) fillGenres(MC *proto.MovieCompilation) error {
@@ -224,4 +227,46 @@ func (s *Service) GetFavorites(ctx context.Context, in *proto.GetFavoritesOption
 		return nil, err
 	}
 	return MC, nil
+}
+
+func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.SearchCompilation, error) {
+	data := strings.Join(strings.Fields(in.Text), " & ")
+	movieCompilations, err := s.MCStorage.FindMovie(data, true)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillGenres(movieCompilations)
+	if err != nil {
+		return nil, err
+	}
+	err = s.concatUrls(movieCompilations)
+	if err != nil {
+		return nil, err
+	}
+
+	seriesCompilations, err := s.MCStorage.FindMovie(data, false)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillGenres(seriesCompilations)
+	if err != nil {
+		return nil, err
+	}
+	err = s.concatUrls(seriesCompilations)
+	if err != nil {
+		return nil, err
+	}
+
+	personsCompilations, err := s.staffStorage.FindPerson(data)
+	if err != nil {
+		return nil, err
+	}
+
+	returnData := &proto.SearchCompilation{
+		Movies:  movieCompilations.Movies,
+		Series:  seriesCompilations.Movies,
+		Persons: personsCompilations.Persons,
+	}
+
+	return returnData, nil
 }

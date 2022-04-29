@@ -42,6 +42,28 @@ message GetFavoritesOptions {
   int64 offset = 3;
 }
 
+message SearchText {
+  string text = 1;
+  bool is_movie = 2;
+}
+
+message PersonInfo {
+  int64 ID = 1;
+  string Name = 2;
+  string Photo = 3;
+  repeated string position = 4;
+}
+
+message PersonCompilation {
+  repeated PersonInfo Persons = 1;
+}
+
+message SearchCompilation {
+  repeated MovieInfo Movies = 1;
+  repeated MovieInfo Series = 2;
+  repeated PersonInfo Persons = 3;
+}
+
 service MovieCompilations {
   rpc GetAllMovies(GetCompilationOptions) returns(MovieCompilation) {}
   rpc GetAllSeries(GetCompilationOptions) returns(MovieCompilation) {}
@@ -53,4 +75,5 @@ service MovieCompilations {
   rpc GetTopByYear(GetByIDOptions) returns(MovieCompilation) {}
   rpc GetTop(GetCompilationOptions) returns(MovieCompilation) {}
   rpc GetFavorites(GetFavoritesOptions) returns(MovieCompilation) {}
+  rpc Find(SearchText) returns(SearchCompilation) {}
 }

@@ -3,8 +3,11 @@ package repository
 import (
 	"database/sql"
 	"myapp/internal"
+	compilations "myapp/internal/microservices/compilations/proto"
 	"myapp/internal/microservices/movie/proto"
 	"myapp/internal/persons"
+
+	"github.com/lib/pq"
 )
 
 type staffStorage struct {
@@ -21,6 +24,10 @@ const (
 		"WHERE mv_s.movie_id = $1 ORDER BY pos.id"
 	sqlGetByPersonID = "SELECT p.id, p.name, p.photo, p.addit_photo1, p.addit_photo2, p.description FROM person AS p " +
 		"WHERE p.id = $1"
+	findPerson = "select p.id, p.name, p.photo," +
+		"array((select distinct position.name from position join movies_staff ms on" +
+		" position.id = ms.position_id where ms.person_id = p.id)) from person as p " +
+		"where to_tsvector('russian', p.name) @@ to_tsquery('russian', $1);"
 )
 
 func (ss *staffStorage) GetByMovieID(id int) ([]*proto.PersonInMovie, error) {
@@ -54,4 +61,24 @@ func (ss *staffStorage) GetByPersonID(id int) (*internal.Person, error) {
 	}
 
 	return &selectedPerson, nil
+}
+
+func (ss *staffStorage) FindPerson(text string) (*compilations.PersonCompilation, error) {
+	var selectedPersonCompilation compilations.PersonCompilation
+
+	rows, err := ss.db.Query(findPerson, text)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var selectedPersons compilations.PersonInfo
+		err = rows.Scan(&selectedPersons.ID, &selectedPersons.Name, &selectedPersons.Photo, pq.Array(&selectedPersons.Position))
+		if err != nil {
+			return nil, err
+		}
+		selectedPersonCompilation.Persons = append(selectedPersonCompilation.Persons, &selectedPersons)
+	}
+	return &selectedPersonCompilation, nil
 }

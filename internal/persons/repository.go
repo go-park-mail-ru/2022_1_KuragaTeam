@@ -2,10 +2,12 @@ package persons
 
 import (
 	"myapp/internal"
-	"myapp/internal/microservices/movie/proto"
+	compilations "myapp/internal/microservices/compilations/proto"
+	movie "myapp/internal/microservices/movie/proto"
 )
 
 type Storage interface {
-	GetByMovieID(id int) ([]*proto.PersonInMovie, error)
+	GetByMovieID(id int) ([]*movie.PersonInMovie, error)
 	GetByPersonID(id int) (*internal.Person, error)
+	FindPerson(text string) (*compilations.PersonCompilation, error)
 }

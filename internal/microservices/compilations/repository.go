@@ -11,4 +11,5 @@ type Storage interface {
 	GetTop(limit int) (*proto.MovieCompilation, error)
 	GetTopByYear(year int) (*proto.MovieCompilation, error)
 	GetFavorites(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error)
+	FindMovie(text string, isMovie bool) (*proto.MovieCompilation, error)
 }

@@ -33,7 +33,8 @@ const (
 		"m_s.movie_id = m.id WHERE m_s.person_id=$1"
 	getTopSQL       = "SELECT id, name, picture FROM movies ORDER BY kinopoisk_rating DESC LIMIT $1"
 	getTopByYearSQL = "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating DESC"
-	getFavorites    = "SELECT m.id, m.name, m.picture FROM movies AS m WHERE m.id = any ($1) LIMIT $2 OFFSET $3;"
+	getFavorites    = "SELECT id, name, picture FROM movies WHERE id = any ($1) LIMIT $2 OFFSET $3;"
+	findMovie       = "SELECT id, name, picture FROM movies where to_tsvector('russian', name) @@ to_tsquery('russian', $1) AND is_movie=$2;"
 )
 
 func (ms *movieCompilationsStorage) GetAllMovies(limit, offset int, isMovie bool) (*proto.MovieCompilation, error) {
@@ -169,6 +170,7 @@ func (ms *movieCompilationsStorage) GetTop(limit int) (*proto.MovieCompilation, 
 		}
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
 	}
+
 	return &selectedMovieCompilation, nil
 }
 
@@ -197,6 +199,26 @@ func (ms *movieCompilationsStorage) GetFavorites(data *proto.GetFavoritesOptions
 	var selectedMovieCompilation proto.MovieCompilation
 
 	rows, err := ms.db.Query(getFavorites, pq.Array(data.Id), data.Limit, data.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var selectedMovie proto.MovieInfo
+		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
+		if err != nil {
+			return nil, err
+		}
+		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
+	}
+	return &selectedMovieCompilation, nil
+}
+
+func (ms *movieCompilationsStorage) FindMovie(text string, isMovie bool) (*proto.MovieCompilation, error) {
+	var selectedMovieCompilation proto.MovieCompilation
+
+	rows, err := ms.db.Query(findMovie, text, isMovie)
 	if err != nil {
 		return nil, err
 	}

@@ -29,6 +29,7 @@ const (
 	MCYearTopURL   = "api/v1/movieCompilations/yearTop/:year"
 	MCDefaultURL   = "/api/v1/movieCompilations"
 	MCFavoritesURL = "/api/v1/favorites"
+	MCFindURL      = "/api/v1/find"
 )
 
 type compilationsHandler struct {
@@ -53,6 +54,7 @@ func (h *compilationsHandler) Register(router *echo.Echo) {
 	router.GET(MCTopURL, h.GetTopMC())
 	router.GET(MCYearTopURL, h.GetYearTopMC())
 	router.GET(MCFavoritesURL, h.GetFavorites())
+	router.POST(MCFindURL, h.Find())
 }
 
 func convertMC(in *compilations.MovieCompilation) *internal.MovieCompilation {
@@ -73,6 +75,51 @@ func convertMC(in *compilations.MovieCompilation) *internal.MovieCompilation {
 			})
 		}
 		returnMC.Movies = append(returnMC.Movies, returnMovie)
+	}
+	return &returnMC
+}
+
+func convertSearchCompilations(in *compilations.SearchCompilation) *models.SearchCompilation {
+	returnMC := models.SearchCompilation{}
+
+	for _, movie := range in.Movies {
+		returnMovie := models.MovieInfo{
+			ID:      int(movie.ID),
+			Name:    movie.Name,
+			Picture: movie.Picture,
+		}
+		for _, genre := range movie.Genre {
+			returnMovie.Genre = append(returnMovie.Genre, models.Genre{
+				ID:   int(genre.ID),
+				Name: genre.Name,
+			})
+		}
+		returnMC.Movies = append(returnMC.Movies, returnMovie)
+	}
+
+	for _, series := range in.Series {
+		returnSeries := models.MovieInfo{
+			ID:      int(series.ID),
+			Name:    series.Name,
+			Picture: series.Picture,
+		}
+		for _, genre := range series.Genre {
+			returnSeries.Genre = append(returnSeries.Genre, models.Genre{
+				ID:   int(genre.ID),
+				Name: genre.Name,
+			})
+		}
+		returnMC.Series = append(returnMC.Series, returnSeries)
+	}
+
+	for _, person := range in.Persons {
+		returnPersons := models.PersonInfo{
+			ID:       int(person.ID),
+			Name:     person.Name,
+			Photo:    person.Photo,
+			Position: person.Position,
+		}
+		returnMC.Persons = append(returnMC.Persons, returnPersons)
 	}
 	return &returnMC
 }
@@ -433,5 +480,76 @@ func (h *compilationsHandler) GetFavorites() echo.HandlerFunc {
 		)
 
 		return ctx.JSON(http.StatusOK, convertMC(selectedMC).Movies)
+	}
+}
+
+func (h *compilationsHandler) Find() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			h.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		movieID := models.FindDTO{}
+
+		if err := ctx.Bind(&movieID); err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		data := &compilations.SearchText{Text: movieID.Text}
+
+		searchedMC, err := h.compilationsMicroservice.Find(context.Background(), data)
+		if err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		return ctx.JSON(http.StatusOK, convertSearchCompilations(searchedMC))
 	}
 }
