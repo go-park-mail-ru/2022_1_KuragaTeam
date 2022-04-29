@@ -31,7 +31,9 @@ type MovieCompilationsClient interface {
 	GetByPerson(ctx context.Context, in *GetByIDOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
 	GetTopByYear(ctx context.Context, in *GetByIDOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
 	GetTop(ctx context.Context, in *GetCompilationOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
-	GetFavorites(ctx context.Context, in *GetFavoritesOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
+	GetFavorites(ctx context.Context, in *GetFavoritesOptions, opts ...grpc.CallOption) (*MovieCompilationsArr, error)
+	GetFavoritesFilms(ctx context.Context, in *GetFavoritesOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
+	GetFavoritesSeries(ctx context.Context, in *GetFavoritesOptions, opts ...grpc.CallOption) (*MovieCompilation, error)
 	Find(ctx context.Context, in *SearchText, opts ...grpc.CallOption) (*SearchCompilation, error)
 }
 
@@ -124,9 +126,27 @@ func (c *movieCompilationsClient) GetTop(ctx context.Context, in *GetCompilation
 	return out, nil
 }
 
-func (c *movieCompilationsClient) GetFavorites(ctx context.Context, in *GetFavoritesOptions, opts ...grpc.CallOption) (*MovieCompilation, error) {
-	out := new(MovieCompilation)
+func (c *movieCompilationsClient) GetFavorites(ctx context.Context, in *GetFavoritesOptions, opts ...grpc.CallOption) (*MovieCompilationsArr, error) {
+	out := new(MovieCompilationsArr)
 	err := c.cc.Invoke(ctx, "/MovieCompilations/GetFavorites", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *movieCompilationsClient) GetFavoritesFilms(ctx context.Context, in *GetFavoritesOptions, opts ...grpc.CallOption) (*MovieCompilation, error) {
+	out := new(MovieCompilation)
+	err := c.cc.Invoke(ctx, "/MovieCompilations/GetFavoritesFilms", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *movieCompilationsClient) GetFavoritesSeries(ctx context.Context, in *GetFavoritesOptions, opts ...grpc.CallOption) (*MovieCompilation, error) {
+	out := new(MovieCompilation)
+	err := c.cc.Invoke(ctx, "/MovieCompilations/GetFavoritesSeries", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +175,9 @@ type MovieCompilationsServer interface {
 	GetByPerson(context.Context, *GetByIDOptions) (*MovieCompilation, error)
 	GetTopByYear(context.Context, *GetByIDOptions) (*MovieCompilation, error)
 	GetTop(context.Context, *GetCompilationOptions) (*MovieCompilation, error)
-	GetFavorites(context.Context, *GetFavoritesOptions) (*MovieCompilation, error)
+	GetFavorites(context.Context, *GetFavoritesOptions) (*MovieCompilationsArr, error)
+	GetFavoritesFilms(context.Context, *GetFavoritesOptions) (*MovieCompilation, error)
+	GetFavoritesSeries(context.Context, *GetFavoritesOptions) (*MovieCompilation, error)
 	Find(context.Context, *SearchText) (*SearchCompilation, error)
 	mustEmbedUnimplementedMovieCompilationsServer()
 }
@@ -191,8 +213,14 @@ func (UnimplementedMovieCompilationsServer) GetTopByYear(context.Context, *GetBy
 func (UnimplementedMovieCompilationsServer) GetTop(context.Context, *GetCompilationOptions) (*MovieCompilation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTop not implemented")
 }
-func (UnimplementedMovieCompilationsServer) GetFavorites(context.Context, *GetFavoritesOptions) (*MovieCompilation, error) {
+func (UnimplementedMovieCompilationsServer) GetFavorites(context.Context, *GetFavoritesOptions) (*MovieCompilationsArr, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFavorites not implemented")
+}
+func (UnimplementedMovieCompilationsServer) GetFavoritesFilms(context.Context, *GetFavoritesOptions) (*MovieCompilation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFavoritesFilms not implemented")
+}
+func (UnimplementedMovieCompilationsServer) GetFavoritesSeries(context.Context, *GetFavoritesOptions) (*MovieCompilation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFavoritesSeries not implemented")
 }
 func (UnimplementedMovieCompilationsServer) Find(context.Context, *SearchText) (*SearchCompilation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
@@ -390,6 +418,42 @@ func _MovieCompilations_GetFavorites_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MovieCompilations_GetFavoritesFilms_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFavoritesOptions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MovieCompilationsServer).GetFavoritesFilms(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/MovieCompilations/GetFavoritesFilms",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MovieCompilationsServer).GetFavoritesFilms(ctx, req.(*GetFavoritesOptions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MovieCompilations_GetFavoritesSeries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFavoritesOptions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MovieCompilationsServer).GetFavoritesSeries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/MovieCompilations/GetFavoritesSeries",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MovieCompilationsServer).GetFavoritesSeries(ctx, req.(*GetFavoritesOptions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _MovieCompilations_Find_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchText)
 	if err := dec(in); err != nil {
@@ -454,6 +518,14 @@ var MovieCompilations_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFavorites",
 			Handler:    _MovieCompilations_GetFavorites_Handler,
+		},
+		{
+			MethodName: "GetFavoritesFilms",
+			Handler:    _MovieCompilations_GetFavoritesFilms_Handler,
+		},
+		{
+			MethodName: "GetFavoritesSeries",
+			Handler:    _MovieCompilations_GetFavoritesSeries_Handler,
 		},
 		{
 			MethodName: "Find",

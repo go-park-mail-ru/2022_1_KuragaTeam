@@ -10,6 +10,8 @@ type Storage interface {
 	GetByPerson(personID int) (*proto.MovieCompilation, error)
 	GetTop(limit int) (*proto.MovieCompilation, error)
 	GetTopByYear(year int) (*proto.MovieCompilation, error)
-	GetFavorites(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error)
+	GetFavorites(data *proto.GetFavoritesOptions) (*proto.MovieCompilationsArr, error)
+	GetFavoritesFilms(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error)
+	GetFavoritesSeries(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error)
 	FindMovie(text string, isMovie bool) (*proto.MovieCompilation, error)
 }

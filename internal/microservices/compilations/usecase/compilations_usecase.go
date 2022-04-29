@@ -213,8 +213,34 @@ func (s *Service) GetTop(ctx context.Context, in *proto.GetCompilationOptions) (
 	return MC, nil
 }
 
-func (s *Service) GetFavorites(ctx context.Context, in *proto.GetFavoritesOptions) (*proto.MovieCompilation, error) {
+func (s *Service) GetFavorites(ctx context.Context, in *proto.GetFavoritesOptions) (*proto.MovieCompilationsArr, error) {
 	MC, err := s.MCStorage.GetFavorites(in)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillGenres(MC.MovieCompilations[0])
+	if err != nil {
+		return nil, err
+	}
+	err = s.concatUrls(MC.MovieCompilations[0])
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.fillGenres(MC.MovieCompilations[1])
+	if err != nil {
+		return nil, err
+	}
+	err = s.concatUrls(MC.MovieCompilations[1])
+	if err != nil {
+		return nil, err
+	}
+	result := &proto.MovieCompilationsArr{MovieCompilations: MC.MovieCompilations}
+	return result, nil
+}
+
+func (s *Service) GetFavoritesFilms(ctx context.Context, in *proto.GetFavoritesOptions) (*proto.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetFavoritesFilms(in)
 	if err != nil {
 		return nil, err
 	}
@@ -226,6 +252,24 @@ func (s *Service) GetFavorites(ctx context.Context, in *proto.GetFavoritesOption
 	if err != nil {
 		return nil, err
 	}
+
+	return MC, nil
+}
+
+func (s *Service) GetFavoritesSeries(ctx context.Context, in *proto.GetFavoritesOptions) (*proto.MovieCompilation, error) {
+	MC, err := s.MCStorage.GetFavoritesSeries(in)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillGenres(MC)
+	if err != nil {
+		return nil, err
+	}
+	err = s.concatUrls(MC)
+	if err != nil {
+		return nil, err
+	}
+
 	return MC, nil
 }
 

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"myapp/internal/microservices/compilations"
 	"myapp/internal/microservices/compilations/proto"
-
-	"github.com/lib/pq"
 )
 
 type movieCompilationsStorage struct {
@@ -33,7 +31,7 @@ const (
 		"m_s.movie_id = m.id WHERE m_s.person_id=$1"
 	getTopSQL       = "SELECT id, name, picture FROM movies ORDER BY kinopoisk_rating DESC LIMIT $1"
 	getTopByYearSQL = "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating DESC"
-	getFavorites    = "SELECT id, name, picture FROM movies WHERE id = any ($1) LIMIT $2 OFFSET $3;"
+	getFavorites    = "SELECT id, name, picture, is_movie FROM movies WHERE id=$1;"
 	findMovie       = "SELECT id, name, picture FROM movies where to_tsvector('russian', name) @@ to_tsquery('russian', $1) AND is_movie=$2;"
 )
 
@@ -195,24 +193,37 @@ func (ms *movieCompilationsStorage) GetTopByYear(year int) (*proto.MovieCompilat
 	return &selectedMovieCompilation, nil
 }
 
-func (ms *movieCompilationsStorage) GetFavorites(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error) {
-	var selectedMovieCompilation proto.MovieCompilation
+func (ms *movieCompilationsStorage) GetFavorites(data *proto.GetFavoritesOptions) (*proto.MovieCompilationsArr, error) {
+	selectedMovieCompilation := &proto.MovieCompilationsArr{}
+	compilation := &proto.MovieCompilation{Name: "Фильмы"}
+	selectedMovieCompilation.MovieCompilations = append(selectedMovieCompilation.MovieCompilations, compilation)
+	compilation = &proto.MovieCompilation{Name: "Сериалы"}
+	selectedMovieCompilation.MovieCompilations = append(selectedMovieCompilation.MovieCompilations, compilation)
 
-	rows, err := ms.db.Query(getFavorites, pq.Array(data.Id), data.Limit, data.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var selectedMovie proto.MovieInfo
-		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
+	for _, id := range data.Id {
+		rows, err := ms.db.Query(getFavorites, id)
 		if err != nil {
 			return nil, err
 		}
-		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
+		defer rows.Close()
+
+		for rows.Next() {
+			var selectedMovie proto.MovieInfo
+			var isMovie bool
+			err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture, &isMovie)
+			if err != nil {
+				return nil, err
+			}
+
+			if isMovie == true {
+				selectedMovieCompilation.MovieCompilations[0].Movies = append(selectedMovieCompilation.MovieCompilations[0].Movies, &selectedMovie)
+			} else {
+				selectedMovieCompilation.MovieCompilations[1].Movies = append(selectedMovieCompilation.MovieCompilations[1].Movies, &selectedMovie)
+			}
+		}
 	}
-	return &selectedMovieCompilation, nil
+
+	return selectedMovieCompilation, nil
 }
 
 func (ms *movieCompilationsStorage) FindMovie(text string, isMovie bool) (*proto.MovieCompilation, error) {
@@ -233,4 +244,58 @@ func (ms *movieCompilationsStorage) FindMovie(text string, isMovie bool) (*proto
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
 	}
 	return &selectedMovieCompilation, nil
+}
+
+func (ms *movieCompilationsStorage) GetFavoritesFilms(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error) {
+	selectedMovieCompilation := &proto.MovieCompilation{Name: "Фильмы"}
+
+	for _, id := range data.Id {
+		rows, err := ms.db.Query(getFavorites, id)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var selectedMovie proto.MovieInfo
+			var isMovie bool
+			err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture, &isMovie)
+			if err != nil {
+				return nil, err
+			}
+
+			if isMovie == true {
+				selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
+			}
+		}
+	}
+
+	return selectedMovieCompilation, nil
+}
+
+func (ms *movieCompilationsStorage) GetFavoritesSeries(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error) {
+	selectedMovieCompilation := &proto.MovieCompilation{Name: "Сериалы"}
+
+	for _, id := range data.Id {
+		rows, err := ms.db.Query(getFavorites, id)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var selectedMovie proto.MovieInfo
+			var isMovie bool
+			err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture, &isMovie)
+			if err != nil {
+				return nil, err
+			}
+
+			if isMovie == false {
+				selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
+			}
+		}
+	}
+
+	return selectedMovieCompilation, nil
 }

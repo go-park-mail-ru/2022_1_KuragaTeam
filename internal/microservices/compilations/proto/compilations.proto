@@ -38,8 +38,6 @@ message GetCompilationOptions {
 
 message GetFavoritesOptions {
   repeated int64 id = 1;
-  int64 limit = 2;
-  int64 offset = 3;
 }
 
 message SearchText {
@@ -74,6 +72,8 @@ service MovieCompilations {
   rpc GetByPerson(GetByIDOptions) returns(MovieCompilation) {}
   rpc GetTopByYear(GetByIDOptions) returns(MovieCompilation) {}
   rpc GetTop(GetCompilationOptions) returns(MovieCompilation) {}
-  rpc GetFavorites(GetFavoritesOptions) returns(MovieCompilation) {}
+  rpc GetFavorites(GetFavoritesOptions) returns(MovieCompilationsArr) {}
+  rpc GetFavoritesFilms(GetFavoritesOptions) returns(MovieCompilation) {}
+  rpc GetFavoritesSeries(GetFavoritesOptions) returns(MovieCompilation) {}
   rpc Find(SearchText) returns(SearchCompilation) {}
 }
