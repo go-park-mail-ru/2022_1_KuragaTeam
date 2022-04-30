@@ -52,6 +52,19 @@ services:
       retries: 3
     volumes:
       - minio_data:/data
+  create_buckets:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c '
+      /usr/bin/mc config host add minio http://minio:9000 minio minio123 --api S3v4;
+      /usr/bin/mc mb minio/avatars;
+      /usr/bin/mc cp default_avatar.webp minio/avatars;
+      /usr/bin/mc mb minio/new;
+      /usr/bin/mc cp Archive.tar minio/new --disable-multipart --attr "X-Amz-Meta-Snowball-Auto-Extract=true";
+      exit 0;
+      '
   authorization:
     build:
       context: .
@@ -74,6 +87,7 @@ services:
     depends_on:
       - postgres
       - minio
+      - create_buckets
     ports:
       - "6666:6666"
   movie:
@@ -112,6 +126,7 @@ services:
       - postgres
       - redis
       - minio
+      - create_buckets
       - authorization
       - profile
       - movie
