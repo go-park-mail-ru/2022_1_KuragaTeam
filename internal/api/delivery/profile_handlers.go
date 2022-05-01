@@ -125,7 +125,7 @@ func (p *profileHandler) Auth() echo.HandlerFunc {
 			})
 		}
 
-		avatarName := strings.ReplaceAll(ctx.Request().Header.Get("Req"), "/api/v1/avatars/", "")
+		avatarName := strings.ReplaceAll(ctx.Request().Header.Get("Req"), "/api/v1/minio/avatars/", "")
 
 		data := &profile.UserID{ID: userID}
 		userAvatar, err := p.profileMicroservice.GetAvatar(context.Background(), data)

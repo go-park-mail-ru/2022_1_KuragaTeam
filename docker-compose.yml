@@ -127,9 +127,11 @@ services:
       - movie
       - minio
     volumes:
+      - /etc/letsencrypt/live/movie-space.ru/fullchain.pem:/etc/letsencrypt/live/movie-space.ru/fullchain.pem
+      - /etc/letsencrypt/live/movie-space.ru/privkey.pem:/etc/letsencrypt/live/movie-space.ru/privkey.pem
       - ./nginx:/etc/nginx/conf.d
     ports:
-      - "8000:80"
+      - "80:80"
   prometheus:
     container_name: prometheus
     image: prom/prometheus
