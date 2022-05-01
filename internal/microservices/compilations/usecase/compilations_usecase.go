@@ -277,13 +277,22 @@ func (s *Service) GetFavoritesSeries(ctx context.Context, in *proto.GetFavorites
 
 func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.SearchCompilation, error) {
 	data := strings.Join(strings.Fields(in.Text), " & ")
+	dataByPartial := strings.TrimSpace(in.Text)
+	if len(dataByPartial) == 0 {
+		return &proto.SearchCompilation{
+			Movies:  nil,
+			Series:  nil,
+			Persons: nil,
+		}, nil
+	}
+
 	movieCompilations, err := s.MCStorage.FindMovie(data, true)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(movieCompilations.Movies) < constants.MoviesSearchLimit {
-		movieCompilationsByPartial, err := s.MCStorage.FindMovieByPartial(data, true)
+		movieCompilationsByPartial, err := s.MCStorage.FindMovieByPartial(dataByPartial, true)
 		if err != nil {
 			return nil, err
 		}
@@ -310,7 +319,7 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 	}
 
 	if len(seriesCompilations.Movies) < constants.MoviesSearchLimit {
-		seriesCompilationsByPartial, err := s.MCStorage.FindMovieByPartial(data, false)
+		seriesCompilationsByPartial, err := s.MCStorage.FindMovieByPartial(dataByPartial, false)
 		if err != nil {
 			return nil, err
 		}
@@ -337,7 +346,7 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 	}
 
 	if len(personsCompilations.Persons) < constants.PersonsSearchLimit {
-		personsCompilationsByPartial, err := s.staffStorage.FindPersonByPartial(data)
+		personsCompilationsByPartial, err := s.staffStorage.FindPersonByPartial(dataByPartial)
 		if err != nil {
 			return nil, err
 		}
