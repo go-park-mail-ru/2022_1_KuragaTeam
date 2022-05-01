@@ -1,9 +1,11 @@
 package usecase
 
 import (
+	"myapp/internal/constants"
 	"myapp/internal/genre"
 	"myapp/internal/microservices/compilations"
 	"myapp/internal/microservices/compilations/proto"
+	"myapp/internal/microservices/compilations/utils/contains"
 	"myapp/internal/microservices/compilations/utils/images"
 	"myapp/internal/persons"
 	"strings"
@@ -279,6 +281,20 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 	if err != nil {
 		return nil, err
 	}
+
+	if len(movieCompilations.Movies) < constants.MoviesSearchLimit {
+		movieCompilationsByPartial, err := s.MCStorage.FindMovieByPartial(data, true)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, movie := range movieCompilationsByPartial.Movies {
+			if !contains.ContainsMovie(movieCompilations.Movies, movie.ID) && len(movieCompilations.Movies) < constants.MoviesSearchLimit {
+				movieCompilations.Movies = append(movieCompilations.Movies, movie)
+			}
+		}
+	}
+
 	err = s.fillGenres(movieCompilations)
 	if err != nil {
 		return nil, err
@@ -292,6 +308,20 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 	if err != nil {
 		return nil, err
 	}
+
+	if len(seriesCompilations.Movies) < constants.MoviesSearchLimit {
+		seriesCompilationsByPartial, err := s.MCStorage.FindMovieByPartial(data, false)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, series := range seriesCompilationsByPartial.Movies {
+			if !contains.ContainsMovie(seriesCompilations.Movies, series.ID) && len(seriesCompilations.Movies) < constants.MoviesSearchLimit {
+				seriesCompilations.Movies = append(seriesCompilations.Movies, series)
+			}
+		}
+	}
+
 	err = s.fillGenres(seriesCompilations)
 	if err != nil {
 		return nil, err
@@ -304,6 +334,19 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 	personsCompilations, err := s.staffStorage.FindPerson(data)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(personsCompilations.Persons) < constants.PersonsSearchLimit {
+		personsCompilationsByPartial, err := s.staffStorage.FindPersonByPartial(data)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, person := range personsCompilationsByPartial.Persons {
+			if !contains.ContainsPerson(personsCompilations.Persons, person.ID) && len(personsCompilations.Persons) < constants.PersonsSearchLimit {
+				personsCompilations.Persons = append(personsCompilations.Persons, person)
+			}
+		}
 	}
 
 	for i, _ := range personsCompilations.Persons {

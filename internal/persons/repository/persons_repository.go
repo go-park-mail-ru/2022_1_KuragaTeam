@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"myapp/internal"
+	"myapp/internal/constants"
 	compilations "myapp/internal/microservices/compilations/proto"
 	"myapp/internal/microservices/movie/proto"
 	"myapp/internal/persons"
@@ -27,7 +28,11 @@ const (
 	findPerson = "select p.id, p.name, p.photo," +
 		"array((select distinct position.name from position join movies_staff ms on" +
 		" position.id = ms.position_id where ms.person_id = p.id)) from person as p " +
-		"where to_tsvector('russian', p.name) @@ to_tsquery('russian', $1);"
+		"where to_tsvector('russian', p.name) @@ to_tsquery('russian', $1) ORDER BY p.name LIMIT $2;"
+	findPersonByPartial = "select p.id, p.name, p.photo," +
+		"array((select distinct position.name from position join movies_staff ms on" +
+		" position.id = ms.position_id where ms.person_id = p.id)) from person as p " +
+		"where p.name ILIKE $1 ORDER BY p.name LIMIT $2;"
 )
 
 func (ss *staffStorage) GetByMovieID(id int) ([]*proto.PersonInMovie, error) {
@@ -66,7 +71,27 @@ func (ss *staffStorage) GetByPersonID(id int) (*internal.Person, error) {
 func (ss *staffStorage) FindPerson(text string) (*compilations.PersonCompilation, error) {
 	var selectedPersonCompilation compilations.PersonCompilation
 
-	rows, err := ss.db.Query(findPerson, text)
+	rows, err := ss.db.Query(findPerson, text, constants.PersonsSearchLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var selectedPersons compilations.PersonInfo
+		err = rows.Scan(&selectedPersons.ID, &selectedPersons.Name, &selectedPersons.Photo, pq.Array(&selectedPersons.Position))
+		if err != nil {
+			return nil, err
+		}
+		selectedPersonCompilation.Persons = append(selectedPersonCompilation.Persons, &selectedPersons)
+	}
+	return &selectedPersonCompilation, nil
+}
+
+func (ss *staffStorage) FindPersonByPartial(text string) (*compilations.PersonCompilation, error) {
+	var selectedPersonCompilation compilations.PersonCompilation
+
+	rows, err := ss.db.Query(findPersonByPartial, "%"+text+"%", constants.PersonsSearchLimit)
 	if err != nil {
 		return nil, err
 	}

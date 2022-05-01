@@ -14,4 +14,5 @@ type Storage interface {
 	GetFavoritesFilms(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error)
 	GetFavoritesSeries(data *proto.GetFavoritesOptions) (*proto.MovieCompilation, error)
 	FindMovie(text string, isMovie bool) (*proto.MovieCompilation, error)
+	FindMovieByPartial(text string, isMovie bool) (*proto.MovieCompilation, error)
 }

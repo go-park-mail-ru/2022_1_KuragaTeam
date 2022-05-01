@@ -47,3 +47,8 @@ var (
 		"image/png":  nil,
 	}
 )
+
+const (
+	MoviesSearchLimit  = 3
+	PersonsSearchLimit = 3
+)
