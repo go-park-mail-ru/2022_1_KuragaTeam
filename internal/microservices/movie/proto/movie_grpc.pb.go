@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.6.1
-// source: movie.proto
+// source: microservices/movie/proto/movie.proto
 
 package proto
 
@@ -37,7 +37,7 @@ func NewMoviesClient(cc grpc.ClientConnInterface) MoviesClient {
 
 func (c *moviesClient) GetByID(ctx context.Context, in *GetMovieOptions, opts ...grpc.CallOption) (*Movie, error) {
 	out := new(Movie)
-	err := c.cc.Invoke(ctx, "/Movies/GetByID", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Movies/GetByID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (c *moviesClient) GetByID(ctx context.Context, in *GetMovieOptions, opts ..
 
 func (c *moviesClient) GetRandom(ctx context.Context, in *GetRandomOptions, opts ...grpc.CallOption) (*MoviesArr, error) {
 	out := new(MoviesArr)
-	err := c.cc.Invoke(ctx, "/Movies/GetRandom", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Movies/GetRandom", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (c *moviesClient) GetRandom(ctx context.Context, in *GetRandomOptions, opts
 
 func (c *moviesClient) GetMainMovie(ctx context.Context, in *GetMainMovieOptions, opts ...grpc.CallOption) (*MainMovie, error) {
 	out := new(MainMovie)
-	err := c.cc.Invoke(ctx, "/Movies/GetMainMovie", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/proto.Movies/GetMainMovie", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,16 +63,15 @@ func (c *moviesClient) GetMainMovie(ctx context.Context, in *GetMainMovieOptions
 }
 
 // MoviesServer is the server API for Movies service.
-// All implementations must embed UnimplementedMoviesServer
+// All implementations should embed UnimplementedMoviesServer
 // for forward compatibility
 type MoviesServer interface {
 	GetByID(context.Context, *GetMovieOptions) (*Movie, error)
 	GetRandom(context.Context, *GetRandomOptions) (*MoviesArr, error)
 	GetMainMovie(context.Context, *GetMainMovieOptions) (*MainMovie, error)
-	mustEmbedUnimplementedMoviesServer()
 }
 
-// UnimplementedMoviesServer must be embedded to have forward compatible implementations.
+// UnimplementedMoviesServer should be embedded to have forward compatible implementations.
 type UnimplementedMoviesServer struct {
 }
 
@@ -85,7 +84,6 @@ func (UnimplementedMoviesServer) GetRandom(context.Context, *GetRandomOptions) (
 func (UnimplementedMoviesServer) GetMainMovie(context.Context, *GetMainMovieOptions) (*MainMovie, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMainMovie not implemented")
 }
-func (UnimplementedMoviesServer) mustEmbedUnimplementedMoviesServer() {}
 
 // UnsafeMoviesServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to MoviesServer will
@@ -108,7 +106,7 @@ func _Movies_GetByID_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Movies/GetByID",
+		FullMethod: "/proto.Movies/GetByID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MoviesServer).GetByID(ctx, req.(*GetMovieOptions))
@@ -126,7 +124,7 @@ func _Movies_GetRandom_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Movies/GetRandom",
+		FullMethod: "/proto.Movies/GetRandom",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MoviesServer).GetRandom(ctx, req.(*GetRandomOptions))
@@ -144,7 +142,7 @@ func _Movies_GetMainMovie_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Movies/GetMainMovie",
+		FullMethod: "/proto.Movies/GetMainMovie",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MoviesServer).GetMainMovie(ctx, req.(*GetMainMovieOptions))
@@ -156,7 +154,7 @@ func _Movies_GetMainMovie_Handler(srv interface{}, ctx context.Context, dec func
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Movies_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Movies",
+	ServiceName: "proto.Movies",
 	HandlerType: (*MoviesServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -173,5 +171,5 @@ var Movies_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "movie.proto",
+	Metadata: "microservices/movie/proto/movie.proto",
 }

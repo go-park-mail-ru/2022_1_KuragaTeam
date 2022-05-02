@@ -1,13 +1,13 @@
 #!/bin/bash
 
-moq -out mock/movie_usecase_mock.go -pkg mock ./internal/movie Service:MockMovieService
-moq -out mock/movie_repository_mock.go -pkg mock ./internal/movie Storage:MockMovieStorage
+moq -out internal/microservices/movie/usecase/movie_usecase_mock.go -pkg usecase ./internal/microservices/movie/proto MoviesServer:MockMoviesServer
+moq -out internal/microservices/movie/repository/movie_repository_mock.go -pkg repository ./internal/microservices/movie Storage:MockMovieStorage
 
-moq -out mock/genre_repository_mock.go -pkg mock ./internal/genre Storage:MockGenreStorage
-moq -out mock/country_repository_mock.go -pkg mock ./internal/country Storage:MockCountryStorage
+moq -out internal/genre/repository/genre_repository_mock.go -pkg repository ./internal/genre Storage:MockGenreStorage
+moq -out internal/country/repository/country_repository_mock.go -pkg repository ./internal/country Storage:MockCountryStorage
 
-moq -out mock/persons_usecase_mock.go -pkg mock ./internal/persons Service:MockPersonsService
-moq -out mock/persons_repository_mock.go -pkg mock ./internal/persons Storage:MockPersonsStorage
+moq -out internal/persons/usecase/persons_usecase_mock.go -pkg usecase ./internal/persons Service:MockPersonsService
+moq -out internal/persons/repository/persons_repository_mock.go -pkg repository ./internal/persons Storage:MockPersonsStorage
 
 moq -out mock/position_repository_mock.go -pkg mock ./internal/position Storage:MockPositionStorage
 
