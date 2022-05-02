@@ -298,7 +298,7 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 		}
 
 		for _, movie := range movieCompilationsByPartial.Movies {
-			if !contains.ContainsMovie(movieCompilations.Movies, movie.ID) && len(movieCompilations.Movies) < constants.MoviesSearchLimit {
+			if !contains.MovieContains(movieCompilations.Movies, movie.ID) && len(movieCompilations.Movies) < constants.MoviesSearchLimit {
 				movieCompilations.Movies = append(movieCompilations.Movies, movie)
 			}
 		}
@@ -325,7 +325,7 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 		}
 
 		for _, series := range seriesCompilationsByPartial.Movies {
-			if !contains.ContainsMovie(seriesCompilations.Movies, series.ID) && len(seriesCompilations.Movies) < constants.MoviesSearchLimit {
+			if !contains.MovieContains(seriesCompilations.Movies, series.ID) && len(seriesCompilations.Movies) < constants.MoviesSearchLimit {
 				seriesCompilations.Movies = append(seriesCompilations.Movies, series)
 			}
 		}
@@ -352,7 +352,7 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 		}
 
 		for _, person := range personsCompilationsByPartial.Persons {
-			if !contains.ContainsPerson(personsCompilations.Persons, person.ID) && len(personsCompilations.Persons) < constants.PersonsSearchLimit {
+			if !contains.PersonContains(personsCompilations.Persons, person.ID) && len(personsCompilations.Persons) < constants.PersonsSearchLimit {
 				personsCompilations.Persons = append(personsCompilations.Persons, person)
 			}
 		}

@@ -3,7 +3,9 @@ package middleware
 import (
 	"errors"
 	"myapp/internal/csrf"
-	"myapp/mock"
+	"myapp/internal/microservices/authorization/proto"
+	"myapp/internal/microservices/authorization/usecase"
+	"myapp/internal/monitoring/delivery"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,6 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestMiddleware_CheckAuthorization(t *testing.T) {
@@ -26,7 +30,7 @@ func TestMiddleware_CheckAuthorization(t *testing.T) {
 	logger := prLogger.Sugar()
 	defer prLogger.Sync()
 
-	mockService := mock.NewMockService(ctl)
+	mockService := usecase.NewMockAuthorizationClient(ctl)
 
 	tests := []struct {
 		name   string
@@ -38,8 +42,10 @@ func TestMiddleware_CheckAuthorization(t *testing.T) {
 		{
 			name: "User is Authorized",
 			mock: func() {
+				data := &proto.Cookie{Cookie: "session"}
+				returnData := &proto.UserID{ID: int64(1)}
 				gomock.InOrder(
-					mockService.EXPECT().CheckAuthorization("session").Return(int64(1), nil),
+					mockService.EXPECT().CheckAuthorization(gomock.Any(), data).Return(returnData, nil),
 				)
 			},
 			cookie: http.Cookie{
@@ -55,8 +61,10 @@ func TestMiddleware_CheckAuthorization(t *testing.T) {
 		{
 			name: "User is Unauthorized",
 			mock: func() {
+				data := &proto.Cookie{Cookie: "session"}
+				returnData := &proto.UserID{ID: int64(-1)}
 				gomock.InOrder(
-					mockService.EXPECT().CheckAuthorization("session").Return(int64(-1), errors.New("error")),
+					mockService.EXPECT().CheckAuthorization(gomock.Any(), data).Return(returnData, status.Error(codes.Internal, "error")),
 				)
 			},
 			cookie: http.Cookie{
@@ -95,7 +103,8 @@ func TestMiddleware_CheckAuthorization(t *testing.T) {
 
 			th.mock()
 
-			middleware := NewMiddleware(mockService, logger)
+			var metrics *delivery.PrometheusMetrics
+			middleware := NewMiddleware(mockService, logger, metrics)
 			middleware.Register(server)
 
 			checkAuthorization := middleware.CheckAuthorization()
@@ -119,7 +128,7 @@ func TestMiddleware_CSRF(t *testing.T) {
 	logger := prLogger.Sugar()
 	defer prLogger.Sync()
 
-	mockService := mock.NewMockService(ctl)
+	mockService := usecase.NewMockAuthorizationClient(ctl)
 	create, _ := csrf.Tokens.Create("session", time.Now().Add(time.Hour).Unix())
 
 	tests := []struct {
@@ -212,7 +221,8 @@ func TestMiddleware_CSRF(t *testing.T) {
 			ctx := server.NewContext(req, rec)
 			ctx.Request().AddCookie(&th.cookie)
 
-			middleware := NewMiddleware(mockService, logger)
+			var metrics *delivery.PrometheusMetrics
+			middleware := NewMiddleware(mockService, logger, metrics)
 			middleware.Register(server)
 
 			receivedCSRF := middleware.CSRF()

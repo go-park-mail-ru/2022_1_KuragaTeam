@@ -82,6 +82,7 @@ func (s *Service) AddLike(ctx context.Context, data *proto.LikeData) (*proto.Emp
 
 	return &proto.Empty{}, nil
 }
+
 func (s *Service) RemoveLike(ctx context.Context, data *proto.LikeData) (*proto.Empty, error) {
 	err := s.storage.RemoveLike(data)
 	if err != nil {

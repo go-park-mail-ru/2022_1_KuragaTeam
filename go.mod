@@ -14,6 +14,7 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/minio/minio-go/v7 v7.0.23
 	github.com/prometheus/client_golang v1.12.1
+	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/stretchr/testify v1.7.0
 	github.com/stroiman/go-automapper v0.0.0-20200419053654-7c63d5bb0eb4
 	github.com/swaggo/swag v1.7.9

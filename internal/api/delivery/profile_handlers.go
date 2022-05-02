@@ -51,26 +51,6 @@ func (p *profileHandler) ParseError(ctx echo.Context, requestID string, err erro
 				Status:  http.StatusInternalServerError,
 				Message: getErr.Message(),
 			})
-		case codes.NotFound:
-			p.logger.Info(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusNotFound),
-			)
-			return ctx.JSON(http.StatusNotFound, &models.Response{
-				Status:  http.StatusNotFound,
-				Message: getErr.Message(),
-			})
-		case codes.InvalidArgument:
-			p.logger.Info(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusBadRequest),
-			)
-			return ctx.JSON(http.StatusBadRequest, &models.Response{
-				Status:  http.StatusBadRequest,
-				Message: getErr.Message(),
-			})
 		case codes.Unavailable:
 			p.logger.Info(
 				zap.String("ID", requestID),
@@ -211,18 +191,6 @@ func (p *profileHandler) GetUserProfile() echo.HandlerFunc {
 		userData, err := p.profileMicroservice.GetUserProfile(context.Background(), data)
 		if err != nil {
 			return p.ParseError(ctx, requestID, err)
-		}
-
-		if err != nil {
-			p.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
 		}
 
 		p.logger.Info(

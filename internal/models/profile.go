@@ -22,7 +22,7 @@ type EditProfileDTO struct {
 }
 
 type LikeDTO struct {
-	ID int `json:"id" form:"id"`
+	ID int `json:"id,string" form:"id"`
 }
 
 type FavoritesID struct {

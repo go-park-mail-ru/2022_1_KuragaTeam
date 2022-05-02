@@ -7,7 +7,7 @@ var (
 	ErrNum           = errors.New("at least one digit is required")
 	ErrCount         = errors.New("at least eight characters long is required")
 	ErrBan           = errors.New("password uses unavailable symbols")
-	ErrWrongData     = errors.New("wrong password")
+	ErrWrongData     = errors.New("wrong data")
 	EmailIsNotUnique = errors.New("email is not unique")
 )
 
