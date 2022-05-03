@@ -1,6 +1,6 @@
 #!/bin/bash
 
-moq -out internal/microservices/movie/usecase/movie_usecase_mock.go -pkg usecase ./internal/microservices/movie/proto MoviesServer:MockMoviesServer
+moq -out internal/microservices/movie/usecase/movie_usecase_mock.go -pkg usecase ./internal/microservices/movie/proto MoviesServer:MockMoviesServer MoviesClient:MockMoviesClient
 moq -out internal/microservices/movie/repository/movie_repository_mock.go -pkg repository ./internal/microservices/movie Storage:MockMovieStorage
 
 moq -out internal/genre/repository/genre_repository_mock.go -pkg repository ./internal/genre Storage:MockGenreStorage
@@ -11,7 +11,7 @@ moq -out internal/persons/repository/persons_repository_mock.go -pkg repository 
 
 moq -out mock/position_repository_mock.go -pkg mock ./internal/position Storage:MockPositionStorage
 
-moq -out internal/microservices/compilations/usecase/compilations_usecase_mock.go -pkg usecase ./internal/microservices/compilations/proto MovieCompilationsServer:MockMovieCompilationsServer
+moq -out internal/microservices/compilations/usecase/compilations_usecase_mock.go -pkg usecase ./internal/microservices/compilations/proto MovieCompilationsServer:MockMovieCompilationsServer MovieCompilationsClient:MockMovieCompilationsClient
 moq -out internal/microservices/compilations/repository/compilations_repository_mock.go -pkg repository ./internal/microservices/compilations Storage:MockMovieCompilationStorage
 
 mockgen -source=./internal/microservices/authorization/repository.go -destination=./internal/microservices/authorization/repository/auth_repository_mock.go -package=repository

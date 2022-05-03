@@ -5,6 +5,7 @@ package usecase
 
 import (
 	context "context"
+	grpc "google.golang.org/grpc"
 	"myapp/internal/microservices/movie/proto"
 	sync "sync"
 )
@@ -171,6 +172,193 @@ func (mock *MockMoviesServer) GetRandomCalls() []struct {
 	var calls []struct {
 		ContextMoqParam  context.Context
 		GetRandomOptions *proto.GetRandomOptions
+	}
+	mock.lockGetRandom.RLock()
+	calls = mock.calls.GetRandom
+	mock.lockGetRandom.RUnlock()
+	return calls
+}
+
+// Ensure, that MockMoviesClient does implement proto.MoviesClient.
+// If this is not the case, regenerate this file with moq.
+var _ proto.MoviesClient = &MockMoviesClient{}
+
+// MockMoviesClient is a mock implementation of proto.MoviesClient.
+//
+// 	func TestSomethingThatUsesMoviesClient(t *testing.T) {
+//
+// 		// make and configure a mocked proto.MoviesClient
+// 		mockedMoviesClient := &MockMoviesClient{
+// 			GetByIDFunc: func(ctx context.Context, in *proto.GetMovieOptions, opts ...grpc.CallOption) (*proto.Movie, error) {
+// 				panic("mock out the GetByID method")
+// 			},
+// 			GetMainMovieFunc: func(ctx context.Context, in *proto.GetMainMovieOptions, opts ...grpc.CallOption) (*proto.MainMovie, error) {
+// 				panic("mock out the GetMainMovie method")
+// 			},
+// 			GetRandomFunc: func(ctx context.Context, in *proto.GetRandomOptions, opts ...grpc.CallOption) (*proto.MoviesArr, error) {
+// 				panic("mock out the GetRandom method")
+// 			},
+// 		}
+//
+// 		// use mockedMoviesClient in code that requires proto.MoviesClient
+// 		// and then make assertions.
+//
+// 	}
+type MockMoviesClient struct {
+	// GetByIDFunc mocks the GetByID method.
+	GetByIDFunc func(ctx context.Context, in *proto.GetMovieOptions, opts ...grpc.CallOption) (*proto.Movie, error)
+
+	// GetMainMovieFunc mocks the GetMainMovie method.
+	GetMainMovieFunc func(ctx context.Context, in *proto.GetMainMovieOptions, opts ...grpc.CallOption) (*proto.MainMovie, error)
+
+	// GetRandomFunc mocks the GetRandom method.
+	GetRandomFunc func(ctx context.Context, in *proto.GetRandomOptions, opts ...grpc.CallOption) (*proto.MoviesArr, error)
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// GetByID holds details about calls to the GetByID method.
+		GetByID []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// In is the in argument value.
+			In *proto.GetMovieOptions
+			// Opts is the opts argument value.
+			Opts []grpc.CallOption
+		}
+		// GetMainMovie holds details about calls to the GetMainMovie method.
+		GetMainMovie []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// In is the in argument value.
+			In *proto.GetMainMovieOptions
+			// Opts is the opts argument value.
+			Opts []grpc.CallOption
+		}
+		// GetRandom holds details about calls to the GetRandom method.
+		GetRandom []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// In is the in argument value.
+			In *proto.GetRandomOptions
+			// Opts is the opts argument value.
+			Opts []grpc.CallOption
+		}
+	}
+	lockGetByID      sync.RWMutex
+	lockGetMainMovie sync.RWMutex
+	lockGetRandom    sync.RWMutex
+}
+
+// GetByID calls GetByIDFunc.
+func (mock *MockMoviesClient) GetByID(ctx context.Context, in *proto.GetMovieOptions, opts ...grpc.CallOption) (*proto.Movie, error) {
+	if mock.GetByIDFunc == nil {
+		panic("MockMoviesClient.GetByIDFunc: method is nil but MoviesClient.GetByID was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		In   *proto.GetMovieOptions
+		Opts []grpc.CallOption
+	}{
+		Ctx:  ctx,
+		In:   in,
+		Opts: opts,
+	}
+	mock.lockGetByID.Lock()
+	mock.calls.GetByID = append(mock.calls.GetByID, callInfo)
+	mock.lockGetByID.Unlock()
+	return mock.GetByIDFunc(ctx, in, opts...)
+}
+
+// GetByIDCalls gets all the calls that were made to GetByID.
+// Check the length with:
+//     len(mockedMoviesClient.GetByIDCalls())
+func (mock *MockMoviesClient) GetByIDCalls() []struct {
+	Ctx  context.Context
+	In   *proto.GetMovieOptions
+	Opts []grpc.CallOption
+} {
+	var calls []struct {
+		Ctx  context.Context
+		In   *proto.GetMovieOptions
+		Opts []grpc.CallOption
+	}
+	mock.lockGetByID.RLock()
+	calls = mock.calls.GetByID
+	mock.lockGetByID.RUnlock()
+	return calls
+}
+
+// GetMainMovie calls GetMainMovieFunc.
+func (mock *MockMoviesClient) GetMainMovie(ctx context.Context, in *proto.GetMainMovieOptions, opts ...grpc.CallOption) (*proto.MainMovie, error) {
+	if mock.GetMainMovieFunc == nil {
+		panic("MockMoviesClient.GetMainMovieFunc: method is nil but MoviesClient.GetMainMovie was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		In   *proto.GetMainMovieOptions
+		Opts []grpc.CallOption
+	}{
+		Ctx:  ctx,
+		In:   in,
+		Opts: opts,
+	}
+	mock.lockGetMainMovie.Lock()
+	mock.calls.GetMainMovie = append(mock.calls.GetMainMovie, callInfo)
+	mock.lockGetMainMovie.Unlock()
+	return mock.GetMainMovieFunc(ctx, in, opts...)
+}
+
+// GetMainMovieCalls gets all the calls that were made to GetMainMovie.
+// Check the length with:
+//     len(mockedMoviesClient.GetMainMovieCalls())
+func (mock *MockMoviesClient) GetMainMovieCalls() []struct {
+	Ctx  context.Context
+	In   *proto.GetMainMovieOptions
+	Opts []grpc.CallOption
+} {
+	var calls []struct {
+		Ctx  context.Context
+		In   *proto.GetMainMovieOptions
+		Opts []grpc.CallOption
+	}
+	mock.lockGetMainMovie.RLock()
+	calls = mock.calls.GetMainMovie
+	mock.lockGetMainMovie.RUnlock()
+	return calls
+}
+
+// GetRandom calls GetRandomFunc.
+func (mock *MockMoviesClient) GetRandom(ctx context.Context, in *proto.GetRandomOptions, opts ...grpc.CallOption) (*proto.MoviesArr, error) {
+	if mock.GetRandomFunc == nil {
+		panic("MockMoviesClient.GetRandomFunc: method is nil but MoviesClient.GetRandom was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		In   *proto.GetRandomOptions
+		Opts []grpc.CallOption
+	}{
+		Ctx:  ctx,
+		In:   in,
+		Opts: opts,
+	}
+	mock.lockGetRandom.Lock()
+	mock.calls.GetRandom = append(mock.calls.GetRandom, callInfo)
+	mock.lockGetRandom.Unlock()
+	return mock.GetRandomFunc(ctx, in, opts...)
+}
+
+// GetRandomCalls gets all the calls that were made to GetRandom.
+// Check the length with:
+//     len(mockedMoviesClient.GetRandomCalls())
+func (mock *MockMoviesClient) GetRandomCalls() []struct {
+	Ctx  context.Context
+	In   *proto.GetRandomOptions
+	Opts []grpc.CallOption
+} {
+	var calls []struct {
+		Ctx  context.Context
+		In   *proto.GetRandomOptions
+		Opts []grpc.CallOption
 	}
 	mock.lockGetRandom.RLock()
 	calls = mock.calls.GetRandom
