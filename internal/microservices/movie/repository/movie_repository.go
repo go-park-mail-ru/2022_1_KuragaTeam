@@ -49,7 +49,7 @@ func (ms *movieStorage) GetSeasonsAndEpisodes(seriesId int) ([]*proto.Season, er
 		selectedSeasons = append(selectedSeasons, &singleSeason)
 	}
 
-	sqlScript = "SELECT e.id, e.name, e.number, e.description, e.video, e.photo, s.id, s.number FROM episode AS e JOIN seasons s on e.season_id = s.id WHERE s.movie_id = $1 ORDER BY s.number, e.number;\n"
+	sqlScript = "SELECT e.id, e.name, e.number, e.description, e.video, e.photo, s.id, s.number FROM episode AS e JOIN seasons s on e.season_id = s.id WHERE s.movie_id = $1 ORDER BY s.number, e.number;"
 
 	rows, err = ms.db.Query(sqlScript, seriesId)
 	if err != nil {
@@ -71,7 +71,7 @@ func (ms *movieStorage) GetSeasonsAndEpisodes(seriesId int) ([]*proto.Season, er
 }
 
 func (ms *movieStorage) GetAllMovies(limit, offset int) ([]*proto.Movie, error) {
-	sqlScript := "SELECT id, name, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
+	sqlScript := "SELECT id, name, is_movie, name_picture, year, duration, age_limit, description, kinopoisk_rating, tagline, " +
 		"picture, video, trailer FROM movies LIMIT $1 OFFSET $2"
 
 	selectedMovies := make([]*proto.Movie, 0, limit)
@@ -84,7 +84,7 @@ func (ms *movieStorage) GetAllMovies(limit, offset int) ([]*proto.Movie, error) 
 
 	for rows.Next() {
 		var singleMovie proto.Movie
-		if err = rows.Scan(&singleMovie.ID, &singleMovie.Name, &singleMovie.NamePicture, &singleMovie.Year,
+		if err = rows.Scan(&singleMovie.ID, &singleMovie.Name, &singleMovie.IsMovie, &singleMovie.NamePicture, &singleMovie.Year,
 			&singleMovie.Duration, &singleMovie.AgeLimit, &singleMovie.Description, &singleMovie.KinopoiskRating,
 			&singleMovie.Tagline, &singleMovie.Picture, &singleMovie.Video, &singleMovie.Trailer); err != nil {
 			return nil, err
