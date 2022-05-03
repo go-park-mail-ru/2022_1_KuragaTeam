@@ -228,6 +228,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('9', '6');
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('9', '5');
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('9', '2');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('10', '10');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('10', '8');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('10', '3');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('10', '11');
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('11', '8');
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('11', '3');
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('11', '11');
@@ -279,6 +283,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO movies_countries(movie_id, country_id) VALUES('7', '3');
   INSERT INTO movies_countries(movie_id, country_id) VALUES('8', '3');
   INSERT INTO movies_countries(movie_id, country_id) VALUES('9', '3');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('10', '3');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('10', '6');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('10', '7');
   INSERT INTO movies_countries(movie_id, country_id) VALUES('11', '3');
   INSERT INTO movies_countries(movie_id, country_id) VALUES('12', '3');
   INSERT INTO movies_countries(movie_id, country_id) VALUES('12', '8');

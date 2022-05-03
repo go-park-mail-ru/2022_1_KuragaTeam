@@ -11,8 +11,8 @@ moq -out internal/persons/repository/persons_repository_mock.go -pkg repository 
 
 moq -out mock/position_repository_mock.go -pkg mock ./internal/position Storage:MockPositionStorage
 
-moq -out mock/movieCompilations_usecase_mock.go -pkg mock ./internal/moviesCompilations Service:MockMovieCompilationService
-moq -out mock/movieCompilations_repository_mock.go -pkg mock ./internal/moviesCompilations Storage:MockMovieCompilationStorage
+moq -out internal/microservices/compilations/usecase/compilations_usecase_mock.go -pkg usecase ./internal/microservices/compilations/proto MovieCompilationsServer:MockMovieCompilationsServer
+moq -out internal/microservices/compilations/repository/compilations_repository_mock.go -pkg repository ./internal/microservices/compilations Storage:MockMovieCompilationStorage
 
 mockgen -source=./internal/microservices/authorization/repository.go -destination=./internal/microservices/authorization/repository/auth_repository_mock.go -package=repository
 mockgen -source=./internal/microservices/profile/repository.go -destination=./internal/microservices/profile/repository/profile_repository_mock.go -package=repository

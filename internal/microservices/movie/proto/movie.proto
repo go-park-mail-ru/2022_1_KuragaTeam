@@ -2,6 +2,8 @@ syntax = "proto3";
 
 option go_package = "microservices/movie/proto";
 
+//protoc --go_out=. --go-grpc_opt=require_unimplemented_servers=false --go-grpc_out=. *.proto
+
 package proto;
 
 message GetMovieOptions {

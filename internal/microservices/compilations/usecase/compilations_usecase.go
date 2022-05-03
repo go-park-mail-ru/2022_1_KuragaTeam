@@ -14,8 +14,6 @@ import (
 )
 
 type Service struct {
-	proto.UnimplementedMovieCompilationsServer
-
 	MCStorage    compilations.Storage
 	genreStorage genre.Storage
 	staffStorage persons.Storage
