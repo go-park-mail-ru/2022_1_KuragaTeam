@@ -3,6 +3,12 @@ package delivery
 import (
 	"encoding/json"
 	"errors"
+	"myapp/internal"
+	"myapp/internal/microservices/movie/proto"
+	"myapp/internal/microservices/movie/usecase"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -10,11 +16,6 @@ import (
 	"go.uber.org/zap/zapcore"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"myapp/internal"
-	"myapp/internal/microservices/movie/proto"
-	"myapp/internal/microservices/movie/usecase"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestMovieDelivery_GetMainMovie(t *testing.T) {
@@ -205,7 +206,7 @@ func TestMovieDelivery_GetMovie(t *testing.T) {
 				assert.Equal(t, "500 Internal Server Error", status)
 			} else {
 				assert.Equal(t, test.expected.Name, result.Name)
-				assert.Equal(t, test.expected.ID, result.ID)
+				assert.Equal(t, test.expected.ID, int64(result.ID))
 				assert.Equal(t, test.expected.NamePicture, result.NamePicture)
 				assert.Equal(t, test.expected.IsMovie, result.IsMovie)
 				assert.Equal(t, test.expected.Picture, result.Picture)
