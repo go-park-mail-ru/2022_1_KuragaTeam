@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+option go_package = "microservices/compilations/proto";
+
+package proto;
+
+message Genre {
+  int32 ID = 1;
+  string Name = 2;
+}
+
+message MovieInfo {
+  int64 ID = 1;
+  string Name = 2;
+  repeated Genre Genre = 3;
+  string Picture = 4;
+}
+
+message MovieCompilation {
+  string Name = 1;
+  repeated MovieInfo Movies = 2;
+}
+
+message MovieCompilationsArr {
+  repeated MovieCompilation MovieCompilations = 1;
+}
+
+message GetMainCompilationsOptions {}
+
+message GetByIDOptions {
+  int32 ID = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message GetCompilationOptions {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetFavoritesOptions {
+  repeated int64 id = 1;
+}
+
+message SearchText {
+  string text = 1;
+  bool is_movie = 2;
+}
+
+message PersonInfo {
+  int64 ID = 1;
+  string Name = 2;
+  string Photo = 3;
+  repeated string position = 4;
+}
+
+message PersonCompilation {
+  repeated PersonInfo Persons = 1;
+}
+
+message SearchCompilation {
+  repeated MovieInfo Movies = 1;
+  repeated MovieInfo Series = 2;
+  repeated PersonInfo Persons = 3;
+}
+
+service MovieCompilations {
+  rpc GetAllMovies(GetCompilationOptions) returns(MovieCompilation) {}
+  rpc GetAllSeries(GetCompilationOptions) returns(MovieCompilation) {}
+  rpc GetMainCompilations(GetMainCompilationsOptions) returns(MovieCompilationsArr) {}
+  rpc GetByGenre(GetByIDOptions) returns(MovieCompilation) {}
+  rpc GetByCountry(GetByIDOptions) returns(MovieCompilation) {}
+  rpc GetByMovie(GetByIDOptions) returns(MovieCompilation) {}
+  rpc GetByPerson(GetByIDOptions) returns(MovieCompilation) {}
+  rpc GetTopByYear(GetByIDOptions) returns(MovieCompilation) {}
+  rpc GetTop(GetCompilationOptions) returns(MovieCompilation) {}
+  rpc GetFavorites(GetFavoritesOptions) returns(MovieCompilationsArr) {}
+  rpc GetFavoritesFilms(GetFavoritesOptions) returns(MovieCompilation) {}
+  rpc GetFavoritesSeries(GetFavoritesOptions) returns(MovieCompilation) {}
+  rpc Find(SearchText) returns(SearchCompilation) {}
+}

@@ -1,0 +1,151 @@
+basePath: /api/v1/
+definitions:
+  handlers.Response:
+    properties:
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      email:
+        example: email
+        type: string
+      id:
+        type: integer
+      password:
+        example: password
+        minLength: 8
+        type: string
+      salt:
+        type: string
+      username:
+        example: name
+        type: string
+    type: object
+host: movie-space.ru:1323
+info:
+  contact: {}
+  description: This is API server for Movie Space website.
+  license:
+    name: '""'
+  title: Movie Space API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: Get your home page.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "401":
+          description: 'ERROR: User is unauthorized'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Get Home Page.
+  /login:
+    post:
+      description: Check login and gives session ID.
+      parameters:
+      - description: Data for user
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful login
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "401":
+          description: Wrong password
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Login in account.
+  /logout:
+    delete:
+      description: Delete session from DB.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'OK: User is logged out'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Logout.
+  /movieCompilations:
+    get:
+      description: Get movie compilations for user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "401":
+          description: 'ERROR: User is unauthorized'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Get Movie Compilations.
+  /signup:
+    post:
+      description: Create new user in database with validation.
+      parameters:
+      - description: Data for user
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'OK: User created'
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/handlers.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.Response'
+      summary: Creates new user.
+schemes:
+- http
+swagger: "2.0"
