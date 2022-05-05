@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"myapp/internal"
-	"myapp/mock"
+	mock "myapp/internal/persons/usecase"
 	"net/http/httptest"
 	"testing"
 

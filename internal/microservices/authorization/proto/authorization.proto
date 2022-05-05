@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option go_package = "/";
+
+//protoc --go_out=. --go-grpc_opt=require_unimplemented_servers=false --go-grpc_out=. *.proto
+
+package authorization;
+
+message SignUpData {
+  string Name = 1;
+  string Email = 2;
+  string Password = 3;
+}
+
+message Cookie {
+  string Cookie = 1;
+}
+
+message LogInData {
+  string Email = 1;
+  string Password = 2;
+}
+
+message UserID {
+  int64 ID = 1;
+}
+
+message Empty { }
+
+service Authorization {
+  rpc SignUp(SignUpData) returns(Cookie) {}
+  rpc LogIn(LogInData) returns(Cookie) {}
+  rpc LogOut(Cookie) returns(Empty) {}
+  rpc CheckAuthorization(Cookie) returns(UserID) {}
+}

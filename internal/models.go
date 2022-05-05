@@ -7,6 +7,11 @@ type MainMovieInfoDTO struct {
 	Picture     string `json:"picture" form:"picture"`
 }
 
+type Genre struct {
+	ID   int    `json:"id" form:"id"`
+	Name string `json:"name" form:"name"`
+}
+
 type Person struct {
 	ID          int      `json:"id" form:"id"`
 	Name        string   `json:"name" form:"name"`
@@ -23,9 +28,25 @@ type PersonInMovieDTO struct {
 	Position string `json:"position" form:"position"`
 }
 
+type Episode struct {
+	ID          int    `json:"id" form:"id"`
+	Name        string `json:"name" form:"name"`
+	Number      int    `json:"number" form:"number"`
+	Description string `json:"description" form:"description"`
+	Video       string `json:"video" form:"video"`
+	Picture     string `json:"picture" form:"picture"`
+}
+
+type Season struct {
+	ID       int       `json:"id" form:"id"`
+	Number   int       `json:"number" form:"number"`
+	Episodes []Episode `json:"episodes" form:"episodes"`
+}
+
 type Movie struct {
 	ID              int     `json:"id" form:"id"`
 	Name            string  `json:"name" form:"name"`
+	IsMovie         bool    `json:"is_movie" form:"is_movie"`
 	NamePicture     string  `json:"name_picture" form:"name_picture"`
 	Year            int     `json:"year" form:"year"`
 	Duration        string  `json:"duration" form:"duration"`
@@ -38,7 +59,20 @@ type Movie struct {
 	Video           string  `json:"video" form:"video"`
 	Trailer         string  `json:"trailer" form:"trailer"`
 
+	Season  []Season           `json:"season"`
 	Country []string           `json:"country"`
-	Genre   []string           `json:"genre"`
+	Genre   []Genre            `json:"genre"`
 	Staff   []PersonInMovieDTO `json:"staff"`
+}
+
+type MovieInfo struct {
+	ID      int     `json:"id" form:"id"`
+	Name    string  `json:"name" form:"name"`
+	Genre   []Genre `json:"genre" form:"genre"`
+	Picture string  `json:"picture" form:"picture"`
+}
+
+type MovieCompilation struct {
+	Name   string      `json:"compilation_name"`
+	Movies []MovieInfo `json:"movies"`
 }

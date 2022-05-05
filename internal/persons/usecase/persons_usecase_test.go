@@ -5,8 +5,9 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"myapp/internal"
-	"myapp/internal/utils/images"
-	mock2 "myapp/mock"
+	"myapp/internal/microservices/profile/utils/images"
+	personRepository "myapp/internal/persons/repository"
+	positionRepository "myapp/internal/position/repository"
 	"testing"
 )
 
@@ -46,19 +47,19 @@ func TestPersonsUsecase_GetByID(t *testing.T) {
 
 	tests := []struct {
 		name                string
-		personStorageMock   *mock2.MockPersonsStorage
-		positionStorageMock *mock2.MockPositionStorage
+		personStorageMock   *personRepository.MockPersonsStorage
+		positionStorageMock *positionRepository.MockPositionStorage
 		expected            internal.Person
 		expectedError       bool
 	}{
 		{
 			name: "Get one person",
-			personStorageMock: &mock2.MockPersonsStorage{
+			personStorageMock: &personRepository.MockPersonsStorage{
 				GetByPersonIDFunc: func(id int) (*internal.Person, error) {
 					return &personFromStorage, nil
 				},
 			},
-			positionStorageMock: &mock2.MockPositionStorage{
+			positionStorageMock: &positionRepository.MockPositionStorage{
 				GetByPersonIDFunc: func(id int) ([]string, error) {
 					return personFromStorage.Position, nil
 				},
@@ -68,12 +69,12 @@ func TestPersonsUsecase_GetByID(t *testing.T) {
 		},
 		{
 			name: "Persons storage error",
-			personStorageMock: &mock2.MockPersonsStorage{
+			personStorageMock: &personRepository.MockPersonsStorage{
 				GetByPersonIDFunc: func(id int) (*internal.Person, error) {
 					return nil, errors.New(testError)
 				},
 			},
-			positionStorageMock: &mock2.MockPositionStorage{
+			positionStorageMock: &positionRepository.MockPositionStorage{
 				GetByPersonIDFunc: func(id int) ([]string, error) {
 					return personFromStorage.Position, nil
 				},
@@ -83,12 +84,12 @@ func TestPersonsUsecase_GetByID(t *testing.T) {
 
 		{
 			name: "Positions storage error",
-			personStorageMock: &mock2.MockPersonsStorage{
+			personStorageMock: &personRepository.MockPersonsStorage{
 				GetByPersonIDFunc: func(id int) (*internal.Person, error) {
 					return &personFromStorage, nil
 				},
 			},
-			positionStorageMock: &mock2.MockPositionStorage{
+			positionStorageMock: &positionRepository.MockPositionStorage{
 				GetByPersonIDFunc: func(id int) ([]string, error) {
 					return nil, errors.New(testError)
 				},

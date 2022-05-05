@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"myapp/internal"
+	"myapp/internal/microservices/movie/proto"
 	"regexp"
 	"testing"
 
@@ -84,14 +85,14 @@ func TestPersonRepository_GetByMovieID(t *testing.T) {
 
 	storage := NewStorage(db)
 
-	person1 := internal.PersonInMovieDTO{
+	person1 := proto.PersonInMovie{
 		ID:       1,
 		Name:     "Person1",
 		Photo:    "photo.webp",
 		Position: "Position",
 	}
 
-	person2 := internal.PersonInMovieDTO{
+	person2 := proto.PersonInMovie{
 		ID:       2,
 		Name:     "Person2",
 		Photo:    "photo.webp",
@@ -102,7 +103,7 @@ func TestPersonRepository_GetByMovieID(t *testing.T) {
 		name        string
 		mock        func()
 		id          int
-		expected    []internal.PersonInMovieDTO
+		expected    []*proto.PersonInMovie
 		expectedErr error
 	}{
 		{
@@ -116,7 +117,7 @@ func TestPersonRepository_GetByMovieID(t *testing.T) {
 					"WHERE mv_s.movie_id = $1 ORDER BY pos.id")).WillReturnRows(rows)
 			},
 			id:          1,
-			expected:    []internal.PersonInMovieDTO{person1, person2},
+			expected:    []*proto.PersonInMovie{&person1, &person2},
 			expectedErr: nil,
 		},
 		{

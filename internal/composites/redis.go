@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
-	"github.com/joho/godotenv"
 )
 
 type RedisComposite struct {
@@ -13,10 +12,6 @@ type RedisComposite struct {
 }
 
 func NewRedisComposite() (*RedisComposite, error) {
-	if err := godotenv.Load(".env"); err != nil {
-		return nil, err
-	}
-
 	redisPool := redis.Pool{
 		MaxIdle:     10,
 		IdleTimeout: 240 * time.Second,

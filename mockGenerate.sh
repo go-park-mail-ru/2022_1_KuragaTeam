@@ -1,21 +1,25 @@
 #!/bin/bash
 
-moq -out mock/movie_usecase_mock.go -pkg mock ./internal/movie Service:MockMovieService
-moq -out mock/movie_repository_mock.go -pkg mock ./internal/movie Storage:MockMovieStorage
+moq -out internal/microservices/movie/usecase/movie_usecase_mock.go -pkg usecase ./internal/microservices/movie/proto MoviesServer:MockMoviesServer MoviesClient:MockMoviesClient
+moq -out internal/microservices/movie/repository/movie_repository_mock.go -pkg repository ./internal/microservices/movie Storage:MockMovieStorage
 
-moq -out mock/genre_repository_mock.go -pkg mock ./internal/genre Storage:MockGenreStorage
-moq -out mock/country_repository_mock.go -pkg mock ./internal/country Storage:MockCountryStorage
+moq -out internal/genre/repository/genre_repository_mock.go -pkg repository ./internal/genre Storage:MockGenreStorage
+moq -out internal/country/repository/country_repository_mock.go -pkg repository ./internal/country Storage:MockCountryStorage
 
-moq -out mock/persons_usecase_mock.go -pkg mock ./internal/persons Service:MockPersonsService
-moq -out mock/persons_repository_mock.go -pkg mock ./internal/persons Storage:MockPersonsStorage
+moq -out internal/persons/usecase/persons_usecase_mock.go -pkg usecase ./internal/persons Service:MockPersonsService
+moq -out internal/persons/repository/persons_repository_mock.go -pkg repository ./internal/persons Storage:MockPersonsStorage
 
 moq -out mock/position_repository_mock.go -pkg mock ./internal/position Storage:MockPositionStorage
 
-moq -out mock/movieCompilations_usecase_mock.go -pkg mock ./internal/moviesCompilations Service:MockMovieCompilationService
-moq -out mock/movieCompilations_repository_mock.go -pkg mock ./internal/moviesCompilations Storage:MockMovieCompilationStorage
+moq -out internal/microservices/compilations/usecase/compilations_usecase_mock.go -pkg usecase ./internal/microservices/compilations/proto MovieCompilationsServer:MockMovieCompilationsServer MovieCompilationsClient:MockMovieCompilationsClient
+moq -out internal/microservices/compilations/repository/compilations_repository_mock.go -pkg repository ./internal/microservices/compilations Storage:MockMovieCompilationStorage
 
-mockgen -source=./internal/user/repository.go -destination=./mock/userRepositoryMock.go -package=mock
-mockgen -source=./internal/user/usecase.go -destination=./mock/userUsecaseMock.go -package=mock
+mockgen -source=./internal/microservices/authorization/repository.go -destination=./internal/microservices/authorization/repository/auth_repository_mock.go -package=repository
+mockgen -source=./internal/microservices/profile/repository.go -destination=./internal/microservices/profile/repository/profile_repository_mock.go -package=repository
+mockgen -source=./internal/microservices/authorization/proto/authorization_grpc.pb.go -destination=./internal/microservices/authorization/usecase/auth_usecase_mock.go -package=usecase
+mockgen -source=./internal/microservices/profile/proto/profile_grpc.pb.go -destination=./internal/microservices/profile/usecase/profile_usecase_mock.go -package=usecase
+
+
 
 touch .env
 printf "DBHOST=postgres
