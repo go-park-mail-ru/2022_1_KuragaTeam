@@ -17,6 +17,15 @@ message GetRandomOptions {
 
 message GetMainMovieOptions {}
 
+message AddRatingOptions {
+  int64 UserID = 1;
+  int64 MovieID = 2;
+}
+
+message NewMovieRating {
+  float Rating = 1;
+}
+
 message PersonInMovie {
   int64 ID = 1;
   string Name = 2;
@@ -82,4 +91,5 @@ service Movies {
   rpc GetByID(GetMovieOptions) returns(Movie) {}
   rpc GetRandom(GetRandomOptions) returns(MoviesArr) {}
   rpc GetMainMovie(GetMainMovieOptions) returns(MainMovie) {}
+  rpc AddMovieRating(AddRatingOptions) returns(NewMovieRating) {}
 }

@@ -157,3 +157,7 @@ func (s *Service) GetMainMovie(ctx context.Context, in *proto.GetMainMovieOption
 
 	return selectedMovie, nil
 }
+
+func (s *Service) AddMovieRating(context.Context, *proto.AddRatingOptions) (*proto.NewMovieRating, error) {
+	return nil, nil
+}
