@@ -19,8 +19,20 @@ var _ movie.Storage = &MockMovieStorage{}
 //
 // 		// make and configure a mocked movie.Storage
 // 		mockedStorage := &MockMovieStorage{
+// 			AddMovieRatingFunc: func(options *proto.AddRatingOptions) error {
+// 				panic("mock out the AddMovieRating method")
+// 			},
+// 			ChangeMovieRatingFunc: func(options *proto.AddRatingOptions) error {
+// 				panic("mock out the ChangeMovieRating method")
+// 			},
+// 			CheckRatingExistsFunc: func(options *proto.AddRatingOptions) (*movie.CheckRatingExistsAnswer, error) {
+// 				panic("mock out the CheckRatingExists method")
+// 			},
 // 			GetAllMoviesFunc: func(limit int, offset int) ([]*proto.Movie, error) {
 // 				panic("mock out the GetAllMovies method")
+// 			},
+// 			GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+// 				panic("mock out the GetMovieRating method")
 // 			},
 // 			GetOneFunc: func(id int) (*proto.Movie, error) {
 // 				panic("mock out the GetOne method")
@@ -38,8 +50,20 @@ var _ movie.Storage = &MockMovieStorage{}
 //
 // 	}
 type MockMovieStorage struct {
+	// AddMovieRatingFunc mocks the AddMovieRating method.
+	AddMovieRatingFunc func(options *proto.AddRatingOptions) error
+
+	// ChangeMovieRatingFunc mocks the ChangeMovieRating method.
+	ChangeMovieRatingFunc func(options *proto.AddRatingOptions) error
+
+	// CheckRatingExistsFunc mocks the CheckRatingExists method.
+	CheckRatingExistsFunc func(options *proto.AddRatingOptions) (*movie.CheckRatingExistsAnswer, error)
+
 	// GetAllMoviesFunc mocks the GetAllMovies method.
 	GetAllMoviesFunc func(limit int, offset int) ([]*proto.Movie, error)
+
+	// GetMovieRatingFunc mocks the GetMovieRating method.
+	GetMovieRatingFunc func(movieID int) (*movie.GetMovieRatingAnswer, error)
 
 	// GetOneFunc mocks the GetOne method.
 	GetOneFunc func(id int) (*proto.Movie, error)
@@ -52,12 +76,32 @@ type MockMovieStorage struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddMovieRating holds details about calls to the AddMovieRating method.
+		AddMovieRating []struct {
+			// Options is the options argument value.
+			Options *proto.AddRatingOptions
+		}
+		// ChangeMovieRating holds details about calls to the ChangeMovieRating method.
+		ChangeMovieRating []struct {
+			// Options is the options argument value.
+			Options *proto.AddRatingOptions
+		}
+		// CheckRatingExists holds details about calls to the CheckRatingExists method.
+		CheckRatingExists []struct {
+			// Options is the options argument value.
+			Options *proto.AddRatingOptions
+		}
 		// GetAllMovies holds details about calls to the GetAllMovies method.
 		GetAllMovies []struct {
 			// Limit is the limit argument value.
 			Limit int
 			// Offset is the offset argument value.
 			Offset int
+		}
+		// GetMovieRating holds details about calls to the GetMovieRating method.
+		GetMovieRating []struct {
+			// MovieID is the movieID argument value.
+			MovieID int
 		}
 		// GetOne holds details about calls to the GetOne method.
 		GetOne []struct {
@@ -73,10 +117,107 @@ type MockMovieStorage struct {
 			SeriesId int
 		}
 	}
+	lockAddMovieRating        sync.RWMutex
+	lockChangeMovieRating     sync.RWMutex
+	lockCheckRatingExists     sync.RWMutex
 	lockGetAllMovies          sync.RWMutex
+	lockGetMovieRating        sync.RWMutex
 	lockGetOne                sync.RWMutex
 	lockGetRandomMovie        sync.RWMutex
 	lockGetSeasonsAndEpisodes sync.RWMutex
+}
+
+// AddMovieRating calls AddMovieRatingFunc.
+func (mock *MockMovieStorage) AddMovieRating(options *proto.AddRatingOptions) error {
+	if mock.AddMovieRatingFunc == nil {
+		panic("MockMovieStorage.AddMovieRatingFunc: method is nil but Storage.AddMovieRating was just called")
+	}
+	callInfo := struct {
+		Options *proto.AddRatingOptions
+	}{
+		Options: options,
+	}
+	mock.lockAddMovieRating.Lock()
+	mock.calls.AddMovieRating = append(mock.calls.AddMovieRating, callInfo)
+	mock.lockAddMovieRating.Unlock()
+	return mock.AddMovieRatingFunc(options)
+}
+
+// AddMovieRatingCalls gets all the calls that were made to AddMovieRating.
+// Check the length with:
+//     len(mockedStorage.AddMovieRatingCalls())
+func (mock *MockMovieStorage) AddMovieRatingCalls() []struct {
+	Options *proto.AddRatingOptions
+} {
+	var calls []struct {
+		Options *proto.AddRatingOptions
+	}
+	mock.lockAddMovieRating.RLock()
+	calls = mock.calls.AddMovieRating
+	mock.lockAddMovieRating.RUnlock()
+	return calls
+}
+
+// ChangeMovieRating calls ChangeMovieRatingFunc.
+func (mock *MockMovieStorage) ChangeMovieRating(options *proto.AddRatingOptions) error {
+	if mock.ChangeMovieRatingFunc == nil {
+		panic("MockMovieStorage.ChangeMovieRatingFunc: method is nil but Storage.ChangeMovieRating was just called")
+	}
+	callInfo := struct {
+		Options *proto.AddRatingOptions
+	}{
+		Options: options,
+	}
+	mock.lockChangeMovieRating.Lock()
+	mock.calls.ChangeMovieRating = append(mock.calls.ChangeMovieRating, callInfo)
+	mock.lockChangeMovieRating.Unlock()
+	return mock.ChangeMovieRatingFunc(options)
+}
+
+// ChangeMovieRatingCalls gets all the calls that were made to ChangeMovieRating.
+// Check the length with:
+//     len(mockedStorage.ChangeMovieRatingCalls())
+func (mock *MockMovieStorage) ChangeMovieRatingCalls() []struct {
+	Options *proto.AddRatingOptions
+} {
+	var calls []struct {
+		Options *proto.AddRatingOptions
+	}
+	mock.lockChangeMovieRating.RLock()
+	calls = mock.calls.ChangeMovieRating
+	mock.lockChangeMovieRating.RUnlock()
+	return calls
+}
+
+// CheckRatingExists calls CheckRatingExistsFunc.
+func (mock *MockMovieStorage) CheckRatingExists(options *proto.AddRatingOptions) (*movie.CheckRatingExistsAnswer, error) {
+	if mock.CheckRatingExistsFunc == nil {
+		panic("MockMovieStorage.CheckRatingExistsFunc: method is nil but Storage.CheckRatingExists was just called")
+	}
+	callInfo := struct {
+		Options *proto.AddRatingOptions
+	}{
+		Options: options,
+	}
+	mock.lockCheckRatingExists.Lock()
+	mock.calls.CheckRatingExists = append(mock.calls.CheckRatingExists, callInfo)
+	mock.lockCheckRatingExists.Unlock()
+	return mock.CheckRatingExistsFunc(options)
+}
+
+// CheckRatingExistsCalls gets all the calls that were made to CheckRatingExists.
+// Check the length with:
+//     len(mockedStorage.CheckRatingExistsCalls())
+func (mock *MockMovieStorage) CheckRatingExistsCalls() []struct {
+	Options *proto.AddRatingOptions
+} {
+	var calls []struct {
+		Options *proto.AddRatingOptions
+	}
+	mock.lockCheckRatingExists.RLock()
+	calls = mock.calls.CheckRatingExists
+	mock.lockCheckRatingExists.RUnlock()
+	return calls
 }
 
 // GetAllMovies calls GetAllMoviesFunc.
@@ -111,6 +252,37 @@ func (mock *MockMovieStorage) GetAllMoviesCalls() []struct {
 	mock.lockGetAllMovies.RLock()
 	calls = mock.calls.GetAllMovies
 	mock.lockGetAllMovies.RUnlock()
+	return calls
+}
+
+// GetMovieRating calls GetMovieRatingFunc.
+func (mock *MockMovieStorage) GetMovieRating(movieID int) (*movie.GetMovieRatingAnswer, error) {
+	if mock.GetMovieRatingFunc == nil {
+		panic("MockMovieStorage.GetMovieRatingFunc: method is nil but Storage.GetMovieRating was just called")
+	}
+	callInfo := struct {
+		MovieID int
+	}{
+		MovieID: movieID,
+	}
+	mock.lockGetMovieRating.Lock()
+	mock.calls.GetMovieRating = append(mock.calls.GetMovieRating, callInfo)
+	mock.lockGetMovieRating.Unlock()
+	return mock.GetMovieRatingFunc(movieID)
+}
+
+// GetMovieRatingCalls gets all the calls that were made to GetMovieRating.
+// Check the length with:
+//     len(mockedStorage.GetMovieRatingCalls())
+func (mock *MockMovieStorage) GetMovieRatingCalls() []struct {
+	MovieID int
+} {
+	var calls []struct {
+		MovieID int
+	}
+	mock.lockGetMovieRating.RLock()
+	calls = mock.calls.GetMovieRating
+	mock.lockGetMovieRating.RUnlock()
 	return calls
 }
 

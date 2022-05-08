@@ -241,7 +241,21 @@ func (s Storage) GetFavorites(userID int64) (*proto.Favorites, error) {
 	if err != nil {
 		return &proto.Favorites{}, err
 	}
-	favorites := &proto.Favorites{MovieId: likes}
+	favorites := &proto.Favorites{Id: likes}
 
 	return favorites, nil
+}
+
+func (s Storage) GetRating(data *proto.MovieRating) (*proto.Rating, error) {
+	sqlScript := "SELECT rating FROM rating WHERE user_id=$1 AND movie_id = $2"
+
+	returnValue := proto.Rating{}
+	err := s.db.QueryRow(sqlScript, data.UserID, data.MovieID).Scan(&returnValue.Rating)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &returnValue, nil
 }

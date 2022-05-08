@@ -100,3 +100,12 @@ func (s *Service) GetFavorites(ctx context.Context, data *proto.UserID) (*proto.
 
 	return favorites, nil
 }
+
+func (s *Service) GetMovieRating(ctx context.Context, data *proto.MovieRating) (*proto.Rating, error) {
+	rating, err := s.storage.GetRating(data)
+	if err != nil {
+		return &proto.Rating{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return rating, nil
+}

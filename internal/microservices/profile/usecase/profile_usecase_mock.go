@@ -136,6 +136,26 @@ func (mr *MockProfileClientMockRecorder) GetFavorites(ctx, in interface{}, opts 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavorites", reflect.TypeOf((*MockProfileClient)(nil).GetFavorites), varargs...)
 }
 
+// GetMovieRating mocks base method.
+func (m *MockProfileClient) GetMovieRating(ctx context.Context, in *proto.MovieRating, opts ...grpc.CallOption) (*proto.Rating, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetMovieRating", varargs...)
+	ret0, _ := ret[0].(*proto.Rating)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMovieRating indicates an expected call of GetMovieRating.
+func (mr *MockProfileClientMockRecorder) GetMovieRating(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovieRating", reflect.TypeOf((*MockProfileClient)(nil).GetMovieRating), varargs...)
+}
+
 // GetUserProfile mocks base method.
 func (m *MockProfileClient) GetUserProfile(ctx context.Context, in *proto.UserID, opts ...grpc.CallOption) (*proto.ProfileData, error) {
 	m.ctrl.T.Helper()
@@ -292,6 +312,21 @@ func (m *MockProfileServer) GetFavorites(arg0 context.Context, arg1 *proto.UserI
 func (mr *MockProfileServerMockRecorder) GetFavorites(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavorites", reflect.TypeOf((*MockProfileServer)(nil).GetFavorites), arg0, arg1)
+}
+
+// GetMovieRating mocks base method.
+func (m *MockProfileServer) GetMovieRating(arg0 context.Context, arg1 *proto.MovieRating) (*proto.Rating, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMovieRating", arg0, arg1)
+	ret0, _ := ret[0].(*proto.Rating)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMovieRating indicates an expected call of GetMovieRating.
+func (mr *MockProfileServerMockRecorder) GetMovieRating(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovieRating", reflect.TypeOf((*MockProfileServer)(nil).GetMovieRating), arg0, arg1)
 }
 
 // GetUserProfile mocks base method.

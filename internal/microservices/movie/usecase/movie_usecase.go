@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"math"
 	"myapp/internal/country"
 	"myapp/internal/genre"
 	"myapp/internal/microservices/movie"
@@ -109,7 +110,15 @@ func (s *Service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 		}
 	}
 
-	selectedMovie.Rating = 8.1 // пока что просто замокано
+	ratingValues, err := s.movieStorage.GetMovieRating(int(in.MovieID))
+	if err != nil {
+		return nil, err
+	}
+	if ratingValues.RatingSum != 0 {
+		selectedMovie.Rating = float32(math.Round(float64(float64(ratingValues.RatingSum)/float64(ratingValues.RatingCount))*10) / 10)
+	} else {
+		selectedMovie.Rating = -1.0
+	}
 
 	err = s.concatURLs(selectedMovie)
 	if err != nil {
@@ -158,6 +167,32 @@ func (s *Service) GetMainMovie(ctx context.Context, in *proto.GetMainMovieOption
 	return selectedMovie, nil
 }
 
-func (s *Service) AddMovieRating(context.Context, *proto.AddRatingOptions) (*proto.NewMovieRating, error) {
-	return nil, nil
+func (s *Service) AddMovieRating(ctx context.Context, options *proto.AddRatingOptions) (*proto.NewMovieRating, error) {
+	checkRating, err := s.movieStorage.CheckRatingExists(options)
+	if err != nil {
+		return nil, err
+	}
+
+	if checkRating.Exists {
+		if checkRating.Rating != int(options.Rating) {
+			err := s.movieStorage.ChangeMovieRating(options)
+			if err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		err = s.movieStorage.AddMovieRating(options)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ratingValues, err := s.movieStorage.GetMovieRating(int(options.MovieID))
+	if err != nil {
+		return nil, err
+	}
+	if ratingValues.RatingSum != 0 {
+		return &proto.NewMovieRating{Rating: float32(math.Round(float64(float64(ratingValues.RatingSum)/float64(ratingValues.RatingCount))*10) / 10)}, nil
+	}
+	return &proto.NewMovieRating{}, nil
 }

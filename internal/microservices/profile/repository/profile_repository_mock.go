@@ -121,6 +121,21 @@ func (mr *MockStorageMockRecorder) GetFavorites(userID interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavorites", reflect.TypeOf((*MockStorage)(nil).GetFavorites), userID)
 }
 
+// GetRating mocks base method.
+func (m *MockStorage) GetRating(data *proto.MovieRating) (*proto.Rating, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRating", data)
+	ret0, _ := ret[0].(*proto.Rating)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRating indicates an expected call of GetRating.
+func (mr *MockStorageMockRecorder) GetRating(data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRating", reflect.TypeOf((*MockStorage)(nil).GetRating), data)
+}
+
 // GetUserProfile mocks base method.
 func (m *MockStorage) GetUserProfile(userID int64) (*proto.ProfileData, error) {
 	m.ctrl.T.Helper()

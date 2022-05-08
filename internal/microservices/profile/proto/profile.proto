@@ -43,6 +43,15 @@ message LikeData {
   int64 movieID = 2;
 }
 
+message MovieRating {
+  int64 userID = 1;
+  int64 movieID = 2;
+}
+
+message Rating {
+  int32 rating = 1;
+}
+
 message Favorites {
   repeated int64 id = 1 [json_name="id"];
 }
@@ -58,4 +67,5 @@ service Profile {
   rpc AddLike(LikeData) returns(Empty) {}
   rpc RemoveLike(LikeData) returns(Empty) {}
   rpc GetFavorites(UserID) returns(Favorites) {}
+  rpc GetMovieRating(MovieRating) returns(Rating) {}
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"golang.org/x/net/context"
 	"myapp/internal/microservices/movie"
 	"myapp/internal/microservices/movie/proto"
 )
@@ -106,4 +107,93 @@ func (ms *movieStorage) GetRandomMovie() (*proto.MainMovie, error) {
 	}
 
 	return &mainMovie, nil
+}
+
+func (ms *movieStorage) GetMovieRating(movieID int) (answer *movie.GetMovieRatingAnswer, err error) {
+	sqlScript := "SELECT rating_sum, rating_count FROM movies WHERE id = $1"
+
+	returnValue := movie.GetMovieRatingAnswer{}
+	err = ms.db.QueryRow(sqlScript, movieID).Scan(&returnValue.RatingSum, &returnValue.RatingCount)
+
+	return &returnValue, err
+}
+
+func (ms *movieStorage) AddMovieRating(options *proto.AddRatingOptions) error {
+	ctx := context.Background()
+	tx, err := ms.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, "INSERT INTO rating(movie_id, user_id, rating) VALUES ($1, $2, $3);", options.MovieID, options.UserID, options.Rating)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, "UPDATE movies SET rating_count=((SELECT m1.rating_count FROM movies AS m1 WHERE m1.id=$1)+1) WHERE id=$1;", options.MovieID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	_, err = tx.ExecContext(ctx, "UPDATE movies SET rating_sum=((SELECT m1.rating_sum FROM movies AS m1 WHERE m1.id=$1)+$2) WHERE id=$1;", options.MovieID, options.Rating)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return err
+
+	//_, err := ms.db.Exec(sqlScript, options.MovieID, options.UserID, options.Rating)
+	//return err
+}
+
+func (ms *movieStorage) ChangeMovieRating(options *proto.AddRatingOptions) error {
+	ctx := context.Background()
+	tx, err := ms.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, "UPDATE movies SET rating_sum=( "+
+		"(SELECT m1.rating_sum FROM movies AS m1 WHERE m1.id=$1) "+
+		"+ $3 "+
+		"- (SELECT rating FROM rating WHERE movie_id = $1 AND user_id=$2)"+
+		") "+
+		"WHERE id=$1; ", options.MovieID, options.UserID, options.Rating)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, "UPDATE rating SET rating=$3 WHERE movie_id = $1 AND user_id=$2;", options.MovieID, options.UserID, options.Rating)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return err
+}
+func (ms *movieStorage) CheckRatingExists(options *proto.AddRatingOptions) (*movie.CheckRatingExistsAnswer, error) {
+	sqlScript := "SELECT rating FROM rating WHERE user_id=$1 AND movie_id = $2"
+
+	returnValue := movie.CheckRatingExistsAnswer{}
+	err := ms.db.QueryRow(sqlScript, options.UserID, options.MovieID).Scan(&returnValue.Rating)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			returnValue.Exists = false
+			return &returnValue, nil
+		}
+		return nil, err
+	}
+	returnValue.Exists = true
+	return &returnValue, nil
 }

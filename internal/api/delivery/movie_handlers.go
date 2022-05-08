@@ -2,7 +2,9 @@ package delivery
 
 import (
 	"myapp/internal"
+	"myapp/internal/constants"
 	movie "myapp/internal/microservices/movie/proto"
+	"myapp/internal/models"
 	"net/http"
 	"strconv"
 
@@ -20,6 +22,7 @@ const (
 	movieURL      = "api/v1/movie/:movie_id"
 	moviesURL     = "api/v1/oldMovies"
 	mainMovieURL  = "api/v1/mainMovie"
+	addRatingURL  = "api/v1/addMovieRating"
 	randomCount   = 10
 	defaultOffset = 0
 )
@@ -104,6 +107,7 @@ func (h *handler) Register(router *echo.Echo) {
 	router.GET(moviesURL, h.GetRandomMovies())
 	router.GET(movieURL, h.GetMovie())
 	router.GET(mainMovieURL, h.GetMainMovie())
+	router.POST(addRatingURL, h.AddMovieRating())
 }
 
 func (h *handler) GetMovie() echo.HandlerFunc {
@@ -199,5 +203,80 @@ func (h *handler) GetMainMovie() echo.HandlerFunc {
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
 		return ctx.JSON(http.StatusOK, mapMainMovie(mainMovie))
+	}
+}
+
+func (h *handler) AddMovieRating() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			h.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+		if userID == -1 {
+			h.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		requestOptions := internal.MovieRatingDTO{}
+
+		if err := ctx.Bind(&requestOptions); err != nil {
+			h.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		data := &movie.AddRatingOptions{
+			UserID:  userID,
+			MovieID: int64(requestOptions.MovieID),
+			Rating:  int32(requestOptions.Rating),
+		}
+
+		newRating, err := h.movieMicroservice.AddMovieRating(context.Background(), data)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+			zap.Float32("NEW RATING: ", newRating.Rating),
+		)
+
+		return ctx.JSON(http.StatusOK, &newRating.Rating)
 	}
 }

@@ -14,3 +14,8 @@ type ResponseFavorites struct {
 	Status        int          `json:"status"`
 	FavoritesData *FavoritesID `json:"favorites"`
 }
+
+type ResponseMovieRating struct {
+	Status int `json:"status"`
+	Rating int `json:"rating"`
+}

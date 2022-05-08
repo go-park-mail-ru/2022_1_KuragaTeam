@@ -20,6 +20,7 @@ message GetMainMovieOptions {}
 message AddRatingOptions {
   int64 UserID = 1;
   int64 MovieID = 2;
+  int32 Rating = 3;
 }
 
 message NewMovieRating {

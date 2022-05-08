@@ -101,20 +101,20 @@ services:
       context: .
       dockerfile: ./cmd/main/Dockerfile
     links:
-      - postgres:postgres
-      - redis:redis
-      - minio:minio
+#      - postgres:postgres
+#      - redis:redis
+#      - minio:minio
       - authorization:authorization
       - profile:profile
-      - movie:movie
+#      - movie:movie
       - compilations:compilations
     depends_on:
-      - postgres
-      - redis
-      - minio
+#      - postgres
+#      - redis
+#      - minio
       - authorization
       - profile
-      - movie
+#      - movie
       - compilations
     ports:
       - "1323:1323"

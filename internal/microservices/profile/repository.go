@@ -14,4 +14,5 @@ type Storage interface {
 	AddLike(data *proto.LikeData) error
 	RemoveLike(data *proto.LikeData) error
 	GetFavorites(userID int64) (*proto.Favorites, error)
+	GetRating(data *proto.MovieRating) (*proto.Rating, error)
 }
