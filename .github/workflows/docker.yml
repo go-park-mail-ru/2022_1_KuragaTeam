@@ -106,6 +106,9 @@ jobs:
       - name: Copy file via rsync
         run : |
           rsync -a ./docker-compose-cd.yml ${{ secrets.TARGET_PATH }}
+      - name: Copy nginx conf via rsync
+        run : |
+          rsync -a ./nginx ${{ secrets.TARGET_PATH }}
       - name: Pull docker images
         run : |
           cd ${{ secrets.TARGET_PATH }} && sudo docker-compose -f docker-compose-cd.yml pull
