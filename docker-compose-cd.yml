@@ -1,0 +1,152 @@
+version: "3.9"
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  grafana_data:
+
+services:
+  postgres:
+    image: postgres
+    build:
+      context: .
+      dockerfile: sql/Dockerfile
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=password
+      - APP_DB_USER=docker
+      - APP_DB_PASS=docker
+      - APP_DB_NAME=docker
+    volumes:
+      - ./sql/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+  minio:
+    image: minio/minio:latest
+    command: server --console-address ":9001" /data/
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    volumes:
+      - minio_data:/data
+  authorization:
+    image: moviespace/authorization:latest
+    links:
+      - postgres:postgres
+      - redis:redis
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "5555:5555"
+  profile:
+    image: moviespace/profile:latest
+    links:
+      - postgres:postgres
+      - minio:minio
+    depends_on:
+      - postgres
+      - minio
+    ports:
+      - "6666:6666"
+  movie:
+    image: moviespace/movie:latest
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    ports:
+      - "5001:5001"
+  compilations:
+    image: moviespace/compilations:latest
+    links:
+      - postgres:postgres
+    depends_on:
+      - postgres
+    ports:
+      - "5002:5002"
+  main:
+    image: moviespace/main:latest
+    restart: always
+    links:
+      - postgres:postgres
+      - redis:redis
+      - minio:minio
+      - authorization:authorization
+      - profile:profile
+      - movie:movie
+      - compilations:compilations
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - authorization
+      - profile
+      - movie
+      - compilations
+    ports:
+      - "1323:1323"
+  nginx:
+    image: nginx:latest
+    links:
+      - main:main
+      - minio:minio
+    depends_on:
+      - movie
+      - minio
+    volumes:
+      - /etc/letsencrypt/live/movie-space.ru/fullchain.pem:/etc/letsencrypt/live/movie-space.ru/fullchain.pem
+      - /etc/letsencrypt/live/movie-space.ru/privkey.pem:/etc/letsencrypt/live/movie-space.ru/privkey.pem
+      - ./nginx:/etc/nginx/conf.d
+    ports:
+      - "80:80"
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus:/etc/config
+    command:
+      - '--config.file=/etc/config/prometheus.yml'
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    restart: always
+    ports:
+      - "9100:9100"
+    volumes:
+      - ./monitoring:/etc/config
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring:/etc/config
+      - grafana_data:/var/lib/grafana
