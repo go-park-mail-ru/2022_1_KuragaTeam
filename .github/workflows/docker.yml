@@ -44,7 +44,7 @@ jobs:
   build:
     #    needs: linter
     name: Build Docker
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -99,14 +99,16 @@ jobs:
   deploy:
     needs: build
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: pull docker image
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
-          script: rsync -a ./docker-compose-cd.yml ${{ secrets.TARGET_PATH }}
-                  cd ${{ secrets.TARGET_PATH }} && sudo docker-compose -f docker-compose.yml pull
-                  cd ${{ secrets.TARGET_PATH }} && sudo docker-compose -f docker-compose-cd.yml up --build -d
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Copy file via rsync
+        run : |
+          rsync -a ./docker-compose-cd.yml ${{ secrets.TARGET_PATH }}
+      - name: Pull docker images
+        run : |
+          cd ${{ secrets.TARGET_PATH }} && sudo docker-compose -f docker-compose-cd.yml pull
+      - name: Run docker-compose
+        run : |
+          cd ${{ secrets.TARGET_PATH }} && sudo docker-compose -f docker-compose-cd.yml up --build -d
