@@ -76,3 +76,8 @@ type MovieCompilation struct {
 	Name   string      `json:"compilation_name"`
 	Movies []MovieInfo `json:"movies"`
 }
+
+type MovieRatingDTO struct {
+	MovieID int `json:"id,string" form:"id"`
+	Rating  int `json:"rating,string" form:"rating"`
+}

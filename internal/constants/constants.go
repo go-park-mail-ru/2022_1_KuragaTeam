@@ -25,6 +25,7 @@ const (
 	LikeIsEdited           = "Like is edited"
 	LikeIsRemoved          = "Like is removed"
 	NoRequestId            = "No RequestID in context"
+	NoMovieId              = "No MovieID in context"
 )
 
 const (
@@ -39,6 +40,7 @@ const (
 	AddLikeUrl    = "/api/v1/like"
 	RemoveLikeUrl = "/api/v1/dislike"
 	LikesUrl      = "/api/v1/likes"
+	UserRatingUrl = "/api/v1/userRating"
 )
 
 var (

@@ -7,6 +7,7 @@ import (
 	profile "myapp/internal/microservices/profile/proto"
 	"myapp/internal/models"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -36,6 +37,7 @@ func (p *profileHandler) Register(router *echo.Echo) {
 	router.POST(constants.AddLikeUrl, p.AddLike())
 	router.DELETE(constants.RemoveLikeUrl, p.RemoveLike())
 	router.GET(constants.LikesUrl, p.GetFavorites())
+	router.GET(constants.UserRatingUrl, p.GetRating())
 }
 
 func (p *profileHandler) ParseError(ctx echo.Context, requestID string, err error) error {
@@ -685,11 +687,90 @@ func (p *profileHandler) GetFavorites() echo.HandlerFunc {
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
 
-		responseData := &models.FavoritesID{ID: userData.MovieId}
+		responseData := &models.FavoritesID{ID: userData.Id}
 
 		return ctx.JSON(http.StatusOK, &models.ResponseFavorites{
 			Status:        http.StatusOK,
 			FavoritesData: responseData,
+		})
+	}
+}
+
+func (p *profileHandler) GetRating() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			p.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			p.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			p.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+		movieIDStr := ctx.QueryParam("movie_id")
+		movieID, err := strconv.Atoi(movieIDStr)
+		if err != nil {
+			p.logger.Error(
+				zap.String("ERROR", constants.NoMovieId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoMovieId,
+			})
+		}
+		data := &profile.MovieRating{UserID: userID, MovieID: int64(movieID)}
+
+		userRating, err := p.profileMicroservice.GetMovieRating(context.Background(), data)
+
+		if err != nil {
+			return p.ParseError(ctx, requestID, err)
+		}
+
+		if userRating != nil {
+			p.logger.Info(
+				zap.String("ID", requestID),
+				zap.Int("ANSWER STATUS", http.StatusOK),
+			)
+
+			return ctx.JSON(http.StatusOK, &models.ResponseMovieRating{
+				Status: http.StatusOK,
+				Rating: int(userRating.Rating),
+			})
+		}
+
+		p.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusNotFound),
+		)
+
+		return ctx.JSON(http.StatusNotFound, &models.ResponseMovieRating{
+			Status: http.StatusNotFound,
 		})
 	}
 }

@@ -20,6 +20,9 @@ var _ proto.MoviesServer = &MockMoviesServer{}
 //
 // 		// make and configure a mocked proto.MoviesServer
 // 		mockedMoviesServer := &MockMoviesServer{
+// 			AddMovieRatingFunc: func(contextMoqParam context.Context, addRatingOptions *proto.AddRatingOptions) (*proto.NewMovieRating, error) {
+// 				panic("mock out the AddMovieRating method")
+// 			},
 // 			GetByIDFunc: func(contextMoqParam context.Context, getMovieOptions *proto.GetMovieOptions) (*proto.Movie, error) {
 // 				panic("mock out the GetByID method")
 // 			},
@@ -36,6 +39,9 @@ var _ proto.MoviesServer = &MockMoviesServer{}
 //
 // 	}
 type MockMoviesServer struct {
+	// AddMovieRatingFunc mocks the AddMovieRating method.
+	AddMovieRatingFunc func(contextMoqParam context.Context, addRatingOptions *proto.AddRatingOptions) (*proto.NewMovieRating, error)
+
 	// GetByIDFunc mocks the GetByID method.
 	GetByIDFunc func(contextMoqParam context.Context, getMovieOptions *proto.GetMovieOptions) (*proto.Movie, error)
 
@@ -47,6 +53,13 @@ type MockMoviesServer struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddMovieRating holds details about calls to the AddMovieRating method.
+		AddMovieRating []struct {
+			// ContextMoqParam is the contextMoqParam argument value.
+			ContextMoqParam context.Context
+			// AddRatingOptions is the addRatingOptions argument value.
+			AddRatingOptions *proto.AddRatingOptions
+		}
 		// GetByID holds details about calls to the GetByID method.
 		GetByID []struct {
 			// ContextMoqParam is the contextMoqParam argument value.
@@ -69,9 +82,45 @@ type MockMoviesServer struct {
 			GetRandomOptions *proto.GetRandomOptions
 		}
 	}
-	lockGetByID      sync.RWMutex
-	lockGetMainMovie sync.RWMutex
-	lockGetRandom    sync.RWMutex
+	lockAddMovieRating sync.RWMutex
+	lockGetByID        sync.RWMutex
+	lockGetMainMovie   sync.RWMutex
+	lockGetRandom      sync.RWMutex
+}
+
+// AddMovieRating calls AddMovieRatingFunc.
+func (mock *MockMoviesServer) AddMovieRating(contextMoqParam context.Context, addRatingOptions *proto.AddRatingOptions) (*proto.NewMovieRating, error) {
+	if mock.AddMovieRatingFunc == nil {
+		panic("MockMoviesServer.AddMovieRatingFunc: method is nil but MoviesServer.AddMovieRating was just called")
+	}
+	callInfo := struct {
+		ContextMoqParam  context.Context
+		AddRatingOptions *proto.AddRatingOptions
+	}{
+		ContextMoqParam:  contextMoqParam,
+		AddRatingOptions: addRatingOptions,
+	}
+	mock.lockAddMovieRating.Lock()
+	mock.calls.AddMovieRating = append(mock.calls.AddMovieRating, callInfo)
+	mock.lockAddMovieRating.Unlock()
+	return mock.AddMovieRatingFunc(contextMoqParam, addRatingOptions)
+}
+
+// AddMovieRatingCalls gets all the calls that were made to AddMovieRating.
+// Check the length with:
+//     len(mockedMoviesServer.AddMovieRatingCalls())
+func (mock *MockMoviesServer) AddMovieRatingCalls() []struct {
+	ContextMoqParam  context.Context
+	AddRatingOptions *proto.AddRatingOptions
+} {
+	var calls []struct {
+		ContextMoqParam  context.Context
+		AddRatingOptions *proto.AddRatingOptions
+	}
+	mock.lockAddMovieRating.RLock()
+	calls = mock.calls.AddMovieRating
+	mock.lockAddMovieRating.RUnlock()
+	return calls
 }
 
 // GetByID calls GetByIDFunc.
@@ -189,6 +238,9 @@ var _ proto.MoviesClient = &MockMoviesClient{}
 //
 // 		// make and configure a mocked proto.MoviesClient
 // 		mockedMoviesClient := &MockMoviesClient{
+// 			AddMovieRatingFunc: func(ctx context.Context, in *proto.AddRatingOptions, opts ...grpc.CallOption) (*proto.NewMovieRating, error) {
+// 				panic("mock out the AddMovieRating method")
+// 			},
 // 			GetByIDFunc: func(ctx context.Context, in *proto.GetMovieOptions, opts ...grpc.CallOption) (*proto.Movie, error) {
 // 				panic("mock out the GetByID method")
 // 			},
@@ -205,6 +257,9 @@ var _ proto.MoviesClient = &MockMoviesClient{}
 //
 // 	}
 type MockMoviesClient struct {
+	// AddMovieRatingFunc mocks the AddMovieRating method.
+	AddMovieRatingFunc func(ctx context.Context, in *proto.AddRatingOptions, opts ...grpc.CallOption) (*proto.NewMovieRating, error)
+
 	// GetByIDFunc mocks the GetByID method.
 	GetByIDFunc func(ctx context.Context, in *proto.GetMovieOptions, opts ...grpc.CallOption) (*proto.Movie, error)
 
@@ -216,6 +271,15 @@ type MockMoviesClient struct {
 
 	// calls tracks calls to the methods.
 	calls struct {
+		// AddMovieRating holds details about calls to the AddMovieRating method.
+		AddMovieRating []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// In is the in argument value.
+			In *proto.AddRatingOptions
+			// Opts is the opts argument value.
+			Opts []grpc.CallOption
+		}
 		// GetByID holds details about calls to the GetByID method.
 		GetByID []struct {
 			// Ctx is the ctx argument value.
@@ -244,9 +308,49 @@ type MockMoviesClient struct {
 			Opts []grpc.CallOption
 		}
 	}
-	lockGetByID      sync.RWMutex
-	lockGetMainMovie sync.RWMutex
-	lockGetRandom    sync.RWMutex
+	lockAddMovieRating sync.RWMutex
+	lockGetByID        sync.RWMutex
+	lockGetMainMovie   sync.RWMutex
+	lockGetRandom      sync.RWMutex
+}
+
+// AddMovieRating calls AddMovieRatingFunc.
+func (mock *MockMoviesClient) AddMovieRating(ctx context.Context, in *proto.AddRatingOptions, opts ...grpc.CallOption) (*proto.NewMovieRating, error) {
+	if mock.AddMovieRatingFunc == nil {
+		panic("MockMoviesClient.AddMovieRatingFunc: method is nil but MoviesClient.AddMovieRating was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		In   *proto.AddRatingOptions
+		Opts []grpc.CallOption
+	}{
+		Ctx:  ctx,
+		In:   in,
+		Opts: opts,
+	}
+	mock.lockAddMovieRating.Lock()
+	mock.calls.AddMovieRating = append(mock.calls.AddMovieRating, callInfo)
+	mock.lockAddMovieRating.Unlock()
+	return mock.AddMovieRatingFunc(ctx, in, opts...)
+}
+
+// AddMovieRatingCalls gets all the calls that were made to AddMovieRating.
+// Check the length with:
+//     len(mockedMoviesClient.AddMovieRatingCalls())
+func (mock *MockMoviesClient) AddMovieRatingCalls() []struct {
+	Ctx  context.Context
+	In   *proto.AddRatingOptions
+	Opts []grpc.CallOption
+} {
+	var calls []struct {
+		Ctx  context.Context
+		In   *proto.AddRatingOptions
+		Opts []grpc.CallOption
+	}
+	mock.lockAddMovieRating.RLock()
+	calls = mock.calls.AddMovieRating
+	mock.lockAddMovieRating.RUnlock()
+	return calls
 }
 
 // GetByID calls GetByIDFunc.

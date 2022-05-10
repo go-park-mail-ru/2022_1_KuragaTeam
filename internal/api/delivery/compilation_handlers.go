@@ -450,7 +450,7 @@ func (h *compilationsHandler) GetFavorites() echo.HandlerFunc {
 		}
 
 		moviesData := &compilations.GetFavoritesOptions{
-			Id: favorites.MovieId,
+			Id: favorites.Id,
 		}
 		selectedMC, err := h.compilationsMicroservice.GetFavorites(context.Background(), moviesData)
 		if err != nil {
@@ -532,7 +532,7 @@ func (h *compilationsHandler) GetFavoritesFilms() echo.HandlerFunc {
 		}
 
 		moviesData := &compilations.GetFavoritesOptions{
-			Id: favorites.MovieId,
+			Id: favorites.Id,
 		}
 		selectedMC, err := h.compilationsMicroservice.GetFavoritesFilms(context.Background(), moviesData)
 		if err != nil {
@@ -608,7 +608,7 @@ func (h *compilationsHandler) GetFavoritesSeries() echo.HandlerFunc {
 		}
 
 		moviesData := &compilations.GetFavoritesOptions{
-			Id: favorites.MovieId,
+			Id: favorites.Id,
 		}
 		selectedMC, err := h.compilationsMicroservice.GetFavoritesSeries(context.Background(), moviesData)
 		if err != nil {
