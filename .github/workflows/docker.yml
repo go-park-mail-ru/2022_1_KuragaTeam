@@ -99,7 +99,7 @@ jobs:
   deploy:
     needs: build
     name: Deploy
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: pull docker image
         uses: appleboy/ssh-action@master
