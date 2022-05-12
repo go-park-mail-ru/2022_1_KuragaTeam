@@ -55,7 +55,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Create env file
-        run: echo ${{ secrets.ENV_FILE }} >> .env
+        run: echo -e ${{ secrets.ENV_FILE }} >> .env
       - name: Build and push authorization
         uses: docker/build-push-action@v2
         with:
@@ -112,7 +112,7 @@ jobs:
 #          rsync -a ./nginx ${{ secrets.TARGET_PATH }}
       - name: Add env file
         run : |
-          echo ${{ secrets.ENV_FILE }} >> .env
+          echo -e ${{ secrets.ENV_FILE }} >> .env
       - name: Pull docker images
         run : |
           sudo docker-compose -f docker-compose-cd.yml pull
