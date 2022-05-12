@@ -98,7 +98,7 @@ jobs:
 #          tags: moviespace/main:latest
 
   deploy:
-    needs: build
+#    needs: build
     name: Deploy
     runs-on: self-hosted
     steps:
