@@ -115,4 +115,4 @@ jobs:
           cd ${{ secrets.TARGET_PATH }} && sudo docker-compose -f docker-compose-cd.yml pull
       - name: Run docker-compose
         run : |
-          cd ${{ secrets.TARGET_PATH }} && echo ${{ secrets.ENV_FILE }} >> .env && sudo docker-compose -f docker-compose-cd.yml up --build -d
+          cd ${{ secrets.TARGET_PATH }} && sudo echo ${{ secrets.ENV_FILE }} >> .env && sudo chmod 777 .env && sudo docker-compose -f docker-compose-cd.yml up --build -d
