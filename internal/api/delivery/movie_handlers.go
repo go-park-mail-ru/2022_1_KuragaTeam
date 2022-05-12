@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"github.com/mailru/easyjson"
 	"myapp/internal"
 	"myapp/internal/constants"
 	movie "myapp/internal/microservices/movie/proto"
@@ -213,10 +214,14 @@ func (h *handler) AddMovieRating() echo.HandlerFunc {
 			h.logger.Error(
 				zap.String("ERROR", constants.NoRequestId),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+			resp, err := easyjson.Marshal(&models.Response{
 				Status:  http.StatusInternalServerError,
 				Message: constants.NoRequestId,
 			})
+			if err != nil {
+				return ctx.NoContent(http.StatusInternalServerError)
+			}
+			return ctx.JSONBlob(http.StatusInternalServerError, resp)
 		}
 
 		userID, ok := ctx.Get("USER_ID").(int64)
@@ -224,12 +229,16 @@ func (h *handler) AddMovieRating() echo.HandlerFunc {
 			h.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.SessionRequired),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+				zap.Int("ANSWER STATUS", http.StatusBadRequest),
 			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
+			resp, err := easyjson.Marshal(&models.Response{
+				Status:  http.StatusBadRequest,
 				Message: constants.SessionRequired,
 			})
+			if err != nil {
+				return ctx.NoContent(http.StatusInternalServerError)
+			}
+			return ctx.JSONBlob(http.StatusBadRequest, resp)
 		}
 		if userID == -1 {
 			h.logger.Info(
@@ -237,10 +246,15 @@ func (h *handler) AddMovieRating() echo.HandlerFunc {
 				zap.String("ERROR", constants.UserIsUnauthorized),
 				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
 			)
-			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+			resp, err := easyjson.Marshal(&models.Response{
 				Status:  http.StatusUnauthorized,
 				Message: constants.UserIsUnauthorized,
 			})
+			if err != nil {
+				return ctx.NoContent(http.StatusInternalServerError)
+			}
+
+			return ctx.JSONBlob(http.StatusUnauthorized, resp)
 		}
 
 		requestOptions := internal.MovieRatingDTO{}
