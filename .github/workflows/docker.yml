@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - dev
-      - KT-59_CI
   pull_request:
     branches:
       - dev
@@ -55,6 +54,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Create env file
+        run: echo ${{ secrets.ENV_FILE }} >> .env
       - name: Build and push authorization
         uses: docker/build-push-action@v2
         with:
