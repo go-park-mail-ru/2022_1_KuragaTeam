@@ -47,8 +47,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Create env file
-        run: echo -e ${{ secrets.ENV_FILE }} >> ./.env
+#      - name: Create env file
+#        run: echo -e ${{ secrets.ENV_FILE }} >> ./.env
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to Docker
@@ -104,8 +104,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Add env file
-        run : echo -e ${{ secrets.ENV_FILE }} >> .env
+#      - name: Add env file
+#        run : echo -e ${{ secrets.ENV_FILE }} >> .env
       - name: Pull docker images
         run : |
           sudo docker-compose -f docker-compose-cd.yml pull
