@@ -104,12 +104,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-#      - name: Copy file via rsync
-#        run : |
-#          rsync -a ./docker-compose-cd.yml ${{ secrets.TARGET_PATH }}
-#      - name: Copy nginx conf via rsync
-#        run : |
-#          rsync -a ./nginx ${{ secrets.TARGET_PATH }}
       - name: Add env file
         run : |
           echo -e ${{ secrets.ENV_FILE }} >> .env
