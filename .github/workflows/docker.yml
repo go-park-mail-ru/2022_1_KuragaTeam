@@ -113,8 +113,6 @@ jobs:
       - name: Pull docker images
         run : |
           cd ${{ secrets.TARGET_PATH }} && sudo docker-compose -f docker-compose-cd.yml pull
-      - name: Create env file
-        run: echo ${{ secrets.ENV_FILE }} >> .env
       - name: Run docker-compose
         run : |
-          cd ${{ secrets.TARGET_PATH }} && sudo docker-compose -f docker-compose-cd.yml up --build -d
+          cd ${{ secrets.TARGET_PATH }} && echo ${{ secrets.ENV_FILE }} >> .env && sudo docker-compose -f docker-compose-cd.yml up --build -d
