@@ -6,6 +6,7 @@ COPY go.mod .
 COPY go.sum .
 RUN go mod download
 
+COPY .env .
 COPY . .
 
 RUN CGO_ENABLED=0 go build ./cmd/movie/movie.go
