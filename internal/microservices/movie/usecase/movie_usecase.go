@@ -173,6 +173,10 @@ func (s *Service) AddMovieRating(ctx context.Context, options *proto.AddRatingOp
 		return nil, err
 	}
 
+	if options.Rating > 10 {
+		options.Rating = 10
+	}
+
 	if checkRating.Exists {
 		if checkRating.Rating != int(options.Rating) {
 			err := s.movieStorage.ChangeMovieRating(options)
