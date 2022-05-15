@@ -34,8 +34,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
        age_limit smallint not null,
        description varchar(1024) not null,
        kinopoisk_rating numeric(2,1) not null,
-       rating_sum int;
-       rating_count int;
+       rating_sum int,
+       rating_count int,
        tagline varchar(255) not null,
        picture varchar(255) not null,
        video varchar(255) not null,
