@@ -112,3 +112,7 @@ jobs:
       - name: Run docker-compose
         run : |
           sudo docker-compose -f docker-compose-cd.yml up --build -d
+      - name: Clear old images and containers
+        run : |
+          sudo docker container prune
+          sudo docker image prune
