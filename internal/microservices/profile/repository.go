@@ -14,4 +14,11 @@ type Storage interface {
 	AddLike(data *proto.LikeData) error
 	RemoveLike(data *proto.LikeData) error
 	GetFavorites(userID int64) (*proto.Favorites, error)
+	SetToken(token string, userID int64, expireTime int64) error
+	GetIdByToken(token string) (int64, error)
+	CreatePayment(token string, userID int64, price float64) error
+	CreateSubscribe(userID int64) error
+	UpdatePayment(token string, userID int64) error
+	CheckCountPaymentsByToken(token string) error
+	GetAmountByToken(token string) (int64, float32, error)
 }

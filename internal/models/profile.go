@@ -14,6 +14,7 @@ type ProfileUserDTO struct {
 	Name   string `json:"username" form:"username"`
 	Email  string `json:"email" form:"email"`
 	Avatar string `json:"avatar" form:"avatar"`
+	Date   string `json:"date" form:"date"`
 }
 
 type EditProfileDTO struct {
@@ -27,4 +28,8 @@ type LikeDTO struct {
 
 type FavoritesID struct {
 	ID []int64 `json:"id" form:"id"`
+}
+
+type TokenDTO struct {
+	Token string `json:"token" form:"token"`
 }
