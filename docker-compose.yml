@@ -31,6 +31,7 @@ services:
       - "5432:5432"
   redis:
     image: redis:latest
+    command: [sh, -c, "rm -f /data/dump.rdb && redis-server"]  # disable persistence
     restart: always
     ports:
       - "6379:6379"
