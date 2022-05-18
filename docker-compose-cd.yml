@@ -31,6 +31,7 @@ services:
       - "5432:5432"
   redis:
     image: redis:latest
+    command: [sh, -c, "rm -f /data/dump.rdb && redis-server"]  # disable persistence
     restart: always
     ports:
       - "6379:6379"
@@ -57,6 +58,7 @@ services:
     links:
       - postgres:postgres
       - redis:redis
+    restart: always
     depends_on:
       - postgres
       - redis
@@ -67,6 +69,7 @@ services:
     links:
       - postgres:postgres
       - minio:minio
+    restart: always
     depends_on:
       - postgres
       - minio
@@ -76,6 +79,7 @@ services:
     image: moviespace/movie:latest
     links:
       - postgres:postgres
+    restart: always
     depends_on:
       - postgres
     ports:
@@ -84,6 +88,7 @@ services:
     image: moviespace/compilations:latest
     links:
       - postgres:postgres
+    restart: always
     depends_on:
       - postgres
     ports:
@@ -111,6 +116,7 @@ services:
       - "1323:1323"
   nginx:
     image: nginx:latest
+    restart: always
     links:
       - main:main
       - minio:minio

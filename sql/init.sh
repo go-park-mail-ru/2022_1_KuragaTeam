@@ -34,20 +34,24 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
        age_limit smallint not null,
        description varchar(1024) not null,
        kinopoisk_rating numeric(2,1) not null,
-       rating_sum int;
-       rating_count int;
+       rating_sum int,
+       rating_count int,
        tagline varchar(255) not null,
        picture varchar(255) not null,
        video varchar(255) not null,
        trailer varchar(255) not null
   );
 
-  CREATE TABLE IF NOT EXISTS rating(
-      id serial constraint rating_pk primary key,
-      movie_id int,
-      user_id int,
-      rating smallint
-  );
+  BEGIN;
+    CREATE TABLE IF NOT EXISTS rating(
+        id serial constraint rating_pk primary key,
+        movie_id int,
+        user_id int,
+        rating smallint
+    );
+    create unique index rating_uindex
+      on rating (movie_id, user_id);
+  END;
 
   INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
   VALUES('Аватар', 'Avatar.webp', true, '2009', '2 часа 42 минуты', '12',
@@ -595,4 +599,6 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('После смерти', '20', 'Команда берется за случай доктора Питера Трейбера, патолога из клиники Принстон-Плейнсборо, который знает слишком многое о больничном персонале, чтобы довериться любому из врачей. Единственный человек, которого он действительно уважает - Хаус, но он таинственно пропал без вести. В отсутствии Грегори Хауса команда должна Трейбера поверить в то, что все процедуры, которые они назначают, прописывает лично Хаус.', '8', 'HouseMD_8_20.mp4', 'HouseMD_8_20.webp');
   INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('Держась', '21', 'Возвращается  бывшая сотрудница клиники Принстон Плейнсборо, Тринадцать. Команда берет случай Деррика, 19-летнего студента колледжа, у которого во время репетиции черлидинга пошла кровь носом, а позже обнаруживают, что его проблемы со здоровьем, вероятно, как физиологические, так и психологические. Возможно страдая от шизофрении, Деррик утверждает, что в голове услышал голос своего умершего брата. Тем временем Форман пробует другой подход к Хаусу.', '8', 'HouseMD_8_21.mp4', 'HouseMD_8_21.webp');
   INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('Все умирают', '22', 'Лечение пациента-наркомана заставляет Хауса пристальнее взглянуть на собственную жизнь, на будущее и на своих демонов.', '8', 'HouseMD_8_22.mp4', 'HouseMD_8_22.webp');
+
+
 EOSQL

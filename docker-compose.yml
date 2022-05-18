@@ -31,6 +31,7 @@ services:
       - "5432:5432"
   redis:
     image: redis:latest
+    command: [sh, -c, "rm -f /data/dump.rdb && redis-server"]  # disable persistence
     restart: always
     ports:
       - "6379:6379"
@@ -56,6 +57,7 @@ services:
     build:
       context: .
       dockerfile: ./cmd/authorization/Dockerfile
+    restart: always
     links:
       - postgres:postgres
       - redis:redis
@@ -68,6 +70,7 @@ services:
     build:
       context: .
       dockerfile: ./cmd/profile/Dockerfile
+    restart: always
     links:
       - postgres:postgres
       - minio:minio
@@ -80,6 +83,7 @@ services:
     build:
       context: .
       dockerfile: ./cmd/movie/Dockerfile
+    restart: always
     links:
       - postgres:postgres
     depends_on:
@@ -90,6 +94,7 @@ services:
     build:
       context: .
       dockerfile: ./cmd/compilations/Dockerfile
+    restart: always
     links:
       - postgres:postgres
     depends_on:
@@ -100,6 +105,7 @@ services:
     build:
       context: .
       dockerfile: ./cmd/main/Dockerfile
+    restart: always
     links:
       - postgres:postgres
       - redis:redis
@@ -123,6 +129,7 @@ services:
     links:
       - main:main
       - minio:minio
+    restart: always
     depends_on:
       - movie
       - minio

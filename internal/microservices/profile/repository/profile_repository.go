@@ -253,7 +253,8 @@ func (s Storage) GetRating(data *proto.MovieRating) (*proto.Rating, error) {
 	err := s.db.QueryRow(sqlScript, data.UserID, data.MovieID).Scan(&returnValue.Rating)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil
+			returnValue.Rating = -1
+			return &returnValue, nil
 		}
 		return nil, err
 	}
