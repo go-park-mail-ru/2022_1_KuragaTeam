@@ -10,6 +10,7 @@ message ProfileData {
   string Name = 1;
   string Email = 2;
   string Avatar = 3;
+  string date = 4;
 }
 
 message EditProfileData {
@@ -56,6 +57,24 @@ message Favorites {
   repeated int64 id = 1 [json_name="id"];
 }
 
+message Token {
+  string token = 1;
+}
+
+message CheckTokenData {
+  string token = 1;
+  int64 id = 2;
+}
+
+message SubscribeData {
+  string token = 1;
+  float amount = 2;
+}
+
+message Subscription {
+  bool subscription = 1;
+}
+
 message Empty { }
 
 service Profile {
@@ -68,4 +87,10 @@ service Profile {
   rpc RemoveLike(LikeData) returns(Empty) {}
   rpc GetFavorites(UserID) returns(Favorites) {}
   rpc GetMovieRating(MovieRating) returns(Rating) {}
+  rpc GetPaymentsToken(UserID) returns(Token) {}
+  rpc CheckPaymentsToken(CheckTokenData) returns(Empty) {}
+  rpc CheckToken(Token) returns(Empty) {}
+  rpc CreatePayment(CheckTokenData) returns(Empty) {}
+  rpc CreateSubscribe(SubscribeData) returns(Empty) {}
+  rpc IsSubscription(UserID) returns(Empty) {}
 }
