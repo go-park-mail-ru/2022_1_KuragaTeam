@@ -21,4 +21,5 @@ type Storage interface {
 	UpdatePayment(token string, userID int64) error
 	CheckCountPaymentsByToken(token string) error
 	GetAmountByToken(token string) (int64, float32, error)
+	IsSubscription(userID int64) error
 }

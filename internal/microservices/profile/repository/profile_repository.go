@@ -331,3 +331,24 @@ func (s Storage) GetAmountByToken(token string) (int64, float32, error) {
 
 	return int64(id), amount, nil
 }
+
+func (s Storage) IsSubscription(userID int64) error {
+	sqlScript := "SELECT id FROM users WHERE subscription_expires > LOCALTIMESTAMP AND id = $1"
+
+	rows, err := s.db.Query(sqlScript, userID)
+	if err != nil {
+		return err
+	}
+
+	// убедимся, что всё закроется при выходе из программы
+	defer func() {
+		rows.Close()
+	}()
+
+	// Из базы пришел пустой запрос, значит пользователя в базе данных нет
+	if !rows.Next() {
+		return constants.NoSubscription
+	}
+
+	return nil
+}

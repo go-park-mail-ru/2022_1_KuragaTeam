@@ -62,6 +62,10 @@ message SubscribeData {
   float amount = 2;
 }
 
+message Subscription {
+  bool subscription = 1;
+}
+
 message Empty { }
 
 service Profile {
@@ -78,4 +82,5 @@ service Profile {
   rpc CheckToken(Token) returns(Empty) {}
   rpc CreatePayment(CheckTokenData) returns(Empty) {}
   rpc CreateSubscribe(SubscribeData) returns(Empty) {}
+  rpc IsSubscription(UserID) returns(Empty) {}
 }

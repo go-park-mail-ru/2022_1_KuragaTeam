@@ -12,6 +12,7 @@ var (
 	WrongToken                 = errors.New("wrong payment token")
 	WrongAmount                = errors.New("wrong amount")
 	WringCountPaymentsForToken = errors.New("wrong count payments for token")
+	NoSubscription             = errors.New("no subscription")
 )
 
 const (
@@ -41,6 +42,7 @@ const (
 	AvatarURL        = "/api/v1/avatar"
 	CsrfURL          = "/api/v1/csrf"
 	AuthURL          = "/api/v1/auth"
+	CheckURL         = "/api/v1/check"
 	AddLikeUrl       = "/api/v1/like"
 	RemoveLikeUrl    = "/api/v1/dislike"
 	LikesUrl         = "/api/v1/likes"

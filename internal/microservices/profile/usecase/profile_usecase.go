@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"log"
 	"myapp/internal/constants"
 	"myapp/internal/microservices/profile"
@@ -165,6 +166,18 @@ func (s *Service) CreateSubscribe(ctx context.Context, data *proto.SubscribeData
 
 	err = s.storage.CreateSubscribe(id)
 	if err != nil {
+		return &proto.Empty{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return &proto.Empty{}, nil
+}
+
+func (s *Service) IsSubscription(ctx context.Context, data *proto.UserID) (*proto.Empty, error) {
+	err := s.storage.IsSubscription(data.ID)
+	if err != nil {
+		if errors.Is(err, constants.NoSubscription) {
+			return &proto.Empty{}, status.Error(codes.PermissionDenied, err.Error())
+		}
 		return &proto.Empty{}, status.Error(codes.Internal, err.Error())
 	}
 
