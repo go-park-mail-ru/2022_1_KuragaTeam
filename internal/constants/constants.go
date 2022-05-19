@@ -3,12 +3,16 @@ package constants
 import "errors"
 
 var (
-	ErrLetter        = errors.New("at least one letter is required")
-	ErrNum           = errors.New("at least one digit is required")
-	ErrCount         = errors.New("at least eight characters long is required")
-	ErrBan           = errors.New("password uses unavailable symbols")
-	ErrWrongData     = errors.New("wrong data")
-	EmailIsNotUnique = errors.New("email is not unique")
+	ErrLetter                  = errors.New("at least one letter is required")
+	ErrNum                     = errors.New("at least one digit is required")
+	ErrCount                   = errors.New("at least eight characters long is required")
+	ErrBan                     = errors.New("password uses unavailable symbols")
+	ErrWrongData               = errors.New("wrong data")
+	EmailIsNotUnique           = errors.New("email is not unique")
+	WrongToken                 = errors.New("wrong payment token")
+	WrongAmount                = errors.New("wrong amount")
+	WringCountPaymentsForToken = errors.New("wrong count payments for token")
+	NoSubscription             = errors.New("no subscription")
 )
 
 const (
@@ -29,18 +33,24 @@ const (
 )
 
 const (
-	SignupURL     = "/api/v1/signup"
-	LoginURL      = "/api/v1/login"
-	LogoutURL     = "/api/v1/logout"
-	ProfileURL    = "/api/v1/profile"
-	EditURL       = "/api/v1/edit"
-	AvatarURL     = "/api/v1/avatar"
-	CsrfURL       = "/api/v1/csrf"
-	AuthURL       = "/api/v1/auth"
-	AddLikeUrl    = "/api/v1/like"
-	RemoveLikeUrl = "/api/v1/dislike"
-	LikesUrl      = "/api/v1/likes"
-	UserRatingUrl = "/api/v1/userRating"
+	SignupURL            = "/api/v1/signup"
+	LoginURL             = "/api/v1/login"
+	LogoutURL            = "/api/v1/logout"
+	ProfileURL           = "/api/v1/profile"
+	EditURL              = "/api/v1/edit"
+	AvatarURL            = "/api/v1/avatar"
+	CsrfURL              = "/api/v1/csrf"
+	AuthURL              = "/api/v1/auth"
+	CheckURL             = "/api/v1/check"
+	AddLikeUrl           = "/api/v1/like"
+	RemoveLikeUrl        = "/api/v1/dislike"
+	LikesUrl             = "/api/v1/likes"
+	UserRatingUrl        = "/api/v1/userRating"
+	PaymentIsCreated     = "Payment is created"
+	UnsupportedMediaType = "Unsupported media type"
+	PaymentsTokenURL     = "/api/v1/payments/token"
+	PaymentURL           = "/api/v1/payment"
+	SubscribeURL         = "/api/v1/subscribe"
 )
 
 var (
@@ -53,4 +63,5 @@ var (
 const (
 	MoviesSearchLimit  = 3
 	PersonsSearchLimit = 3
+	Price              = 2
 )

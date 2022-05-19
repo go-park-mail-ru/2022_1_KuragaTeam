@@ -34,10 +34,14 @@ func (p *profileHandler) Register(router *echo.Echo) {
 	router.PUT(constants.AvatarURL, p.EditAvatar())
 	router.GET(constants.CsrfURL, p.GetCsrf())
 	router.GET(constants.AuthURL, p.Auth())
+	router.GET(constants.CheckURL, p.Check())
 	router.POST(constants.AddLikeUrl, p.AddLike())
 	router.DELETE(constants.RemoveLikeUrl, p.RemoveLike())
 	router.GET(constants.LikesUrl, p.GetFavorites())
 	router.GET(constants.UserRatingUrl, p.GetRating())
+	router.GET(constants.PaymentsTokenURL, p.GetPaymentsToken())
+	router.POST(constants.PaymentURL, p.Payment())
+	router.POST(constants.SubscribeURL, p.Subscribe())
 }
 
 func (p *profileHandler) ParseError(ctx echo.Context, requestID string, err error) error {
@@ -61,6 +65,26 @@ func (p *profileHandler) ParseError(ctx echo.Context, requestID string, err erro
 			)
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
+				Message: getErr.Message(),
+			})
+		case codes.InvalidArgument:
+			p.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusBadRequest),
+			)
+			return ctx.JSON(http.StatusBadRequest, &models.Response{
+				Status:  http.StatusBadRequest,
+				Message: getErr.Message(),
+			})
+		case codes.PermissionDenied:
+			p.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusForbidden),
+			)
+			return ctx.JSON(http.StatusForbidden, &models.Response{
+				Status:  http.StatusForbidden,
 				Message: getErr.Message(),
 			})
 		}
@@ -151,6 +175,62 @@ func (p *profileHandler) Auth() echo.HandlerFunc {
 	}
 }
 
+func (p *profileHandler) Check() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			p.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			p.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			p.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		data := &profile.UserID{ID: userID}
+		_, err := p.profileMicroservice.IsSubscription(context.Background(), data)
+		if err != nil {
+			return p.ParseError(ctx, requestID, err)
+		}
+
+		p.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: "ok",
+		})
+	}
+}
+
 func (p *profileHandler) GetUserProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
@@ -204,6 +284,7 @@ func (p *profileHandler) GetUserProfile() echo.HandlerFunc {
 			Name:   userData.Name,
 			Email:  userData.Email,
 			Avatar: userData.Avatar,
+			Date:   userData.Date,
 		}
 
 		sanitizer := bluemonday.UGCPolicy()
@@ -692,6 +773,223 @@ func (p *profileHandler) GetFavorites() echo.HandlerFunc {
 		return ctx.JSON(http.StatusOK, &models.ResponseFavorites{
 			Status:        http.StatusOK,
 			FavoritesData: responseData,
+		})
+	}
+}
+
+func (p *profileHandler) GetPaymentsToken() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			p.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			p.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			p.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		data := &profile.UserID{ID: userID}
+		token, err := p.profileMicroservice.GetPaymentsToken(context.Background(), data)
+
+		if err != nil {
+			p.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		p.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: token.Token,
+		})
+	}
+}
+
+func (p *profileHandler) Payment() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			p.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		userID, ok := ctx.Get("USER_ID").(int64)
+		if !ok {
+			p.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.SessionRequired),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.SessionRequired,
+			})
+		}
+
+		if userID == -1 {
+			p.logger.Info(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UserIsUnauthorized),
+				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
+			)
+			return ctx.JSON(http.StatusUnauthorized, &models.Response{
+				Status:  http.StatusUnauthorized,
+				Message: constants.UserIsUnauthorized,
+			})
+		}
+
+		token := models.TokenDTO{}
+
+		if err := ctx.Bind(&token); err != nil {
+			p.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		data := &profile.CheckTokenData{
+			Token: token.Token,
+			Id:    userID,
+		}
+		_, err := p.profileMicroservice.CheckPaymentsToken(context.Background(), data)
+		if err != nil {
+			return p.ParseError(ctx, requestID, err)
+		}
+
+		_, err = p.profileMicroservice.CreatePayment(context.Background(), data)
+		if err != nil {
+			return p.ParseError(ctx, requestID, err)
+		}
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: constants.PaymentIsCreated,
+		})
+	}
+}
+
+func (p *profileHandler) Subscribe() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		requestID, ok := ctx.Get("REQUEST_ID").(string)
+		if !ok {
+			p.logger.Error(
+				zap.String("ERROR", constants.NoRequestId),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: constants.NoRequestId,
+			})
+		}
+
+		headerContentType := ctx.Request().Header.Get("Content-Type")
+		if headerContentType != "application/x-www-form-urlencoded" {
+			p.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", constants.UnsupportedMediaType),
+				zap.Int("ANSWER STATUS", http.StatusUnsupportedMediaType),
+			)
+			return ctx.JSON(http.StatusUnsupportedMediaType, &models.Response{
+				Status:  http.StatusUnsupportedMediaType,
+				Message: constants.UnsupportedMediaType,
+			})
+		}
+
+		if err := ctx.Request().ParseForm(); err != nil {
+			p.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusUnsupportedMediaType),
+			)
+			return ctx.JSON(http.StatusUnsupportedMediaType, &models.Response{
+				Status:  http.StatusUnsupportedMediaType,
+				Message: err.Error(),
+			})
+		}
+
+		payToken := ctx.Request().PostForm["label"][0]
+		amount := ctx.Request().PostForm["withdraw_amount"][0]
+
+		amountFloat, err := strconv.ParseFloat(amount, 64)
+		if err != nil {
+			p.logger.Error(
+				zap.String("ID", requestID),
+				zap.String("ERROR", err.Error()),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
+			)
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
+				Message: err.Error(),
+			})
+		}
+
+		data := &profile.Token{
+			Token: payToken,
+		}
+		_, err = p.profileMicroservice.CheckToken(context.Background(), data)
+		if err != nil {
+			return p.ParseError(ctx, requestID, err)
+		}
+
+		subscribeData := &profile.SubscribeData{
+			Token:  payToken,
+			Amount: float32(amountFloat),
+		}
+		_, err = p.profileMicroservice.CreateSubscribe(context.Background(), subscribeData)
+		if err != nil {
+			return p.ParseError(ctx, requestID, err)
+		}
+
+		return ctx.JSON(http.StatusOK, &models.Response{
+			Status:  http.StatusOK,
+			Message: constants.PaymentIsCreated,
 		})
 	}
 }

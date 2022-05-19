@@ -24,6 +24,14 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
         on users (email);
   COMMIT;
 
+  CREATE TABLE IF NOT EXISTS payments(
+           id serial constraint payments_pk primary key,
+           amount float not null,
+           users_id int not null,
+           pay_token varchar(100) not null,
+           status bool default false
+  );
+
   CREATE TABLE IF NOT EXISTS movies(
        id serial constraint movies_pk primary key,
        is_movie bool not null,
@@ -600,5 +608,5 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('Держась', '21', 'Возвращается  бывшая сотрудница клиники Принстон Плейнсборо, Тринадцать. Команда берет случай Деррика, 19-летнего студента колледжа, у которого во время репетиции черлидинга пошла кровь носом, а позже обнаруживают, что его проблемы со здоровьем, вероятно, как физиологические, так и психологические. Возможно страдая от шизофрении, Деррик утверждает, что в голове услышал голос своего умершего брата. Тем временем Форман пробует другой подход к Хаусу.', '8', 'HouseMD_8_21.mp4', 'HouseMD_8_21.webp');
   INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('Все умирают', '22', 'Лечение пациента-наркомана заставляет Хауса пристальнее взглянуть на собственную жизнь, на будущее и на своих демонов.', '8', 'HouseMD_8_22.mp4', 'HouseMD_8_22.webp');
 
-
 EOSQL
+
