@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"log"
 	"myapp/internal/constants"
 	"myapp/internal/microservices/profile"
 	"myapp/internal/microservices/profile/proto"
@@ -154,7 +153,6 @@ func (s *Service) CreateSubscribe(ctx context.Context, data *proto.SubscribeData
 		return &proto.Empty{}, status.Error(codes.Internal, err.Error())
 	}
 
-	log.Println(amount, data.Amount)
 	if amount != data.Amount {
 		return &proto.Empty{}, status.Error(codes.Internal, constants.WrongAmount.Error())
 	}

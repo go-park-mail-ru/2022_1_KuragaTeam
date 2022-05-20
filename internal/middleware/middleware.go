@@ -68,7 +68,7 @@ func (m Middleware) CheckAuthorization() echo.MiddlewareFunc {
 
 func (m Middleware) CORS() echo.MiddlewareFunc {
 	return middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080", "http://movie-space.ru", "https://movie-space.ru"},
+		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080", "http://movie-space.ru", "https://movie-space.ru", "https://yoomoney.ru"},
 		AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With", "csrf-token"},
 		AllowCredentials: true,
 		MaxAge:           84600,
