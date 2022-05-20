@@ -126,9 +126,10 @@ services:
     volumes:
       - /etc/letsencrypt/live/movie-space.ru/fullchain.pem:/etc/letsencrypt/live/movie-space.ru/fullchain.pem
       - /etc/letsencrypt/live/movie-space.ru/privkey.pem:/etc/letsencrypt/live/movie-space.ru/privkey.pem
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx/nginx_prod.conf:/etc/nginx/conf.d
     ports:
       - "80:80"
+      - "443:443"
   prometheus:
     container_name: prometheus
     image: prom/prometheus

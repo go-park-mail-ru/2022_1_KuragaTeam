@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"context"
+	"log"
 	"myapp/internal/constants"
 	"myapp/internal/csrf"
 	profile "myapp/internal/microservices/profile/proto"
@@ -954,8 +955,11 @@ func (p *profileHandler) Subscribe() echo.HandlerFunc {
 			})
 		}
 
+		log.Println(ctx.Request())
 		payToken := ctx.Request().PostForm["label"][0]
+		log.Println(payToken)
 		amount := ctx.Request().PostForm["withdraw_amount"][0]
+		log.Println(amount)
 
 		amountFloat, err := strconv.ParseFloat(amount, 64)
 		if err != nil {
