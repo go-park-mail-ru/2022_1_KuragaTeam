@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"myapp/internal/constants"
-	"myapp/internal/microservices/authorization"
 	"myapp/internal/microservices/authorization/proto"
 	"myapp/internal/microservices/authorization/utils/hash"
 	"time"
@@ -17,7 +16,7 @@ type Storage struct {
 	redis *redis.Pool
 }
 
-func NewStorage(db *sql.DB, redis *redis.Pool) authorization.Storage {
+func NewStorage(db *sql.DB, redis *redis.Pool) *Storage {
 	return &Storage{db: db, redis: redis}
 }
 
@@ -28,7 +27,10 @@ func (s Storage) IsUserExists(data *proto.LogInData) (int64, error) {
 	if err != nil {
 		return userID, err
 	}
-
+	err = rows.Err()
+	if err != nil {
+		return userID, err
+	}
 	// убедимся, что всё закроется при выходе из программы
 	defer func() {
 		rows.Close()
@@ -62,11 +64,13 @@ func (s Storage) IsUserExists(data *proto.LogInData) (int64, error) {
 func (s Storage) IsUserUnique(email string) (bool, error) {
 	sqlScript := "SELECT id FROM users WHERE email=$1"
 	rows, err := s.db.Query(sqlScript, email)
-
 	if err != nil {
 		return false, err
 	}
-
+	err = rows.Err()
+	if err != nil {
+		return false, err
+	}
 	defer func() {
 		rows.Close()
 	}()
@@ -117,7 +121,7 @@ func (s Storage) StoreSession(userID int64) (string, error) {
 	return session.String(), nil
 }
 
-func (s Storage) GetUserId(session string) (int64, error) {
+func (s Storage) GetUserID(session string) (int64, error) {
 	connRedis := s.redis.Get()
 	defer connRedis.Close()
 

@@ -211,11 +211,11 @@ func (h *handler) AddMovieRating() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			h.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 

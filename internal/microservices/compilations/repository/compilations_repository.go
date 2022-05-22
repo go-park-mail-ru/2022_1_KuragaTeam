@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"myapp/internal/constants"
-	"myapp/internal/microservices/compilations"
 	"myapp/internal/microservices/compilations/proto"
 )
 
@@ -12,7 +11,7 @@ type movieCompilationsStorage struct {
 	db *sql.DB
 }
 
-func NewStorage(db *sql.DB) compilations.Storage {
+func NewStorage(db *sql.DB) *movieCompilationsStorage {
 	return &movieCompilationsStorage{db: db}
 }
 
@@ -44,6 +43,10 @@ func (ms *movieCompilationsStorage) GetAllMovies(limit, offset int, isMovie bool
 	if err != nil {
 		return nil, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
@@ -66,6 +69,10 @@ func (ms *movieCompilationsStorage) GetByGenre(genreID int) (*proto.MovieCompila
 	}
 
 	rows, err := ms.db.Query(getByGenreSQL, genreID)
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Err()
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +101,10 @@ func (ms *movieCompilationsStorage) GetByCountry(countryID int) (*proto.MovieCom
 	if err != nil {
 		return nil, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
@@ -115,6 +126,10 @@ func (ms *movieCompilationsStorage) GetByMovie(movieID int) (*proto.MovieCompila
 	if err != nil {
 		return nil, err
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
@@ -131,11 +146,10 @@ func (ms *movieCompilationsStorage) GetByMovie(movieID int) (*proto.MovieCompila
 	return &selectedMC, nil
 }
 
-func (ms *movieCompilationsStorage) GetByPerson(personID int) (*proto.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) getCompilation(sqlQuery string, args int) (*proto.MovieCompilation, error) {
 
 	var selectedMovieCompilation proto.MovieCompilation
-	selectedMovieCompilation.Name = "Фильмография"
-	rows, err := ms.db.Query(getByPersonSQL, personID)
+	rows, err := ms.db.Query(sqlQuery, args)
 	if err != nil {
 		return nil, err
 	}
@@ -150,49 +164,34 @@ func (ms *movieCompilationsStorage) GetByPerson(personID int) (*proto.MovieCompi
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
 	}
 	return &selectedMovieCompilation, nil
+
+}
+
+func (ms *movieCompilationsStorage) GetByPerson(personID int) (*proto.MovieCompilation, error) {
+	selectedMovieCompilation, err := ms.getCompilation(getByPersonSQL, personID)
+	if err != nil {
+		return nil, err
+	}
+	selectedMovieCompilation.Name = "Фильмография"
+	return selectedMovieCompilation, nil
 }
 
 func (ms *movieCompilationsStorage) GetTop(limit int) (*proto.MovieCompilation, error) {
-
-	var selectedMovieCompilation proto.MovieCompilation
-	selectedMovieCompilation.Name = "Топ рейтинга"
-	rows, err := ms.db.Query(getTopSQL, limit)
+	selectedMovieCompilation, err := ms.getCompilation(getTopSQL, limit)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var selectedMovie proto.MovieInfo
-		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
-		if err != nil {
-			return nil, err
-		}
-		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
-	}
-
-	return &selectedMovieCompilation, nil
+	selectedMovieCompilation.Name = "Топ рейтинга"
+	return selectedMovieCompilation, nil
 }
 
 func (ms *movieCompilationsStorage) GetTopByYear(year int) (*proto.MovieCompilation, error) {
-
-	var selectedMovieCompilation proto.MovieCompilation
-	selectedMovieCompilation.Name = fmt.Sprintf("Лучшее за %d год", year)
-	rows, err := ms.db.Query(getTopByYearSQL, year)
+	selectedMovieCompilation, err := ms.getCompilation(getTopByYearSQL, year)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var selectedMovie proto.MovieInfo
-		err = rows.Scan(&selectedMovie.ID, &selectedMovie.Name, &selectedMovie.Picture)
-		if err != nil {
-			return nil, err
-		}
-		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
-	}
-	return &selectedMovieCompilation, nil
+	selectedMovieCompilation.Name = fmt.Sprintf("Лучшее за %d год", year)
+	return selectedMovieCompilation, nil
 }
 
 func (ms *movieCompilationsStorage) GetFavorites(data *proto.GetFavoritesOptions) (*proto.MovieCompilationsArr, error) {
@@ -217,7 +216,7 @@ func (ms *movieCompilationsStorage) GetFavorites(data *proto.GetFavoritesOptions
 				return nil, err
 			}
 
-			if isMovie == true {
+			if isMovie {
 				selectedMovieCompilation.MovieCompilations[0].Movies = append(selectedMovieCompilation.MovieCompilations[0].Movies, &selectedMovie)
 			} else {
 				selectedMovieCompilation.MovieCompilations[1].Movies = append(selectedMovieCompilation.MovieCompilations[1].Movies, &selectedMovie)
@@ -286,7 +285,7 @@ func (ms *movieCompilationsStorage) GetFavoritesFilms(data *proto.GetFavoritesOp
 				return nil, err
 			}
 
-			if isMovie == true {
+			if isMovie {
 				selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
 			}
 		}
@@ -313,7 +312,7 @@ func (ms *movieCompilationsStorage) GetFavoritesSeries(data *proto.GetFavoritesO
 				return nil, err
 			}
 
-			if isMovie == false {
+			if isMovie {
 				selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
 			}
 		}

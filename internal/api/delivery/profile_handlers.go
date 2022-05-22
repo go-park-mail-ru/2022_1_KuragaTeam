@@ -35,9 +35,9 @@ func (p *profileHandler) Register(router *echo.Echo) {
 	router.GET(constants.CsrfURL, p.GetCsrf())
 	router.GET(constants.AuthURL, p.Auth())
 	router.GET(constants.CheckURL, p.Check())
-	router.POST(constants.AddLikeUrl, p.AddLike())
-	router.DELETE(constants.RemoveLikeUrl, p.RemoveLike())
-	router.GET(constants.LikesUrl, p.GetFavorites())
+	router.POST(constants.AddLikeURL, p.AddLike())
+	router.DELETE(constants.RemoveLikeURL, p.RemoveLike())
+	router.GET(constants.LikesURL, p.GetFavorites())
 	router.GET(constants.UserRatingUrl, p.GetRating())
 	router.GET(constants.PaymentsTokenURL, p.GetPaymentsToken())
 	router.POST(constants.PaymentURL, p.Payment())
@@ -98,11 +98,11 @@ func (p *profileHandler) Auth() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -180,11 +180,11 @@ func (p *profileHandler) Check() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -236,11 +236,11 @@ func (p *profileHandler) GetUserProfile() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -302,11 +302,11 @@ func (p *profileHandler) EditAvatar() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -395,7 +395,7 @@ func (p *profileHandler) EditAvatar() echo.HandlerFunc {
 		fileType := http.DetectContentType(buffer)
 
 		// Validate File Type
-		if _, ex := constants.IMAGE_TYPES[fileType]; !ex {
+		if _, ex := constants.ImageTypes[fileType]; !ex {
 			p.logger.Info(
 				zap.String("ID", requestID),
 				zap.String("ERROR", constants.FileTypeIsNotSupported),
@@ -446,11 +446,11 @@ func (p *profileHandler) EditProfile() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -521,11 +521,11 @@ func (p *profileHandler) GetCsrf() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -575,11 +575,11 @@ func (p *profileHandler) AddLike() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -649,11 +649,11 @@ func (p *profileHandler) RemoveLike() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -723,11 +723,11 @@ func (p *profileHandler) GetFavorites() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -782,11 +782,11 @@ func (p *profileHandler) GetPaymentsToken() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -848,11 +848,11 @@ func (p *profileHandler) Payment() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -921,11 +921,11 @@ func (p *profileHandler) Subscribe() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -999,11 +999,11 @@ func (p *profileHandler) GetRating() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -1035,11 +1035,11 @@ func (p *profileHandler) GetRating() echo.HandlerFunc {
 		movieID, err := strconv.Atoi(movieIDStr)
 		if err != nil {
 			p.logger.Error(
-				zap.String("ERROR", constants.NoMovieId),
+				zap.String("ERROR", constants.NoMovieID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoMovieId,
+				Message: constants.NoMovieID,
 			})
 		}
 		data := &profile.MovieRating{UserID: userID, MovieID: int64(movieID)}

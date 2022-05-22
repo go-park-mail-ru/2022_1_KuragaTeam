@@ -87,11 +87,11 @@ func (a *authHandler) LogIn() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			a.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -144,11 +144,11 @@ func (a *authHandler) SignUp() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			a.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 
@@ -198,11 +198,11 @@ func (a *authHandler) LogOut() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			a.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			return ctx.JSON(http.StatusInternalServerError, &models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 		}
 

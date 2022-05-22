@@ -22,15 +22,15 @@ func NewPostgresDBComposite() (*PostgresDBComposite, error) {
 		os.Getenv("DBHOST"), os.Getenv("DBPORT"), os.Getenv("DBUSER"),
 		os.Getenv("DBPASSWORD"), os.Getenv("DBNAME"))
 
-	db, err := sql.Open("pgx", psqlInfo)
+	database, err := sql.Open("pgx", psqlInfo)
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.Ping() // вот тут будет первое подключение к базе
+	err = database.Ping() // вот тут будет первое подключение к базе
 	if err != nil {
 		return nil, err
 	}
 
-	return &PostgresDBComposite{db: db}, nil
+	return &PostgresDBComposite{db: database}, nil
 }

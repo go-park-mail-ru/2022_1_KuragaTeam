@@ -118,7 +118,7 @@ func (s *Service) CheckPaymentsToken(ctx context.Context, data *proto.CheckToken
 	}
 
 	if id != data.Id {
-		return &proto.Empty{}, status.Error(codes.InvalidArgument, constants.WrongToken.Error())
+		return &proto.Empty{}, status.Error(codes.InvalidArgument, constants.ErrWrongToken.Error())
 	}
 
 	return &proto.Empty{}, nil
@@ -154,7 +154,7 @@ func (s *Service) CreateSubscribe(ctx context.Context, data *proto.SubscribeData
 	}
 
 	if amount != data.Amount {
-		return &proto.Empty{}, status.Error(codes.Internal, constants.WrongAmount.Error())
+		return &proto.Empty{}, status.Error(codes.Internal, constants.ErrWrongAmount.Error())
 	}
 
 	err = s.storage.UpdatePayment(data.Token, id)
@@ -173,7 +173,7 @@ func (s *Service) CreateSubscribe(ctx context.Context, data *proto.SubscribeData
 func (s *Service) IsSubscription(ctx context.Context, data *proto.UserID) (*proto.Empty, error) {
 	err := s.storage.IsSubscription(data.ID)
 	if err != nil {
-		if errors.Is(err, constants.NoSubscription) {
+		if errors.Is(err, constants.ErrNoSubscription) {
 			return &proto.Empty{}, status.Error(codes.PermissionDenied, err.Error())
 		}
 		return &proto.Empty{}, status.Error(codes.Internal, err.Error())

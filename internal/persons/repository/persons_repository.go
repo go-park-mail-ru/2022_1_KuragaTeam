@@ -2,20 +2,18 @@ package repository
 
 import (
 	"database/sql"
+	"github.com/lib/pq"
 	"myapp/internal"
 	"myapp/internal/constants"
 	compilations "myapp/internal/microservices/compilations/proto"
 	"myapp/internal/microservices/movie/proto"
-	"myapp/internal/persons"
-
-	"github.com/lib/pq"
 )
 
 type staffStorage struct {
 	db *sql.DB
 }
 
-func NewStorage(db *sql.DB) persons.Storage {
+func NewStorage(db *sql.DB) *staffStorage {
 	return &staffStorage{db: db}
 }
 

@@ -304,7 +304,7 @@ func TestAuthRepository_GetUserId(t *testing.T) {
 			th := test
 			th.mock()
 
-			id, err := storage.GetUserId(th.input)
+			id, err := storage.GetUserID(th.input)
 
 			if test.expectedErr != nil {
 				assert.Error(t, err)

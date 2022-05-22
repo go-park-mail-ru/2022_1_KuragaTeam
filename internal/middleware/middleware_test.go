@@ -49,11 +49,18 @@ func TestMiddleware_CheckAuthorization(t *testing.T) {
 				)
 			},
 			cookie: http.Cookie{
-				Name:     "Session_cookie",
-				Value:    "session",
-				HttpOnly: true,
-				Expires:  time.Now().Add(time.Hour),
-				SameSite: 0,
+				Name:       "Session_cookie",
+				Value:      "session",
+				Path:       "",
+				Domain:     "",
+				Expires:    time.Now().Add(time.Hour),
+				RawExpires: "",
+				MaxAge:     0,
+				Secure:     false,
+				HttpOnly:   true,
+				SameSite:   0,
+				Raw:        "",
+				Unparsed:   nil,
 			},
 			err:    nil,
 			userID: int64(1),
@@ -68,11 +75,18 @@ func TestMiddleware_CheckAuthorization(t *testing.T) {
 				)
 			},
 			cookie: http.Cookie{
-				Name:     "Session_cookie",
-				Value:    "session",
-				HttpOnly: true,
-				Expires:  time.Now().Add(time.Hour),
-				SameSite: 0,
+				Name:       "Session_cookie",
+				Value:      "session",
+				Path:       "",
+				Domain:     "",
+				Expires:    time.Now().Add(time.Hour),
+				RawExpires: "",
+				MaxAge:     0,
+				Secure:     false,
+				HttpOnly:   true,
+				SameSite:   0,
+				Raw:        "",
+				Unparsed:   nil,
 			},
 			err:    errors.New("error"),
 			userID: int64(-1),
@@ -229,11 +243,12 @@ func TestMiddleware_CSRF(t *testing.T) {
 			handlerFunc := receivedCSRF(func(c echo.Context) error {
 				return nil
 			})
-			_ = handlerFunc(ctx)
+			err := handlerFunc(ctx)
 
 			if th.expectedError == true {
-				assert.Equal(t, th.expectedStatus, rec.Code)
+				assert.Error(t, err)
 			} else {
+				assert.NoError(t, err)
 				assert.Equal(t, th.expectedStatus, rec.Code)
 			}
 		})
