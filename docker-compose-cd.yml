@@ -31,7 +31,7 @@ services:
       - "5432:5432"
   redis:
     image: redis:latest
-    command: [sh, -c, "rm -f /data/dump.rdb && redis-server"]  # disable persistence
+    command: [sh, -c, "rm -f /data/dump.rdb && redis-server --save ''"]
     restart: always
     ports:
       - "6379:6379"
@@ -126,9 +126,10 @@ services:
     volumes:
       - /etc/letsencrypt/live/movie-space.ru/fullchain.pem:/etc/letsencrypt/live/movie-space.ru/fullchain.pem
       - /etc/letsencrypt/live/movie-space.ru/privkey.pem:/etc/letsencrypt/live/movie-space.ru/privkey.pem
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx/prod:/etc/nginx/conf.d
     ports:
       - "80:80"
+      - "443:443"
   prometheus:
     container_name: prometheus
     image: prom/prometheus

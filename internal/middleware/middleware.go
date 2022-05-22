@@ -68,7 +68,7 @@ func (m Middleware) CheckAuthorization() echo.MiddlewareFunc {
 
 func (m Middleware) CORS() echo.MiddlewareFunc {
 	return middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080", "http://movie-space.ru", "https://movie-space.ru"},
+		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080", "http://movie-space.ru", "https://movie-space.ru", "https://yoomoney.ru"},
 		AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With", "csrf-token"},
 		AllowCredentials: true,
 		MaxAge:           84600,
@@ -112,7 +112,8 @@ func (m Middleware) AccessLog() echo.MiddlewareFunc {
 func (m Middleware) CSRF() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
-			if ctx.Request().Method == "PUT" {
+			if ctx.Request().Method == "PUT" ||
+				ctx.Request().URL.Path == "/api/v1/payment" {
 				cookie, err := ctx.Cookie("Session_cookie")
 				if err != nil {
 					m.logger.Debug(

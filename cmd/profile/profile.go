@@ -21,7 +21,12 @@ func main() {
 		log.Fatal("minio composite failed")
 	}
 
-	profileComposite, err := composites.NewProfileComposite(postgresDBC, minioComposite)
+	redisComposite, err := composites.NewRedisComposite()
+	if err != nil {
+		log.Fatal("redis composite failed")
+	}
+
+	profileComposite, err := composites.NewProfileComposite(postgresDBC, minioComposite, redisComposite)
 	if err != nil {
 		log.Fatal("profile composite failed")
 	}
