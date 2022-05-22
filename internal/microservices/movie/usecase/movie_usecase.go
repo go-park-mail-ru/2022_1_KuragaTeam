@@ -139,7 +139,15 @@ func (s *Service) GetRandom(ctx context.Context, in *proto.GetRandomOptions) (*p
 			return nil, err
 		}
 
-		movies[i].Rating = 8.1 // пока что просто замокано
+		ratingValues, err := s.movieStorage.GetMovieRating(int(movies[i].ID))
+		if err != nil {
+			return nil, err
+		}
+		if ratingValues.RatingSum != 0 {
+			movies[i].Rating = float32(math.Round(float64(float64(ratingValues.RatingSum)/float64(ratingValues.RatingCount))*10) / 10)
+		} else {
+			movies[i].Rating = -1.0
+		}
 
 		err = s.concatURLs(movies[i])
 		if err != nil {
@@ -194,5 +202,5 @@ func (s *Service) AddMovieRating(ctx context.Context, options *proto.AddRatingOp
 	if ratingValues.RatingSum != 0 {
 		return &proto.NewMovieRating{Rating: float32(math.Round(float64(float64(ratingValues.RatingSum)/float64(ratingValues.RatingCount))*10) / 10)}, nil
 	}
-	return &proto.NewMovieRating{}, nil
+	return &proto.NewMovieRating{Rating: -1.0}, nil
 }

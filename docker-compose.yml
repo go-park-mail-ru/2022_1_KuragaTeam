@@ -130,8 +130,11 @@ services:
       - /etc/letsencrypt/live/movie-space.ru/fullchain.pem:/etc/letsencrypt/live/movie-space.ru/fullchain.pem
       - /etc/letsencrypt/live/movie-space.ru/privkey.pem:/etc/letsencrypt/live/movie-space.ru/privkey.pem
       - ./nginx:/etc/nginx/conf.d
+      - ../2022_1_KURAGA_TEAM/build:/build
+      - ../2022_1_KURAGA_TEAM/src/static:/build/static
     ports:
       - "80:80"
+      - "443:443"
   prometheus:
     container_name: prometheus
     image: prom/prometheus
