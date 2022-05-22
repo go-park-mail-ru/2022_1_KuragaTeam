@@ -127,6 +127,8 @@ services:
       - /etc/letsencrypt/live/movie-space.ru/fullchain.pem:/etc/letsencrypt/live/movie-space.ru/fullchain.pem
       - /etc/letsencrypt/live/movie-space.ru/privkey.pem:/etc/letsencrypt/live/movie-space.ru/privkey.pem
       - ./nginx/prod:/etc/nginx/conf.d
+      - /home/ubuntu/2022_1_KURAGA_TEAM/build:/build
+      - /home/ubuntu/2022_1_KURAGA_TEAM/src/static:/build/static
     ports:
       - "80:80"
       - "443:443"
