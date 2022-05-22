@@ -184,6 +184,9 @@ func (s *Service) AddMovieRating(ctx context.Context, options *proto.AddRatingOp
 	if options.Rating > 10 {
 		options.Rating = 10
 	}
+	if options.Rating < 1 {
+		options.Rating = 1
+	}
 
 	if checkRating.Exists {
 		if checkRating.Rating != int(options.Rating) {
@@ -206,5 +209,5 @@ func (s *Service) AddMovieRating(ctx context.Context, options *proto.AddRatingOp
 	if ratingValues.RatingSum != 0 {
 		return &proto.NewMovieRating{Rating: float32(math.Round(float64(float64(ratingValues.RatingSum)/float64(ratingValues.RatingCount))*10) / 10)}, nil
 	}
-	return &proto.NewMovieRating{Rating: -1.0}, nil
+	return &proto.NewMovieRating{Rating: float32(-1.0)}, nil
 }
