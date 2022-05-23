@@ -64,9 +64,9 @@ func (mr *MockStorageMockRecorder) DeleteSession(session interface{}) *gomock.Ca
 }
 
 // GetUserId mocks base method.
-func (m *MockStorage) GetUserId(session string) (int64, error) {
+func (m *MockStorage) GetUserID(session string) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserId", session)
+	ret := m.ctrl.Call(m, "GetUserID", session)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -75,7 +75,7 @@ func (m *MockStorage) GetUserId(session string) (int64, error) {
 // GetUserId indicates an expected call of GetUserId.
 func (mr *MockStorageMockRecorder) GetUserId(session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserId", reflect.TypeOf((*MockStorage)(nil).GetUserId), session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserID", reflect.TypeOf((*MockStorage)(nil).GetUserID), session)
 }
 
 // IsUserExists mocks base method.

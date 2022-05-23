@@ -12,7 +12,7 @@ type service struct {
 	positionStorage position.Storage
 }
 
-func NewService(staffStorage persons.Storage, positionStorage position.Storage) persons.Service {
+func NewService(staffStorage persons.Storage, positionStorage position.Storage) *service {
 	return &service{staffStorage: staffStorage, positionStorage: positionStorage}
 }
 

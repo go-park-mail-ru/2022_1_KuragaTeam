@@ -3,16 +3,16 @@ package constants
 import "errors"
 
 var (
-	ErrLetter                  = errors.New("at least one letter is required")
-	ErrNum                     = errors.New("at least one digit is required")
-	ErrCount                   = errors.New("at least eight characters long is required")
-	ErrBan                     = errors.New("password uses unavailable symbols")
-	ErrWrongData               = errors.New("wrong data")
-	EmailIsNotUnique           = errors.New("email is not unique")
-	WrongToken                 = errors.New("wrong payment token")
-	WrongAmount                = errors.New("wrong amount")
-	WringCountPaymentsForToken = errors.New("wrong count payments for token")
-	NoSubscription             = errors.New("no subscription")
+	ErrLetter                     = errors.New("at least one letter is required")
+	ErrNum                        = errors.New("at least one digit is required")
+	ErrCount                      = errors.New("at least eight characters long is required")
+	ErrBan                        = errors.New("password uses unavailable symbols")
+	ErrWrongData                  = errors.New("wrong data")
+	ErrEmailIsNotUnique           = errors.New("email is not unique")
+	ErrWrongToken                 = errors.New("wrong payment token")
+	ErrWrongAmount                = errors.New("wrong amount")
+	ErrWringCountPaymentsForToken = errors.New("wrong count payments for token")
+	ErrNoSubscription             = errors.New("no subscription")
 )
 
 const (
@@ -28,8 +28,8 @@ const (
 	ProfileIsEdited        = "Profile is edited"
 	LikeIsEdited           = "Like is edited"
 	LikeIsRemoved          = "Like is removed"
-	NoRequestId            = "No RequestID in context"
-	NoMovieId              = "No MovieID in context"
+	NoRequestID            = "No RequestID in context"
+	NoMovieID              = "No MovieID in context"
 )
 
 const (
@@ -42,10 +42,10 @@ const (
 	CsrfURL              = "/api/v1/csrf"
 	AuthURL              = "/api/v1/auth"
 	CheckURL             = "/api/v1/check"
-	AddLikeUrl           = "/api/v1/like"
-	RemoveLikeUrl        = "/api/v1/dislike"
-	LikesUrl             = "/api/v1/likes"
-	UserRatingUrl        = "/api/v1/userRating"
+	AddLikeURL           = "/api/v1/like"
+	RemoveLikeURL        = "/api/v1/dislike"
+	LikesURL             = "/api/v1/likes"
+	UserRatingURL        = "/api/v1/userRatings"
 	PaymentIsCreated     = "Payment is created"
 	UnsupportedMediaType = "Unsupported media type"
 	PaymentsTokenURL     = "/api/v1/payments/token"
@@ -54,7 +54,7 @@ const (
 )
 
 var (
-	IMAGE_TYPES = map[string]interface{}{
+	ImageTypes = map[string]interface{}{
 		"image/jpeg": nil,
 		"image/png":  nil,
 	}

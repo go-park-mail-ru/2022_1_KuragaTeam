@@ -66,11 +66,11 @@ func TestAuthDelivery_SignUp(t *testing.T) {
 					Password: "olga123321",
 				}
 				gomock.InOrder(
-					mockService.EXPECT().SignUp(gomock.Any(), userData).Return(nil, status.Error(codes.InvalidArgument, constants.EmailIsNotUnique.Error())),
+					mockService.EXPECT().SignUp(gomock.Any(), userData).Return(nil, status.Error(codes.InvalidArgument, constants.ErrEmailIsNotUnique.Error())),
 				)
 			},
 			expectedStatus: http.StatusBadRequest,
-			expectedJSON:   "{\"status\":400,\"message\":\"" + constants.EmailIsNotUnique.Error() + "\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"" + constants.ErrEmailIsNotUnique.Error() + "\"}\n",
 			data:           `{"username": "Olga", "email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "REQUEST_ID",
 		},
@@ -96,7 +96,7 @@ func TestAuthDelivery_SignUp(t *testing.T) {
 			mock: func() {
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}\n",
 			data:           `{"username": "Olga", "email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "WRONG_REQUEST_ID",
 		},
@@ -221,7 +221,7 @@ func TestAuthHandler_LogIn(t *testing.T) {
 			mock: func() {
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}\n",
 			requestID:      "WRONG_REQUEST_ID",
 			data:           `{"email": "olga@mail.ru", "password": "olga123321"}`,
 		},
@@ -352,7 +352,7 @@ func TestAuthHandler_LogOut(t *testing.T) {
 			mock: func() {
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}\n",
 			requestID:      "WRONG_REQUEST_ID",
 		},
 	}
