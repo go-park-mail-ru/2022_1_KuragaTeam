@@ -45,7 +45,7 @@ const (
 	AddLikeURL           = "/api/v1/like"
 	RemoveLikeURL        = "/api/v1/dislike"
 	LikesURL             = "/api/v1/likes"
-	UserRatingURL        = "/api/v1/userRatings"
+	UserRatingURL        = "/api/v1/userRating"
 	PaymentIsCreated     = "Payment is created"
 	UnsupportedMediaType = "Unsupported media type"
 	PaymentsTokenURL     = "/api/v1/payments/token"
