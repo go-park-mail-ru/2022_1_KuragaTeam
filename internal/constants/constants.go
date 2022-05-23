@@ -92,16 +92,28 @@ func RespError(ctx echo.Context, logger *zap.SugaredLogger, requestID, errorMsg 
 func DefaultUserChecks(ctx echo.Context, logger *zap.SugaredLogger) (int64, string, error) {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
-		return 0, "", RespError(ctx, logger, requestID, NoRequestID, http.StatusInternalServerError)
+		err := RespError(ctx, logger, requestID, NoRequestID, http.StatusInternalServerError)
+		if err != nil {
+			return 0, "", err
+		}
+		return 0, "", errors.New("")
 	}
 
 	userID, ok := ctx.Get("USER_ID").(int64)
 	if !ok {
-		return 0, "", RespError(ctx, logger, requestID, SessionRequired, http.StatusBadRequest)
+		err := RespError(ctx, logger, requestID, SessionRequired, http.StatusBadRequest)
+		if err != nil {
+			return 0, "", err
+		}
+		return 0, "", errors.New("")
 	}
 
 	if userID == -1 {
-		return userID, "", RespError(ctx, logger, requestID, UserIsUnauthorized, http.StatusUnauthorized)
+		err := RespError(ctx, logger, requestID, UserIsUnauthorized, http.StatusUnauthorized)
+		if err != nil {
+			return 0, "", err
+		}
+		return userID, "", errors.New("")
 	}
 	return userID, requestID, nil
 }
