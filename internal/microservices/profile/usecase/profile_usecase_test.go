@@ -520,13 +520,13 @@ func TestProfileUseCase_GetFavorites(t *testing.T) {
 					ID: 1,
 				}
 				gomock.InOrder(
-					mockStorage.EXPECT().GetFavorites(data.ID).Return(&proto.Favorites{MovieId: likes}, nil),
+					mockStorage.EXPECT().GetFavorites(data.ID).Return(&proto.Favorites{Id: likes}, nil),
 				)
 			},
 			input: &proto.UserID{
 				ID: 1,
 			},
-			expected:    &proto.Favorites{MovieId: likes},
+			expected:    &proto.Favorites{Id: likes},
 			expectedErr: nil,
 		},
 		{
@@ -559,7 +559,7 @@ func TestProfileUseCase_GetFavorites(t *testing.T) {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
-				assert.Equal(t, favorites.MovieId, th.expected.MovieId)
+				assert.Equal(t, favorites.Id, th.expected.Id)
 			}
 		})
 	}

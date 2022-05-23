@@ -11,7 +11,7 @@ var (
 	EmailIsNotUnique           = errors.New("email is not unique")
 	WrongToken                 = errors.New("wrong payment token")
 	WrongAmount                = errors.New("wrong amount")
-	WringCountPaymentsForToken = errors.New("wrong count payments for token")
+	WrongCountPaymentsForToken = errors.New("wrong count payments for token")
 	NoSubscription             = errors.New("no subscription")
 )
 

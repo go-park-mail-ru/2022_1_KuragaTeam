@@ -50,6 +50,7 @@ func TestProfileHandler_GetUserProfile(t *testing.T) {
 					Name:   "Olga",
 					Email:  "olga@mail.ru",
 					Avatar: "avatar",
+					Date:   "2022-05-18T22:26:17.289395Z",
 				}
 				inputData := &proto.UserID{ID: int64(1)}
 				gomock.InOrder(
@@ -57,7 +58,7 @@ func TestProfileHandler_GetUserProfile(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"user\":{\"username\":\"Olga\",\"email\":\"olga@mail.ru\",\"avatar\":\"avatar\"}}\n",
+			expectedJSON:   "{\"status\":200,\"user\":{\"username\":\"Olga\",\"email\":\"olga@mail.ru\",\"avatar\":\"avatar\",\"date\":\"2022-05-18T22:26:17.289395Z\"}}\n",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -854,7 +855,7 @@ func TestProfileHandler_GetFavorites(t *testing.T) {
 			mock: func() {
 				likes := make([]int64, 0)
 				likes = append(likes, 1, 2, 3)
-				favorite := &proto.Favorites{MovieId: likes}
+				favorite := &proto.Favorites{Id: likes}
 				inputData := &proto.UserID{ID: int64(1)}
 				gomock.InOrder(
 					mockService.EXPECT().GetFavorites(gomock.Any(), inputData).Return(favorite, nil),

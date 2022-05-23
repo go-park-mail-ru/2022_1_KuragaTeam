@@ -329,7 +329,7 @@ func (s Storage) CheckCountPaymentsByToken(token string) error {
 	}
 
 	if count != 1 {
-		return constants.WringCountPaymentsForToken
+		return constants.WrongCountPaymentsForToken
 	}
 
 	return nil

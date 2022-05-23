@@ -56,6 +56,86 @@ func (mr *MockProfileClientMockRecorder) AddLike(ctx, in interface{}, opts ...in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddLike", reflect.TypeOf((*MockProfileClient)(nil).AddLike), varargs...)
 }
 
+// CheckPaymentsToken mocks base method.
+func (m *MockProfileClient) CheckPaymentsToken(ctx context.Context, in *proto.CheckTokenData, opts ...grpc.CallOption) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CheckPaymentsToken", varargs...)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckPaymentsToken indicates an expected call of CheckPaymentsToken.
+func (mr *MockProfileClientMockRecorder) CheckPaymentsToken(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckPaymentsToken", reflect.TypeOf((*MockProfileClient)(nil).CheckPaymentsToken), varargs...)
+}
+
+// CheckToken mocks base method.
+func (m *MockProfileClient) CheckToken(ctx context.Context, in *proto.Token, opts ...grpc.CallOption) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CheckToken", varargs...)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckToken indicates an expected call of CheckToken.
+func (mr *MockProfileClientMockRecorder) CheckToken(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckToken", reflect.TypeOf((*MockProfileClient)(nil).CheckToken), varargs...)
+}
+
+// CreatePayment mocks base method.
+func (m *MockProfileClient) CreatePayment(ctx context.Context, in *proto.CheckTokenData, opts ...grpc.CallOption) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreatePayment", varargs...)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreatePayment indicates an expected call of CreatePayment.
+func (mr *MockProfileClientMockRecorder) CreatePayment(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePayment", reflect.TypeOf((*MockProfileClient)(nil).CreatePayment), varargs...)
+}
+
+// CreateSubscribe mocks base method.
+func (m *MockProfileClient) CreateSubscribe(ctx context.Context, in *proto.SubscribeData, opts ...grpc.CallOption) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateSubscribe", varargs...)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSubscribe indicates an expected call of CreateSubscribe.
+func (mr *MockProfileClientMockRecorder) CreateSubscribe(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubscribe", reflect.TypeOf((*MockProfileClient)(nil).CreateSubscribe), varargs...)
+}
+
 // EditAvatar mocks base method.
 func (m *MockProfileClient) EditAvatar(ctx context.Context, in *proto.EditAvatarData, opts ...grpc.CallOption) (*proto.Empty, error) {
 	m.ctrl.T.Helper()
@@ -156,6 +236,26 @@ func (mr *MockProfileClientMockRecorder) GetMovieRating(ctx, in interface{}, opt
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovieRating", reflect.TypeOf((*MockProfileClient)(nil).GetMovieRating), varargs...)
 }
 
+// GetPaymentsToken mocks base method.
+func (m *MockProfileClient) GetPaymentsToken(ctx context.Context, in *proto.UserID, opts ...grpc.CallOption) (*proto.Token, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetPaymentsToken", varargs...)
+	ret0, _ := ret[0].(*proto.Token)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPaymentsToken indicates an expected call of GetPaymentsToken.
+func (mr *MockProfileClientMockRecorder) GetPaymentsToken(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPaymentsToken", reflect.TypeOf((*MockProfileClient)(nil).GetPaymentsToken), varargs...)
+}
+
 // GetUserProfile mocks base method.
 func (m *MockProfileClient) GetUserProfile(ctx context.Context, in *proto.UserID, opts ...grpc.CallOption) (*proto.ProfileData, error) {
 	m.ctrl.T.Helper()
@@ -174,6 +274,26 @@ func (mr *MockProfileClientMockRecorder) GetUserProfile(ctx, in interface{}, opt
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserProfile", reflect.TypeOf((*MockProfileClient)(nil).GetUserProfile), varargs...)
+}
+
+// IsSubscription mocks base method.
+func (m *MockProfileClient) IsSubscription(ctx context.Context, in *proto.UserID, opts ...grpc.CallOption) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "IsSubscription", varargs...)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsSubscription indicates an expected call of IsSubscription.
+func (mr *MockProfileClientMockRecorder) IsSubscription(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSubscription", reflect.TypeOf((*MockProfileClient)(nil).IsSubscription), varargs...)
 }
 
 // RemoveLike mocks base method.
@@ -254,6 +374,66 @@ func (mr *MockProfileServerMockRecorder) AddLike(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddLike", reflect.TypeOf((*MockProfileServer)(nil).AddLike), arg0, arg1)
 }
 
+// CheckPaymentsToken mocks base method.
+func (m *MockProfileServer) CheckPaymentsToken(arg0 context.Context, arg1 *proto.CheckTokenData) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckPaymentsToken", arg0, arg1)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckPaymentsToken indicates an expected call of CheckPaymentsToken.
+func (mr *MockProfileServerMockRecorder) CheckPaymentsToken(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckPaymentsToken", reflect.TypeOf((*MockProfileServer)(nil).CheckPaymentsToken), arg0, arg1)
+}
+
+// CheckToken mocks base method.
+func (m *MockProfileServer) CheckToken(arg0 context.Context, arg1 *proto.Token) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckToken", arg0, arg1)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckToken indicates an expected call of CheckToken.
+func (mr *MockProfileServerMockRecorder) CheckToken(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckToken", reflect.TypeOf((*MockProfileServer)(nil).CheckToken), arg0, arg1)
+}
+
+// CreatePayment mocks base method.
+func (m *MockProfileServer) CreatePayment(arg0 context.Context, arg1 *proto.CheckTokenData) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePayment", arg0, arg1)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreatePayment indicates an expected call of CreatePayment.
+func (mr *MockProfileServerMockRecorder) CreatePayment(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePayment", reflect.TypeOf((*MockProfileServer)(nil).CreatePayment), arg0, arg1)
+}
+
+// CreateSubscribe mocks base method.
+func (m *MockProfileServer) CreateSubscribe(arg0 context.Context, arg1 *proto.SubscribeData) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSubscribe", arg0, arg1)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSubscribe indicates an expected call of CreateSubscribe.
+func (mr *MockProfileServerMockRecorder) CreateSubscribe(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubscribe", reflect.TypeOf((*MockProfileServer)(nil).CreateSubscribe), arg0, arg1)
+}
+
 // EditAvatar mocks base method.
 func (m *MockProfileServer) EditAvatar(arg0 context.Context, arg1 *proto.EditAvatarData) (*proto.Empty, error) {
 	m.ctrl.T.Helper()
@@ -329,6 +509,21 @@ func (mr *MockProfileServerMockRecorder) GetMovieRating(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMovieRating", reflect.TypeOf((*MockProfileServer)(nil).GetMovieRating), arg0, arg1)
 }
 
+// GetPaymentsToken mocks base method.
+func (m *MockProfileServer) GetPaymentsToken(arg0 context.Context, arg1 *proto.UserID) (*proto.Token, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPaymentsToken", arg0, arg1)
+	ret0, _ := ret[0].(*proto.Token)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPaymentsToken indicates an expected call of GetPaymentsToken.
+func (mr *MockProfileServerMockRecorder) GetPaymentsToken(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPaymentsToken", reflect.TypeOf((*MockProfileServer)(nil).GetPaymentsToken), arg0, arg1)
+}
+
 // GetUserProfile mocks base method.
 func (m *MockProfileServer) GetUserProfile(arg0 context.Context, arg1 *proto.UserID) (*proto.ProfileData, error) {
 	m.ctrl.T.Helper()
@@ -342,6 +537,21 @@ func (m *MockProfileServer) GetUserProfile(arg0 context.Context, arg1 *proto.Use
 func (mr *MockProfileServerMockRecorder) GetUserProfile(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserProfile", reflect.TypeOf((*MockProfileServer)(nil).GetUserProfile), arg0, arg1)
+}
+
+// IsSubscription mocks base method.
+func (m *MockProfileServer) IsSubscription(arg0 context.Context, arg1 *proto.UserID) (*proto.Empty, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSubscription", arg0, arg1)
+	ret0, _ := ret[0].(*proto.Empty)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsSubscription indicates an expected call of IsSubscription.
+func (mr *MockProfileServerMockRecorder) IsSubscription(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSubscription", reflect.TypeOf((*MockProfileServer)(nil).IsSubscription), arg0, arg1)
 }
 
 // RemoveLike mocks base method.
