@@ -38,7 +38,7 @@ func (p *profileHandler) Register(router *echo.Echo) {
 	router.POST(constants.AddLikeURL, p.AddLike())
 	router.DELETE(constants.RemoveLikeURL, p.RemoveLike())
 	router.GET(constants.LikesURL, p.GetFavorites())
-	router.GET(constants.UserRatingUrl, p.GetRating())
+	router.GET(constants.UserRatingURL, p.GetRating())
 	router.GET(constants.PaymentsTokenURL, p.GetPaymentsToken())
 	router.POST(constants.PaymentURL, p.Payment())
 	router.POST(constants.SubscribeURL, p.Subscribe())
