@@ -115,6 +115,9 @@ func (p *profileHandler) Auth() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		avatarName := strings.ReplaceAll(ctx.Request().Header.Get("Req"), "/api/v1/minio/avatars/", "")
 
@@ -151,6 +154,9 @@ func (p *profileHandler) Auth() echo.HandlerFunc {
 func (p *profileHandler) Check() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		data := &profile.UserID{ID: userID}
 		_, err = p.profileMicroservice.IsSubscription(context.Background(), data)
@@ -177,7 +183,9 @@ func (p *profileHandler) Check() echo.HandlerFunc {
 func (p *profileHandler) GetUserProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
-
+		if err != nil {
+			return err
+		}
 		data := &profile.UserID{ID: userID}
 		userData, err := p.profileMicroservice.GetUserProfile(context.Background(), data)
 		if err != nil {
@@ -212,6 +220,9 @@ func (p *profileHandler) GetUserProfile() echo.HandlerFunc {
 func (p *profileHandler) EditAvatar() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		file, err := ctx.FormFile("file")
 		if err != nil {
@@ -288,6 +299,9 @@ func (p *profileHandler) EditAvatar() echo.HandlerFunc {
 func (p *profileHandler) EditProfile() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		userData := models.EditProfileDTO{}
 
@@ -358,6 +372,9 @@ func (p *profileHandler) GetCsrf() echo.HandlerFunc {
 func (p *profileHandler) AddLike() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		movieID := models.LikeDTO{}
 
@@ -394,6 +411,9 @@ func (p *profileHandler) AddLike() echo.HandlerFunc {
 func (p *profileHandler) RemoveLike() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		movieID := models.LikeDTO{}
 
@@ -429,6 +449,9 @@ func (p *profileHandler) RemoveLike() echo.HandlerFunc {
 func (p *profileHandler) GetFavorites() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		data := &profile.UserID{ID: userID}
 		userData, err := p.profileMicroservice.GetFavorites(context.Background(), data)
@@ -458,6 +481,9 @@ func (p *profileHandler) GetFavorites() echo.HandlerFunc {
 func (p *profileHandler) GetPaymentsToken() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		data := &profile.UserID{ID: userID}
 		token, err := p.profileMicroservice.GetPaymentsToken(context.Background(), data)
@@ -484,6 +510,9 @@ func (p *profileHandler) GetPaymentsToken() echo.HandlerFunc {
 func (p *profileHandler) Payment() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		token := models.TokenDTO{}
 
@@ -569,6 +598,9 @@ func (p *profileHandler) Subscribe() echo.HandlerFunc {
 func (p *profileHandler) GetRating() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		userID, requestID, err := constants.DefaultUserChecks(ctx, p.logger)
+		if err != nil {
+			return err
+		}
 
 		movieIDStr := ctx.QueryParam("movie_id")
 		movieID, err := strconv.Atoi(movieIDStr)
