@@ -36,10 +36,10 @@ func (p *profileHandler) Register(router *echo.Echo) {
 	router.GET(constants.CsrfURL, p.GetCsrf())
 	router.GET(constants.AuthURL, p.Auth())
 	router.GET(constants.CheckURL, p.Check())
-	router.POST(constants.AddLikeUrl, p.AddLike())
-	router.DELETE(constants.RemoveLikeUrl, p.RemoveLike())
-	router.GET(constants.LikesUrl, p.GetFavorites())
-	router.GET(constants.UserRatingUrl, p.GetRating())
+	router.POST(constants.AddLikeURL, p.AddLike())
+	router.DELETE(constants.RemoveLikeURL, p.RemoveLike())
+	router.GET(constants.LikesURL, p.GetFavorites())
+	router.GET(constants.UserRatingURL, p.GetRating())
 	router.GET(constants.PaymentsTokenURL, p.GetPaymentsToken())
 	router.POST(constants.PaymentURL, p.Payment())
 	router.POST(constants.SubscribeURL, p.Subscribe())
@@ -244,7 +244,7 @@ func (p *profileHandler) EditAvatar() echo.HandlerFunc {
 		fileType := http.DetectContentType(buffer)
 
 		// Validate File Type
-		if _, ex := constants.IMAGE_TYPES[fileType]; !ex {
+		if _, ex := constants.ImageTypes[fileType]; !ex {
 			return constants.RespError(ctx, p.logger, requestID, constants.FileTypeIsNotSupported, http.StatusBadRequest)
 		}
 
@@ -326,7 +326,7 @@ func (p *profileHandler) GetCsrf() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			return constants.RespError(ctx, p.logger, requestID, constants.NoRequestId, http.StatusInternalServerError)
+			return constants.RespError(ctx, p.logger, requestID, constants.NoRequestID, http.StatusInternalServerError)
 		}
 
 		cookie, err := ctx.Cookie("Session_cookie")
@@ -519,7 +519,7 @@ func (p *profileHandler) Subscribe() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
-			return constants.RespError(ctx, p.logger, requestID, constants.NoRequestId, http.StatusInternalServerError)
+			return constants.RespError(ctx, p.logger, requestID, constants.NoRequestID, http.StatusInternalServerError)
 		}
 
 		headerContentType := ctx.Request().Header.Get("Content-Type")
@@ -573,7 +573,7 @@ func (p *profileHandler) GetRating() echo.HandlerFunc {
 		movieIDStr := ctx.QueryParam("movie_id")
 		movieID, err := strconv.Atoi(movieIDStr)
 		if err != nil {
-			return constants.RespError(ctx, p.logger, requestID, constants.NoMovieId, http.StatusBadRequest)
+			return constants.RespError(ctx, p.logger, requestID, constants.NoMovieID, http.StatusBadRequest)
 		}
 		data := &profile.MovieRating{UserID: userID, MovieID: int64(movieID)}
 

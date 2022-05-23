@@ -92,7 +92,7 @@ func RespError(ctx echo.Context, logger *zap.SugaredLogger, requestID, errorMsg 
 func DefaultUserChecks(ctx echo.Context, logger *zap.SugaredLogger) (int64, string, error) {
 	requestID, ok := ctx.Get("REQUEST_ID").(string)
 	if !ok {
-		return 0, "", RespError(ctx, logger, requestID, NoRequestId, http.StatusInternalServerError)
+		return 0, "", RespError(ctx, logger, requestID, NoRequestID, http.StatusInternalServerError)
 	}
 
 	userID, ok := ctx.Get("USER_ID").(int64)
