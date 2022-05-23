@@ -1,6 +1,13 @@
 package constants
 
-import "errors"
+import (
+	"errors"
+	"github.com/labstack/echo/v4"
+	"github.com/mailru/easyjson"
+	"go.uber.org/zap"
+	"myapp/internal/models"
+	"net/http"
+)
 
 var (
 	ErrLetter                  = errors.New("at least one letter is required")
@@ -65,3 +72,19 @@ const (
 	PersonsSearchLimit = 3
 	Price              = 2
 )
+
+func RespError(ctx echo.Context, logger *zap.SugaredLogger, requestID, errorMsg string, status int) error {
+	logger.Error(
+		zap.String("ID", requestID),
+		zap.String("ERROR", errorMsg),
+		zap.Int("ANSWER STATUS", status),
+	)
+	resp, err := easyjson.Marshal(&models.Response{
+		Status:  status,
+		Message: errorMsg,
+	})
+	if err != nil {
+		return ctx.NoContent(http.StatusInternalServerError)
+	}
+	return ctx.JSONBlob(status, resp)
+}
