@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"github.com/mailru/easyjson"
 	"myapp/internal"
 	"myapp/internal/constants"
 	compilations "myapp/internal/microservices/compilations/proto"
@@ -59,23 +60,6 @@ func (h *compilationsHandler) Register(router *echo.Echo) {
 	router.GET(MCFavoritesFilmsURL, h.GetFavoritesFilms())
 	router.GET(MCFavoritesSeriesURL, h.GetFavoritesSeries())
 	router.POST(MCFindURL, h.Find())
-}
-
-func (h *compilationsHandler) defaultUserChecks(ctx echo.Context) (int64, string, error) {
-	requestID, ok := ctx.Get("REQUEST_ID").(string)
-	if !ok {
-		return 0, "", constants.RespError(ctx, h.logger, requestID, constants.NoRequestId, http.StatusInternalServerError)
-	}
-
-	userID, ok := ctx.Get("USER_ID").(int64)
-	if !ok {
-		return 0, "", constants.RespError(ctx, h.logger, requestID, constants.SessionRequired, http.StatusBadRequest)
-	}
-
-	if userID == -1 {
-		return userID, "", constants.RespError(ctx, h.logger, requestID, constants.UserIsUnauthorized, http.StatusUnauthorized)
-	}
-	return userID, requestID, nil
 }
 
 func convertMC(in *compilations.MovieCompilation) *internal.MovieCompilation {
@@ -147,7 +131,7 @@ func convertSearchCompilations(in *compilations.SearchCompilation) *models.Searc
 
 func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		_, requestID, err := h.defaultUserChecks(ctx)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -179,7 +163,7 @@ func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetAllSeries() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		_, requestID, err := h.defaultUserChecks(ctx)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -210,7 +194,7 @@ func (h *compilationsHandler) GetAllSeries() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetMoviesCompilations() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		_, requestID, err := h.defaultUserChecks(ctx)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -236,7 +220,7 @@ func (h *compilationsHandler) GetMoviesCompilations() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetMCByMovieID() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		_, requestID, err := h.defaultUserChecks(ctx)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -253,13 +237,17 @@ func (h *compilationsHandler) GetMCByMovieID() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
 func (h *compilationsHandler) GetMCByGenre() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		_, requestID, err := h.defaultUserChecks(ctx)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -276,13 +264,17 @@ func (h *compilationsHandler) GetMCByGenre() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
 func (h *compilationsHandler) GetMCByPersonID() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		_, requestID, err := h.defaultUserChecks(ctx)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -299,7 +291,11 @@ func (h *compilationsHandler) GetMCByPersonID() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
@@ -319,7 +315,11 @@ func (h *compilationsHandler) GetTopMC() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
@@ -338,13 +338,18 @@ func (h *compilationsHandler) GetYearTopMC() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
 func (h *compilationsHandler) GetFavorites() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		userID, requestID, err := h.defaultUserChecks(ctx)
+		userID, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -379,7 +384,7 @@ func (h *compilationsHandler) GetFavorites() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetFavoritesFilms() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		userID, requestID, err := h.defaultUserChecks(ctx)
+		userID, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -408,7 +413,7 @@ func (h *compilationsHandler) GetFavoritesFilms() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetFavoritesSeries() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		userID, requestID, err := h.defaultUserChecks(ctx)
+		userID, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -430,14 +435,13 @@ func (h *compilationsHandler) GetFavoritesSeries() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-
 		return ctx.JSON(http.StatusOK, convertMC(selectedMC).Movies)
 	}
 }
 
 func (h *compilationsHandler) Find() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		_, requestID, err := h.defaultUserChecks(ctx)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
 		if err != nil {
 			return err
 		}
@@ -455,6 +459,14 @@ func (h *compilationsHandler) Find() echo.HandlerFunc {
 			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
-		return ctx.JSON(http.StatusOK, convertSearchCompilations(searchedMC))
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+		resp, err := easyjson.Marshal(convertSearchCompilations(searchedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }

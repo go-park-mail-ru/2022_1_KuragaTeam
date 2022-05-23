@@ -88,3 +88,20 @@ func RespError(ctx echo.Context, logger *zap.SugaredLogger, requestID, errorMsg 
 	}
 	return ctx.JSONBlob(status, resp)
 }
+
+func DefaultUserChecks(ctx echo.Context, logger *zap.SugaredLogger) (int64, string, error) {
+	requestID, ok := ctx.Get("REQUEST_ID").(string)
+	if !ok {
+		return 0, "", RespError(ctx, logger, requestID, NoRequestId, http.StatusInternalServerError)
+	}
+
+	userID, ok := ctx.Get("USER_ID").(int64)
+	if !ok {
+		return 0, "", RespError(ctx, logger, requestID, SessionRequired, http.StatusBadRequest)
+	}
+
+	if userID == -1 {
+		return userID, "", RespError(ctx, logger, requestID, UserIsUnauthorized, http.StatusUnauthorized)
+	}
+	return userID, requestID, nil
+}

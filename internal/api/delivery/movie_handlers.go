@@ -5,7 +5,6 @@ import (
 	"myapp/internal"
 	"myapp/internal/constants"
 	movie "myapp/internal/microservices/movie/proto"
-	"myapp/internal/models"
 	"net/http"
 	"strconv"
 
@@ -13,11 +12,6 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 )
-
-//type Response struct {
-//	Status  int    `json:"status"`
-//	Message string `json:"message"`
-//}
 
 const (
 	movieURL      = "api/v1/movie/:movie_id"
@@ -115,36 +109,12 @@ func (h *handler) GetMovie() echo.HandlerFunc {
 
 		movieID, err := strconv.Atoi(ctx.Param("movie_id"))
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			resp, err := easyjson.Marshal(&models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-			if err != nil {
-				return ctx.NoContent(http.StatusInternalServerError)
-			}
-			return ctx.JSONBlob(http.StatusInternalServerError, resp)
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
 		selectedMovie, err := h.movieMicroservice.GetByID(context.Background(), &movie.GetMovieOptions{MovieID: int64(movieID)})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			resp, err := easyjson.Marshal(&models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-			if err != nil {
-				return ctx.NoContent(http.StatusInternalServerError)
-			}
-			return ctx.JSONBlob(http.StatusInternalServerError, resp)
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
@@ -164,19 +134,7 @@ func (h *handler) GetMainMovie() echo.HandlerFunc {
 		requestID := ctx.Get("REQUEST_ID").(string)
 		mainMovie, err := h.movieMicroservice.GetMainMovie(context.Background(), &movie.GetMainMovieOptions{})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			resp, err := easyjson.Marshal(&models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-			if err != nil {
-				return ctx.NoContent(http.StatusInternalServerError)
-			}
-			return ctx.JSONBlob(http.StatusInternalServerError, resp)
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
@@ -192,69 +150,14 @@ func (h *handler) GetMainMovie() echo.HandlerFunc {
 
 func (h *handler) AddMovieRating() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID, ok := ctx.Get("REQUEST_ID").(string)
-		if !ok {
-			h.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			resp, err := easyjson.Marshal(&models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
-			})
-			if err != nil {
-				return ctx.NoContent(http.StatusInternalServerError)
-			}
-			return ctx.JSONBlob(http.StatusInternalServerError, resp)
+		userID, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
 		}
-
-		userID, ok := ctx.Get("USER_ID").(int64)
-		if !ok {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.SessionRequired),
-				zap.Int("ANSWER STATUS", http.StatusBadRequest),
-			)
-			resp, err := easyjson.Marshal(&models.Response{
-				Status:  http.StatusBadRequest,
-				Message: constants.SessionRequired,
-			})
-			if err != nil {
-				return ctx.NoContent(http.StatusInternalServerError)
-			}
-			return ctx.JSONBlob(http.StatusBadRequest, resp)
-		}
-		if userID == -1 {
-			h.logger.Info(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.UserIsUnauthorized),
-				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
-			)
-			resp, err := easyjson.Marshal(&models.Response{
-				Status:  http.StatusUnauthorized,
-				Message: constants.UserIsUnauthorized,
-			})
-			if err != nil {
-				return ctx.NoContent(http.StatusInternalServerError)
-			}
-			return ctx.JSONBlob(http.StatusUnauthorized, resp)
-		}
-
 		requestOptions := internal.MovieRatingDTO{}
 
 		if err := ctx.Bind(&requestOptions); err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			resp, err := easyjson.Marshal(&models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-			if err != nil {
-				return ctx.NoContent(http.StatusInternalServerError)
-			}
-			return ctx.JSONBlob(http.StatusInternalServerError, resp)
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
 		data := &movie.AddRatingOptions{
@@ -265,19 +168,7 @@ func (h *handler) AddMovieRating() echo.HandlerFunc {
 
 		newRating, err := h.movieMicroservice.AddMovieRating(context.Background(), data)
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			resp, err := easyjson.Marshal(&models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-			if err != nil {
-				return ctx.NoContent(http.StatusInternalServerError)
-			}
-			return ctx.JSONBlob(http.StatusInternalServerError, resp)
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
 		h.logger.Info(
