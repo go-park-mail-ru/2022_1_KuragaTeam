@@ -78,6 +78,6 @@ type MovieCompilation struct {
 }
 
 type MovieRatingDTO struct {
-	MovieID int `json:"id,string" form:"id"`
-	Rating  int `json:"rating,string" form:"rating"`
+	MovieID int `json:"id" form:"id"`
+	Rating  int `json:"rating" form:"rating"`
 }
