@@ -8,6 +8,6 @@ type Storage interface {
 	CreateUser(data *proto.SignUpData) (int64, error)
 
 	StoreSession(userID int64) (string, error)
-	GetUserId(session string) (int64, error)
+	GetUserID(session string) (int64, error)
 	DeleteSession(session string) error
 }

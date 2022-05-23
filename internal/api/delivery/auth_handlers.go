@@ -104,11 +104,11 @@ func (a *authHandler) LogIn() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			a.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			resp, err := easyjson.Marshal(&models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 			if err != nil {
 				return ctx.NoContent(http.StatusInternalServerError)
@@ -172,11 +172,11 @@ func (a *authHandler) SignUp() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			a.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			resp, err := easyjson.Marshal(&models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 			if err != nil {
 				return ctx.NoContent(http.StatusInternalServerError)
@@ -238,11 +238,11 @@ func (a *authHandler) LogOut() echo.HandlerFunc {
 		requestID, ok := ctx.Get("REQUEST_ID").(string)
 		if !ok {
 			a.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
+				zap.String("ERROR", constants.NoRequestID),
 				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
 			resp, err := easyjson.Marshal(&models.Response{
 				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
+				Message: constants.NoRequestID,
 			})
 			if err != nil {
 				return ctx.NoContent(http.StatusInternalServerError)

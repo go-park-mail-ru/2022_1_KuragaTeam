@@ -192,6 +192,32 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
          'спасти кому-то жизнь. Если бы все было по его воле, то Хаус лечил бы больных не выходя из своего кабинета.',
          '8.8', 'Genius has side effects', 'HouseMD.webp', 'HouseMD.webm', 'HouseMD.webm') RETURNING id;
 
+  INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
+  VALUES('Джентельмены', 'Gentlemen.webp', true, '2019', '1 час 53 минуты', '18',
+         'Ушлый наркоторговец придумал схему нелегального обогащения — с использованием поместий ' ||
+         'обедневшей английской аристократии. На успешный бизнес заглядываются партнер-еврей, китайская диаспора, темнокожие спортсмены и русский олигарх. ',
+         '8.5', 'Чтобы стать царем зверей, мало вести себя по-царски, надо быть царем', 'Gentlemen.webp', 'Gentlemen.mp4', 'Gentlemen.mp4') RETURNING id;
+
+  INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
+  VALUES('Паразиты', 'Parasites.webp', true, '2019', '2 часа 11 минут', '18',
+         'Генеральный директор международной IT-компании мистер Пак живёт со своей семьёй в роскошном особняке, полном дизайнерских вещей, '||
+         'произведений искусства и мрачных тайн. Скрытое становится явным, когда у старшей дочери мистера Пака появляется новый репетитор по английскому языку',
+         '8.0', 'Стоит уверовать в собственную ложь, тебе уже кажется, что ты наделен силой', 'Parasites.webp', 'Parasites.mp4', 'Parasites.mp4') RETURNING id;
+
+  INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
+  VALUES('Волк с Уолл-Стрит', 'WolfOfWallStreet.webp', true, '2013', '2 часа 52 минуты', '18','Что делать, если ты в короткое время сделал огромное состояние,'||
+       ' а потом прокутил его и сел в тюрьму? Написать об этом книгу и читать лекции об успехе. Так и поступил Джордан Белфорт, '||
+       'прообраз главного героя. Совместная работа Мартина Скорсезе и Леонардо Ди Каприо в очередной раз великолепна. «Оскар» '||
+       'снова прошел мимо Леонардо, но фильм в одночасье приобрел мировую известность','7.9', 'Риск — это лекарство от старости', 'WolfOfWallStreet.webp', 'WolfOfWallStreet.mp4', 'WolfOfWallStreet.mp4') RETURNING id;
+
+  INSERT INTO movies(name, name_picture, is_movie, year, duration, age_limit, description, kinopoisk_rating, tagline, picture, video, trailer)
+  VALUES('Молодой папа', 'YoungPope.webp', false, '2016', '1 сезон', '16','Драматический сериал о кардинале Ленни Белардо, который становится не только самым молодым'||
+      ' в истории Папой римским, но и самым харизматичным, непредсказуемым и своенравным. Проект из десяти серий, полностью поставленный Паоло Соррентино, одним из главных современных '||
+      'режиссеров и новой надеждой итальянского кино, был восторженно принят и зрителями, и критиками. В главной роли — британец Джуд Лоу','8.2', 'Я священнослужитель и я отказался от своих '||
+      ' собратьев и от женщин', 'YoungPope.webp', 'YoungPope.mp4', 'YoungPope.mp4') RETURNING id;
+
+
+
   DELETE FROM movies WHERE id = 4;
   DELETE FROM movies WHERE id = 5;
 
@@ -265,7 +291,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('13', '3');
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('14', '3');
   INSERT INTO movies_genre(movie_id, genre_id) VALUES('14', '10');
-
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('15', '2');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('15', '1');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('16', '3');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('16', '8');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('17', '3');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('17', '1');
+  INSERT INTO movies_genre(movie_id, genre_id) VALUES('18', '3');
 
   CREATE TABLE IF NOT EXISTS country(
       id smallserial constraint country_pk primary key,
@@ -281,6 +313,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO country(name) VALUES('Норвегия');
   INSERT INTO country(name) VALUES('Индия');
   INSERT INTO country(name) VALUES('Германия');
+  INSERT INTO country(name) VALUES('Южная Корея');
+  INSERT INTO country(name) VALUES('Италия');
 
   BEGIN;
   CREATE TABLE movies_countries(
@@ -315,6 +349,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO movies_countries(movie_id, country_id) VALUES('13', '2');
   INSERT INTO movies_countries(movie_id, country_id) VALUES('13', '9');
   INSERT INTO movies_countries(movie_id, country_id) VALUES('14', '3');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('15', '3');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('16', '10');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('17', '3');
+  INSERT INTO movies_countries(movie_id, country_id) VALUES('18', '11');
 
   CREATE TABLE IF NOT EXISTS person(
      id serial constraint person_pk primary key,
@@ -364,6 +402,15 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
       'за режиссуру фильма «Терминатор». Его самые высокобюджетные киноленты - «Титаник» и «Аватар», причём первая ' ||
      'удостоилась премии «Оскар» в номинациях «Лучший фильм», «Лучший режиссёр» и «Лучший монтаж».');
 
+  INSERT INTO person(name, photo, addit_photo1, addit_photo2, description) VALUES('Пон Джун-хо', 'PonHo.webp','PonHo1.webp', 'PonHo2.webp', 'Родился 14 сентября, 1969. Южнокорейский кинорежиссёр и сценарист. Лауреат четырёх премий «Оскар» за один год '||
+     '. Получил приз южнокорейской кинопромышленности 2003 года за свой фильм «Воспоминания об убийстве», в котором ' ||
+     'осветил тему нераскрываемых преступлений. Бывший активист студенческого движения, член Новой демократической партии.');
+
+  INSERT INTO person(name, photo, addit_photo1, addit_photo2, description) VALUES('Джуд Лоу', 'JudeLaw.webp','JudeLaw1.webp', 'JudeLaw2.webp', 'Родился' ||
+     '29 декабря, 1972. Британский актёр театра и кино. Наибольшую известность приобрёл после фильмов «Талантливый мистер Рипли» (1999, премия BAFTA за лучшую мужскую роль второго плана; 2000, номинации на «Оскар» — лучшая мужская роль второго плана), «Холодная гора» (2003, номинации на «Оскар» и «Золотой глобус»), «Близость» (2004), а также «Шерлок Холмс» (2009, номинация на премию «Сатурн»).');
+
+  INSERT INTO person(name, photo, addit_photo1, addit_photo2, description) VALUES('Гай Ричи', 'GuyRitchie.webp','GuyRitchie1.webp', 'GuyRitchie2.webp', 'Родился '||
+        '10 сентября 1968. Британский кинорежиссёр, сценарист, продюсер, чаще всего работающий в жанре криминальной комедии. Наиболее известные фильмы — «Карты, деньги, два ствола», «Большой куш», «Револьвер», «Рок-н-рольщик», «Шерлок Холмс», «Шерлок Холмс: Игра теней», «Агенты А.Н.К.Л.», «Меч короля Артура», «Аладдин», «Джентльмены», «Гнев человеческий».');
 
   CREATE TABLE IF NOT EXISTS position(
       id serial constraint position_pk primary key,
@@ -395,6 +442,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO movies_staff(movie_id, person_id, position_id) VALUES('6', '5', '4');
   INSERT INTO movies_staff(movie_id, person_id, position_id) VALUES('1', '6', '1');
   INSERT INTO movies_staff(movie_id, person_id, position_id) VALUES('2', '6', '1');
+  INSERT INTO movies_staff(movie_id, person_id, position_id) VALUES('15', '5', '4');
+  INSERT INTO movies_staff(movie_id, person_id, position_id) VALUES('16', '7', '1');
+  INSERT INTO movies_staff(movie_id, person_id, position_id) VALUES('17', '5', '4');
+  INSERT INTO movies_staff(movie_id, person_id, position_id) VALUES('18', '8', '4');
+  INSERT INTO movies_staff(movie_id, person_id, position_id) VALUES('15', '9', '1');
 
 
   CREATE TABLE IF NOT EXISTS seasons(
@@ -409,6 +461,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
       INSERT INTO seasons(number, movie_id) VALUES (i, '14');
     END LOOP;
   END\$\$;
+
+  INSERT INTO seasons(number, movie_id) VALUES (1, '18');
 
   CREATE TABLE IF NOT EXISTS episode (
        id serial constraint episode_pk primary key,
@@ -607,6 +661,17 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
   INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('После смерти', '20', 'Команда берется за случай доктора Питера Трейбера, патолога из клиники Принстон-Плейнсборо, который знает слишком многое о больничном персонале, чтобы довериться любому из врачей. Единственный человек, которого он действительно уважает - Хаус, но он таинственно пропал без вести. В отсутствии Грегори Хауса команда должна Трейбера поверить в то, что все процедуры, которые они назначают, прописывает лично Хаус.', '8', 'HouseMD_8_20.mp4', 'HouseMD_8_20.webp');
   INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('Держась', '21', 'Возвращается  бывшая сотрудница клиники Принстон Плейнсборо, Тринадцать. Команда берет случай Деррика, 19-летнего студента колледжа, у которого во время репетиции черлидинга пошла кровь носом, а позже обнаруживают, что его проблемы со здоровьем, вероятно, как физиологические, так и психологические. Возможно страдая от шизофрении, Деррик утверждает, что в голове услышал голос своего умершего брата. Тем временем Форман пробует другой подход к Хаусу.', '8', 'HouseMD_8_21.mp4', 'HouseMD_8_21.webp');
   INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('Все умирают', '22', 'Лечение пациента-наркомана заставляет Хауса пристальнее взглянуть на собственную жизнь, на будущее и на своих демонов.', '8', 'HouseMD_8_22.mp4', 'HouseMD_8_22.webp');
+
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '1', 'Ленни Белардо становится первым американцем в сане Папы Римского, и уже с первых дней своего возвышения радикально меняет курс Ватикана. Сестра Мэри, воспитавшая сироту Ленни, занимает место рядом с Папой и тут же получает врага в лице могущественного кардинала Войелло. Как другие близкие Ленни переживут такую перемену в его жизни?', '9', 'YoungPope_1_1.mp4', 'YoungPope_1_1.webp');
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '2', 'Ленни должен выступить с первым посланием в качестве Папы, и составление этой речи сильно выматывает его. Несмотря на попытки сестры Мэри и кардинала Войелло повлиять на своенравного Папу, он остается верен себе, и его выступление повергает в шок присутствующих и весь мир. Борясь с внутренними демонами, Ленни погружается в воспоминания о детстве.', '9', 'YoungPope_1_2.mp4', 'YoungPope_1_2.webp');
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '3', 'Ленни решает продолжить возвращение церкви к консервативной политике, несмотря на сопротивление своих советников. Когда всплывает правда о недавних событиях, Спенсер и Войелло вынуждены заключить необычный союз. От волнения и нервного напряжения Папа теряет сознание прямо во время общения с молодой верующей.', '9', 'YoungPope_1_3.mp4', 'YoungPope_1_3.webp');
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '4', 'Ленни лишает спокойной жизни свое окружение: он отчитывает монахиню прямо на похоронах, порывает связи со Спенсером, грозит изгнать из Ватикана всех гомосексуалистов. В это время Войелло пытается обрести рычаг влияния на Папу, вводя в его общество молодых женщин — жену гвардейца и начальницу отдела маркетинга Ватикана.', '9', 'YoungPope_1_4.mp4', 'YoungPope_1_4.webp');
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '5', 'Ленни на корню пресекает попытки Эстер переспать с ним, и планы Войелло устроить сексуальный скандал рушатся. Когда в Ватикан прибывает папская тиара, Ленни должен выступить с посланием к кардиналам, и подготовка оказывается изнурительной. В знаменательный день ему снова удается повергнуть в шок всех слушателей в зале.', '9', 'YoungPope_1_5.mp4', 'YoungPope_1_5.webp');
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '6', 'Почти год спустя Ленни впервые встречается с премьер-министром Италии и выдвигает новые требования от имени церкви. Как политик отреагирует на этот шаг и кто победит в борьбе за власть над людьми? Следующим приказом Папы становится жесткий отбор священников. В это время молодой студент семинарии пытается добиться встречи с Ленни.', '9', 'YoungPope_1_6.mp4', 'YoungPope_1_6.webp');
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '7', 'Решения Ленни могут привести к катастрофе для католической церкви, но Папа не намерен останавливаться, несмотря на увещевания кардиналов. Единственное, что может отвлечь его от работы — возможность встретить своих родителей. Но принесет ли ему удовлетворение эта встреча? Чтобы установить контроль над Ленни, кардиналы заключают новую сделку со Спенсером.', '9', 'YoungPope_1_7.mp4', 'YoungPope_1_7.webp');
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '8', 'Неожиданно для всех Ленни призывает к себе Софию и принимает ее предложение отправиться в миссию католической церкви в Африке. Когда Папа отказывается давать интервью прессе, Войелло начинает догадываться о причинах такой скрытности. В Африке Ленни сталкивается с грязной изнанкой деятельности церкви, и его вера снова подвергается испытанию.', '9', 'YoungPope_1_8.mp4', 'YoungPope_1_8.webp');
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '9', 'Кардинал Гутьеррес, проводящий расследование в Нью-Йорке, должен узнать правду о человеке, шантажирующем самого Папу Римского. Сможет ли Куртвелл предугадать все шаги кардинала? Насколько ужасна правда, которую пытаются скрыть обе стороны шантажа? В это время в Ватикане Спенсер находится на грани смерти и обращается к Ленни с необычной просьбой', '9', 'YoungPope_1_9.mp4', 'YoungPope_1_9.webp');
+  INSERT INTO episode(name, number, description, season_id, video, photo) VALUES ('', '10', 'Новый прилив веры у Ленни ведет к решительным действиям и большим переменам в окружении. Задумавшись о своем будущем, он соглашается провести Рождество в Гватемале, но в последний момент меняет решение. Чем закончится этот праздник для католиков во всем мире? Сможет ли Пий XIII удивить верующих и кардиналов еще раз?', '9', 'YoungPope_1_10.mp4', 'YoungPope_1_10.webp');
 
 EOSQL
 

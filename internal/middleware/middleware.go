@@ -47,7 +47,20 @@ func (m Middleware) CheckAuthorization() echo.MiddlewareFunc {
 				data := &authorization.Cookie{Cookie: cookie.Value}
 				id, err := m.authMicroservice.CheckAuthorization(context.Background(), data)
 				if err != nil {
-					cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
+					cookie = &http.Cookie{
+						Name:       "",
+						Value:      "",
+						Path:       "",
+						Domain:     "",
+						Expires:    time.Now().AddDate(0, 0, -1),
+						RawExpires: "",
+						MaxAge:     0,
+						Secure:     false,
+						HttpOnly:   false,
+						SameSite:   0,
+						Raw:        "",
+						Unparsed:   nil,
+					}
 					ctx.SetCookie(cookie)
 					ctx.Set("USER_ID", int64(-1))
 					return next(ctx)
@@ -55,7 +68,20 @@ func (m Middleware) CheckAuthorization() echo.MiddlewareFunc {
 				userID = id.ID
 			}
 			if err != nil {
-				cookie = &http.Cookie{Expires: time.Now().AddDate(0, 0, -1)}
+				cookie = &http.Cookie{
+					Name:       "",
+					Value:      "",
+					Path:       "",
+					Domain:     "",
+					Expires:    time.Now().AddDate(0, 0, -1),
+					RawExpires: "",
+					MaxAge:     0,
+					Secure:     false,
+					HttpOnly:   false,
+					SameSite:   0,
+					Raw:        "",
+					Unparsed:   nil,
+				}
 				ctx.SetCookie(cookie)
 			}
 
@@ -68,9 +94,13 @@ func (m Middleware) CheckAuthorization() echo.MiddlewareFunc {
 
 func (m Middleware) CORS() echo.MiddlewareFunc {
 	return middleware.CORSWithConfig(middleware.CORSConfig{
+		Skipper:          nil,
 		AllowOrigins:     []string{"http://movie-space.ru:8080", "http://localhost:8080", "http://movie-space.ru", "https://movie-space.ru", "https://yoomoney.ru"},
+		AllowOriginFunc:  nil,
+		AllowMethods:     nil,
 		AllowHeaders:     []string{"Accept", "Cache-Control", "Content-Type", "X-Requested-With", "csrf-token"},
 		AllowCredentials: true,
+		ExposeHeaders:    nil,
 		MaxAge:           84600,
 	})
 }
@@ -78,13 +108,13 @@ func (m Middleware) CORS() echo.MiddlewareFunc {
 func (m Middleware) AccessLog() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
-			id, _ := uuid.NewV4()
+			newUUID, _ := uuid.NewV4()
 
 			start := time.Now()
-			ctx.Set("REQUEST_ID", id.String())
+			ctx.Set("REQUEST_ID", newUUID.String())
 
 			m.logger.Info(
-				zap.String("ID", id.String()),
+				zap.String("ID", newUUID.String()),
 				zap.String("URL", ctx.Request().URL.Path),
 				zap.String("METHOD", ctx.Request().Method),
 			)
@@ -93,7 +123,7 @@ func (m Middleware) AccessLog() echo.MiddlewareFunc {
 
 			responseTime := time.Since(start)
 			m.logger.Info(
-				zap.String("ID", id.String()),
+				zap.String("ID", newUUID.String()),
 				zap.Duration("TIME FOR ANSWER", responseTime),
 			)
 
