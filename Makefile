@@ -1,5 +1,4 @@
 lint:
-	export PATH=$PATH:$GOPATH/bin
 	go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	golangci-lint run
 test:
