@@ -1077,7 +1077,7 @@ func TestProfileRepository_CheckCountPaymentsByToken(t *testing.T) {
 					WithArgs(driver.Value("token")).WillReturnRows(rows)
 			},
 			token:       "token",
-			expectedErr: constants.WrongCountPaymentsForToken,
+			expectedErr: constants.ErrWrongCountPaymentsForToken,
 		},
 	}
 
@@ -1215,7 +1215,7 @@ func TestProfileRepository_IsSubscription(t *testing.T) {
 					WithArgs(driver.Value(1)).WillReturnRows(rows)
 			},
 			userID:      int64(1),
-			expectedErr: constants.NoSubscription,
+			expectedErr: constants.ErrNoSubscription,
 		},
 	}
 
