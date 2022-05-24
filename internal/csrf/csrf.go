@@ -9,17 +9,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/joho/godotenv"
 )
 
 var Tokens *HashToken
 
 func init() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		return
-	}
 	Tokens = NewHMACHashToken(os.Getenv("CSRF_SECRET"))
 }
 
