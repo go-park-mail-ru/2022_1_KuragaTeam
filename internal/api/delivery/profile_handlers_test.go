@@ -9,6 +9,7 @@ import (
 	"myapp/internal/microservices/profile/usecase"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -943,6 +944,687 @@ func TestProfileHandler_GetFavorites(t *testing.T) {
 
 			likes := handler.GetFavorites()
 			_ = likes(ctx)
+
+			body := rec.Body.String()
+			status := rec.Code
+
+			assert.Equal(t, test.expectedJSON, body)
+			assert.Equal(t, th.expectedStatus, status)
+		})
+	}
+}
+
+func TestProfileHandler_Check(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
+	mockService := usecase.NewMockProfileClient(ctl)
+
+	tests := []struct {
+		name           string
+		mock           func()
+		expectedStatus int
+		expectedJSON   string
+		userIDKey      string
+		userIDValue    int64
+		requestID      string
+	}{
+		{
+			name: "Handler returned status 200",
+			mock: func() {
+				data := &proto.UserID{ID: 1}
+				gomock.InOrder(
+					mockService.EXPECT().IsSubscription(gomock.Any(), data).Return(&proto.Empty{}, nil),
+				)
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":200,\"message\":\"ok\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name:           "Handler returned status 500, wrong REQUEST_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}\n",
+			requestID:      "WRONG_REQUEST_ID",
+		},
+		{
+			name:           "Handler returned status 500, ctx hasn't USER_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			userIDKey:      "WRONG_USER_ID",
+			userIDValue:    int64(-1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name:           "Handler returned status 401, User is unauthorized",
+			mock:           func() {},
+			expectedStatus: http.StatusUnauthorized,
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(-1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name: "Handler returned status 500, usecase IsSubscription error",
+			mock: func() {
+				data := &proto.UserID{ID: 1}
+				gomock.InOrder(
+					mockService.EXPECT().IsSubscription(gomock.Any(), data).Return(&proto.Empty{}, status.Error(codes.Internal, "error")),
+				)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name: "Handler returned status 403",
+			mock: func() {
+				data := &proto.UserID{ID: 1}
+				gomock.InOrder(
+					mockService.EXPECT().IsSubscription(gomock.Any(), data).Return(&proto.Empty{}, status.Error(codes.PermissionDenied, constants.NoSubscription.Error())),
+				)
+			},
+			expectedStatus: http.StatusForbidden,
+			expectedJSON:   "{\"status\":403,\"message\":\"no subscription\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := echo.New()
+			th := test
+
+			req := httptest.NewRequest(echo.GET, "/api/v1/check", nil)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+			ctx.Set(th.requestID, "1")
+			ctx.Set(th.userIDKey, th.userIDValue)
+
+			th.mock()
+
+			handler := NewProfileHandler(logger, mockService)
+			handler.Register(server)
+
+			check := handler.Check()
+			_ = check(ctx)
+
+			body := rec.Body.String()
+			status := rec.Code
+
+			assert.Equal(t, test.expectedJSON, body)
+			assert.Equal(t, th.expectedStatus, status)
+		})
+	}
+}
+
+func TestProfileHandler_GetPaymentsToken(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
+	mockService := usecase.NewMockProfileClient(ctl)
+
+	tests := []struct {
+		name           string
+		mock           func()
+		expectedStatus int
+		expectedJSON   string
+		userIDKey      string
+		userIDValue    int64
+		requestID      string
+	}{
+		{
+			name: "Handler returned status 200",
+			mock: func() {
+				data := &proto.UserID{ID: 1}
+				outputData := &proto.Token{Token: "token"}
+				gomock.InOrder(
+					mockService.EXPECT().GetPaymentsToken(gomock.Any(), data).Return(outputData, nil),
+				)
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":200,\"message\":\"token\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name:           "Handler returned status 500, wrong REQUEST_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}\n",
+			requestID:      "WRONG_REQUEST_ID",
+		},
+		{
+			name:           "Handler returned status 500, ctx hasn't USER_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			userIDKey:      "WRONG_USER_ID",
+			userIDValue:    int64(-1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name:           "Handler returned status 401, User is unauthorized",
+			mock:           func() {},
+			expectedStatus: http.StatusUnauthorized,
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(-1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name: "Handler returned status 500, usecase GetPaymentsToken error",
+			mock: func() {
+				data := &proto.UserID{ID: 1}
+				outputData := &proto.Token{}
+				gomock.InOrder(
+					mockService.EXPECT().GetPaymentsToken(gomock.Any(), data).Return(outputData, status.Error(codes.Internal, "error")),
+				)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := echo.New()
+			th := test
+
+			req := httptest.NewRequest(echo.GET, "/api/v1/payments/token", nil)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+			ctx.Set(th.requestID, "1")
+			ctx.Set(th.userIDKey, th.userIDValue)
+
+			th.mock()
+
+			handler := NewProfileHandler(logger, mockService)
+			handler.Register(server)
+
+			token := handler.GetPaymentsToken()
+			_ = token(ctx)
+
+			body := rec.Body.String()
+			status := rec.Code
+
+			assert.Equal(t, test.expectedJSON, body)
+			assert.Equal(t, th.expectedStatus, status)
+		})
+	}
+}
+
+func TestProfileHandler_Payment(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
+	mockService := usecase.NewMockProfileClient(ctl)
+
+	tests := []struct {
+		name           string
+		mock           func()
+		expectedStatus int
+		expectedJSON   string
+		requestID      string
+		data           string
+		userIDKey      string
+		userIDValue    int64
+	}{
+		{
+			name:           "Handler returned status 500, ctx hasn't USER_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			userIDKey:      "WRONG_USER_ID",
+			userIDValue:    int64(1),
+			data:           `{"token": "token"}`,
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name:           "Handler returned status 500, wrong REQUEST_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "WRONG_REQUEST_ID",
+		},
+		{
+			name:           "Handler returned status 401, User is unauthorized",
+			mock:           func() {},
+			expectedStatus: http.StatusUnauthorized,
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(-1),
+			data:           `{"token": "token"}`,
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name: "Handler returned status 200",
+			mock: func() {
+				userData := &proto.CheckTokenData{
+					Token: "token",
+					Id:    1,
+				}
+				gomock.InOrder(
+					mockService.EXPECT().CheckPaymentsToken(gomock.Any(), userData).Return(&proto.Empty{}, nil),
+					mockService.EXPECT().CreatePayment(gomock.Any(), userData).Return(&proto.Empty{}, nil),
+				)
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":200,\"message\":\"Payment is created\"}\n",
+			data:           `{"token": "token"}`,
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name: "Handler returned status 500, usecase CheckPaymentsToken error",
+			mock: func() {
+				userData := &proto.CheckTokenData{
+					Token: "token",
+					Id:    1,
+				}
+				gomock.InOrder(
+					mockService.EXPECT().CheckPaymentsToken(gomock.Any(), userData).Return(&proto.Empty{}, status.Error(codes.Internal, "error")),
+				)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			data:           `{"token": "token"}`,
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name: "Handler returned status 500, usecase CreatePayment error",
+			mock: func() {
+				userData := &proto.CheckTokenData{
+					Token: "token",
+					Id:    1,
+				}
+				gomock.InOrder(
+					mockService.EXPECT().CheckPaymentsToken(gomock.Any(), userData).Return(&proto.Empty{}, nil),
+					mockService.EXPECT().CreatePayment(gomock.Any(), userData).Return(&proto.Empty{}, status.Error(codes.Internal, "error")),
+				)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			data:           `{"token": "token"}`,
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+		},
+		{
+			name: "Handler returned status 400, usecase CreatePayment wrong payment token",
+			mock: func() {
+				userData := &proto.CheckTokenData{
+					Token: "token",
+					Id:    1,
+				}
+				gomock.InOrder(
+					mockService.EXPECT().CheckPaymentsToken(gomock.Any(), userData).Return(&proto.Empty{}, status.Error(codes.InvalidArgument, constants.WrongToken.Error())),
+				)
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"wrong payment token\"}\n",
+			data:           `{"token": "token"}`,
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := echo.New()
+			th := test
+
+			req := httptest.NewRequest(echo.POST, "/api/v1/payment", strings.NewReader(th.data))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+			ctx.Set(th.requestID, "1")
+			ctx.Set(th.userIDKey, th.userIDValue)
+
+			th.mock()
+
+			handler := NewProfileHandler(logger, mockService)
+			handler.Register(server)
+
+			payment := handler.Payment()
+			_ = payment(ctx)
+
+			body := rec.Body.String()
+			status := rec.Code
+
+			assert.Equal(t, test.expectedJSON, body)
+			assert.Equal(t, th.expectedStatus, status)
+		})
+	}
+}
+
+func TestProfileHandler_Subscribe(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
+	mockService := usecase.NewMockProfileClient(ctl)
+
+	data := url.Values{}
+	data.Set("label", "token")
+	data.Set("withdraw_amount", "2")
+
+	wrongData := url.Values{}
+	wrongData.Set("label", "token")
+	wrongData.Set("withdraw_amount", "a")
+
+	tests := []struct {
+		name           string
+		mock           func()
+		expectedStatus int
+		expectedJSON   string
+		requestID      string
+		contentType    string
+		input          url.Values
+	}{
+		{
+			name:           "Handler returned status 500, wrong REQUEST_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			requestID:      "WRONG_REQUEST_ID",
+			contentType:    echo.MIMEApplicationForm,
+			input:          data,
+		},
+		{
+			name: "Handler returned status 200",
+			mock: func() {
+				userData := &proto.Token{
+					Token: "token",
+				}
+
+				subscribeData := &proto.SubscribeData{
+					Token:  "token",
+					Amount: float32(2),
+				}
+				gomock.InOrder(
+					mockService.EXPECT().CheckToken(gomock.Any(), userData).Return(&proto.Empty{}, nil),
+					mockService.EXPECT().CreateSubscribe(gomock.Any(), subscribeData).Return(&proto.Empty{}, nil),
+				)
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":200,\"message\":\"Payment is created\"}\n",
+			requestID:      "REQUEST_ID",
+			contentType:    echo.MIMEApplicationForm,
+			input:          data,
+		},
+		{
+			name: "Handler returned status 415 wrong content type",
+			mock: func() {
+			},
+			expectedStatus: http.StatusUnsupportedMediaType,
+			expectedJSON:   "{\"status\":415,\"message\":\"Unsupported media type\"}\n",
+			requestID:      "REQUEST_ID",
+			contentType:    echo.MIMEApplicationJSON,
+			input:          data,
+		},
+		{
+			name: "Handler returned status 500 error ParseFloat",
+			mock: func() {
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"strconv.ParseFloat: parsing \\\"a\\\": invalid syntax\"}\n",
+			requestID:      "REQUEST_ID",
+			contentType:    echo.MIMEApplicationForm,
+			input:          wrongData,
+		},
+		{
+			name: "Handler returned status 500, CheckToken fail",
+			mock: func() {
+				userData := &proto.Token{
+					Token: "token",
+				}
+				gomock.InOrder(
+					mockService.EXPECT().CheckToken(gomock.Any(), userData).Return(&proto.Empty{}, status.Error(codes.Internal, "error")),
+				)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			requestID:      "REQUEST_ID",
+			contentType:    echo.MIMEApplicationForm,
+			input:          data,
+		},
+		{
+			name: "Handler returned status 500, CreateSubscribe fail",
+			mock: func() {
+				userData := &proto.Token{
+					Token: "token",
+				}
+
+				subscribeData := &proto.SubscribeData{
+					Token:  "token",
+					Amount: float32(2),
+				}
+				gomock.InOrder(
+					mockService.EXPECT().CheckToken(gomock.Any(), userData).Return(&proto.Empty{}, nil),
+					mockService.EXPECT().CreateSubscribe(gomock.Any(), subscribeData).Return(&proto.Empty{}, status.Error(codes.Internal, "error")),
+				)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			requestID:      "REQUEST_ID",
+			contentType:    echo.MIMEApplicationForm,
+			input:          data,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := echo.New()
+			th := test
+
+			req := httptest.NewRequest(echo.POST, "/api/v1/subscribe", strings.NewReader(th.input.Encode()))
+			req.Header.Set(echo.HeaderContentType, th.contentType)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+			ctx.Set(th.requestID, "1")
+
+			th.mock()
+
+			handler := NewProfileHandler(logger, mockService)
+			handler.Register(server)
+
+			subscribe := handler.Subscribe()
+			_ = subscribe(ctx)
+
+			body := rec.Body.String()
+			status := rec.Code
+
+			assert.Equal(t, test.expectedJSON, body)
+			assert.Equal(t, th.expectedStatus, status)
+		})
+	}
+}
+
+func TestProfileHandler_GetRating(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	prLogger, _ := config.Build()
+	logger := prLogger.Sugar()
+	defer prLogger.Sync()
+
+	mockService := usecase.NewMockProfileClient(ctl)
+
+	tests := []struct {
+		name           string
+		mock           func()
+		expectedStatus int
+		expectedJSON   string
+		requestID      string
+		userIDKey      string
+		param          string
+		userIDValue    int64
+		paramExists    bool
+	}{
+		{
+			name:           "Handler returned status 500, ctx hasn't USER_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			userIDKey:      "WRONG_USER_ID",
+			userIDValue:    int64(1),
+			param:          "1",
+			requestID:      "REQUEST_ID",
+			paramExists:    true,
+		},
+		{
+			name:           "Handler returned status 500, wrong REQUEST_ID",
+			mock:           func() {},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			param:          "1",
+			requestID:      "WRONG_REQUEST_ID",
+			paramExists:    true,
+		},
+		{
+			name:           "Handler returned status 401, User is unauthorized",
+			mock:           func() {},
+			expectedStatus: http.StatusUnauthorized,
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(-1),
+			param:          "1",
+			requestID:      "REQUEST_ID",
+			paramExists:    true,
+		},
+		{
+			name: "Handler returned status 200",
+			mock: func() {
+				data := &proto.MovieRating{UserID: 1, MovieID: int64(1)}
+				rating := &proto.Rating{Rating: 5}
+				gomock.InOrder(
+					mockService.EXPECT().GetMovieRating(gomock.Any(), data).Return(rating, nil),
+				)
+			},
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":200,\"rating\":5}\n",
+			param:          "1",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+			paramExists:    true,
+		},
+		{
+			name: "Handler returned status 500, No MovieID in context",
+			mock: func() {
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"No MovieID in context\"}\n",
+			param:          "1.6",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+			paramExists:    true,
+		},
+		{
+			name: "Handler returned status 500, GetMovieRating fail",
+			mock: func() {
+				data := &proto.MovieRating{UserID: 1, MovieID: int64(1)}
+				rating := &proto.Rating{Rating: 5}
+				gomock.InOrder(
+					mockService.EXPECT().GetMovieRating(gomock.Any(), data).Return(rating, status.Error(codes.Internal, "error")),
+				)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			param:          "1",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+			paramExists:    true,
+		},
+		{
+			name: "Handler returned status 404, rating nill",
+			mock: func() {
+				data := &proto.MovieRating{UserID: 1, MovieID: int64(1)}
+				gomock.InOrder(
+					mockService.EXPECT().GetMovieRating(gomock.Any(), data).Return(nil, nil),
+				)
+			},
+			expectedStatus: http.StatusNotFound,
+			expectedJSON:   "{\"status\":404,\"rating\":0}\n",
+			param:          "1",
+			userIDKey:      "USER_ID",
+			userIDValue:    int64(1),
+			requestID:      "REQUEST_ID",
+			paramExists:    true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := echo.New()
+			th := test
+
+			req := httptest.NewRequest(echo.GET, "/api/v1/userRating", nil)
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			ctx := server.NewContext(req, rec)
+			ctx.Set(th.requestID, "1")
+			ctx.Set(th.userIDKey, th.userIDValue)
+
+			if th.paramExists == true {
+				ctx.QueryParams().Set("movie_id", th.param)
+			}
+
+			th.mock()
+
+			handler := NewProfileHandler(logger, mockService)
+			handler.Register(server)
+
+			rating := handler.GetRating()
+			_ = rating(ctx)
 
 			body := rec.Body.String()
 			status := rec.Code

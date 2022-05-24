@@ -139,18 +139,6 @@ func (p *profileHandler) Auth() echo.HandlerFunc {
 			return p.ParseError(ctx, requestID, err)
 		}
 
-		if err != nil {
-			p.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
-		}
-
 		if avatarName != userAvatar.Name {
 			p.logger.Error(
 				zap.String("ID", requestID),
@@ -817,18 +805,8 @@ func (p *profileHandler) GetPaymentsToken() echo.HandlerFunc {
 
 		data := &profile.UserID{ID: userID}
 		token, err := p.profileMicroservice.GetPaymentsToken(context.Background(), data)
-
 		if err != nil {
-			p.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return p.ParseError(ctx, requestID, err)
 		}
 
 		p.logger.Info(
@@ -946,10 +924,10 @@ func (p *profileHandler) Subscribe() echo.HandlerFunc {
 			p.logger.Error(
 				zap.String("ID", requestID),
 				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusUnsupportedMediaType),
+				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 			)
-			return ctx.JSON(http.StatusUnsupportedMediaType, &models.Response{
-				Status:  http.StatusUnsupportedMediaType,
+			return ctx.JSON(http.StatusInternalServerError, &models.Response{
+				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 			})
 		}

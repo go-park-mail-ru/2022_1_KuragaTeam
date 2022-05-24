@@ -1096,75 +1096,140 @@ func TestProfileRepository_CheckCountPaymentsByToken(t *testing.T) {
 	}
 }
 
-//func TestProfileRepository_GetAmountByToken(t *testing.T) {
-//	db, mock, err := sqlmock.New()
-//	var minioClient *minio.Client
-//	if err != nil {
-//		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-//	}
-//	defer db.Close()
-//
-//	conn := redigomock.NewConn()
-//	pool := &redis.Pool{
-//		Dial:    func() (redis.Conn, error) { return conn, nil },
-//		MaxIdle: 10,
-//	}
-//
-//	storage := NewStorage(db, minioClient, pool)
-//
-//	likes := make([]int64, 0)
-//	likes = append(likes, 1, 2, 3)
-//
-//	tests := []struct {
-//		name           string
-//		mock           func()
-//		token          string
-//		expectedID     int64
-//		expectedAmount float32
-//		expectedErr    error
-//	}{
-//		{
-//			name: "Successfully",
-//			mock: func() {
-//				rows := sqlmock.NewRows([]string{"users_id", "amount"}).AddRow(1, 1)
-//				mock.ExpectQuery(regexp.QuoteMeta(`SELECT users_id, amount from payments where pay_token = $1`)).
-//					WithArgs(driver.Value("token")).WillReturnRows(rows)
-//			},
-//			token:       "token",
-//			expectedErr: nil,
-//		},
-//		{
-//			name: "Error occurred during SELECT request",
-//			mock: func() {
-//				mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(id) from payments where pay_token = $1`)).
-//					WithArgs(driver.Value("token")).WillReturnError(errors.New("Error occurred during request "))
-//			},
-//			token:       "token",
-//			expectedErr: errors.New("Error occurred during request "),
-//		},
-//		{
-//			name: "Wrong Count Payments For Token",
-//			mock: func() {
-//				rows := sqlmock.NewRows([]string{"count"}).AddRow(2)
-//				mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(id) from payments where pay_token = $1`)).
-//					WithArgs(driver.Value("token")).WillReturnRows(rows)
-//			},
-//			token:       "token",
-//			expectedErr: constants.WrongCountPaymentsForToken,
-//		},
-//	}
-//
-//	for _, test := range tests {
-//		t.Run(test.name, func(t *testing.T) {
-//			th := test
-//			th.mock()
-//
-//			err := storage.CheckCountPaymentsByToken(th.token)
-//			if th.expectedErr != nil {
-//				assert.Error(t, err)
-//			} else {
-//				assert.NoError(t, err)
-//			}
-//		})
-//	}
-//}
+func TestProfileRepository_GetAmountByToken(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	var minioClient *minio.Client
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	conn := redigomock.NewConn()
+	pool := &redis.Pool{
+		Dial:    func() (redis.Conn, error) { return conn, nil },
+		MaxIdle: 10,
+	}
+
+	storage := NewStorage(db, minioClient, pool)
+
+	likes := make([]int64, 0)
+	likes = append(likes, 1, 2, 3)
+
+	tests := []struct {
+		name           string
+		mock           func()
+		token          string
+		expectedID     int64
+		expectedAmount float32
+		expectedErr    error
+	}{
+		{
+			name: "Successfully",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"users_id", "amount"}).AddRow(1, 1)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT users_id, amount from payments where pay_token = $1`)).
+					WithArgs(driver.Value("token")).WillReturnRows(rows)
+			},
+			token:          "token",
+			expectedID:     int64(1),
+			expectedAmount: float32(1),
+			expectedErr:    nil,
+		},
+		{
+			name: "Error occurred during SELECT request",
+			mock: func() {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT users_id, amount from payments where pay_token = $1`)).
+					WithArgs(driver.Value("token")).WillReturnError(errors.New("Error occurred during request "))
+			},
+			token:       "token",
+			expectedErr: errors.New("Error occurred during request "),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			id, amount, err := storage.GetAmountByToken(th.token)
+			if th.expectedErr != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, id, th.expectedID)
+				assert.Equal(t, amount, th.expectedAmount)
+			}
+		})
+	}
+}
+
+func TestProfileRepository_IsSubscription(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	var minioClient *minio.Client
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	conn := redigomock.NewConn()
+	pool := &redis.Pool{
+		Dial:    func() (redis.Conn, error) { return conn, nil },
+		MaxIdle: 10,
+	}
+
+	storage := NewStorage(db, minioClient, pool)
+
+	likes := make([]int64, 0)
+	likes = append(likes, 1, 2, 3)
+
+	tests := []struct {
+		name        string
+		mock        func()
+		userID      int64
+		expectedErr error
+	}{
+		{
+			name: "Successfully",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"id"}).AddRow(1)
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE subscription_expires > LOCALTIMESTAMP AND id = $1`)).
+					WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			userID:      int64(1),
+			expectedErr: nil,
+		},
+		{
+			name: "Error occurred during SELECT request",
+			mock: func() {
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE subscription_expires > LOCALTIMESTAMP AND id = $1`)).
+					WithArgs(driver.Value(1)).WillReturnError(errors.New("Error occurred during request "))
+			},
+			userID:      int64(1),
+			expectedErr: errors.New("Error occurred during request "),
+		},
+		{
+			name: "No subscription",
+			mock: func() {
+				rows := sqlmock.NewRows([]string{"id"})
+				mock.ExpectQuery(regexp.QuoteMeta(`SELECT id FROM users WHERE subscription_expires > LOCALTIMESTAMP AND id = $1`)).
+					WithArgs(driver.Value(1)).WillReturnRows(rows)
+			},
+			userID:      int64(1),
+			expectedErr: constants.NoSubscription,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			err := storage.IsSubscription(th.userID)
+			if th.expectedErr != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
