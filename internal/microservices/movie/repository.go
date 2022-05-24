@@ -7,7 +7,7 @@ import (
 type Storage interface {
 	GetOne(id int) (*proto.Movie, error)
 	GetAllMovies(limit, offset int) ([]*proto.Movie, error)
-	GetSeasonsAndEpisodes(seriesId int) ([]*proto.Season, error)
+	GetSeasonsAndEpisodes(seriesID int) ([]*proto.Season, error)
 	GetRandomMovie() (*proto.MainMovie, error)
 	GetMovieRating(movieID int) (*GetMovieRatingAnswer, error)
 	AddMovieRating(options *proto.AddRatingOptions) error

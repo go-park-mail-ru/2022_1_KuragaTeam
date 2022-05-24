@@ -98,7 +98,7 @@ func main() {
 			return
 		}
 		for _, c := range conn {
-			err := c.Close()
+			err = c.Close()
 			if err != nil {
 				log.Fatalf("Error occurred during closing connection: %s", err.Error())
 			}

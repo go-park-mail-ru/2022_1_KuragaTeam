@@ -33,16 +33,16 @@ func main() {
 		logger.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	grpcServ := grpc.NewServer()
 
 	composite, err := composites.NewMoviesCompilationsComposite(postgresDBC, logger)
 	if err != nil {
 		return
 	}
 
-	proto.RegisterMovieCompilationsServer(s, composite.Service)
+	proto.RegisterMovieCompilationsServer(grpcServ, composite.Service)
 	log.Printf("server listening at %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	if err := grpcServ.Serve(lis); err != nil {
+		log.Printf("failed to serve: %v", err)
 	}
 }

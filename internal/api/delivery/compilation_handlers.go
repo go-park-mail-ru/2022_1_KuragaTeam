@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"github.com/mailru/easyjson"
 	"myapp/internal"
 	"myapp/internal/constants"
 	compilations "myapp/internal/microservices/compilations/proto"
@@ -130,7 +131,11 @@ func convertSearchCompilations(in *compilations.SearchCompilation) *models.Searc
 
 func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID := ctx.Get("REQUEST_ID").(string)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
+		}
+
 		limitStr := ctx.QueryParam("limit")
 		limit, err := strconv.Atoi(limitStr)
 		if err != nil {
@@ -145,15 +150,7 @@ func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
 
 		selectedMC, err := h.compilationsMicroservice.GetAllMovies(context.Background(), &compilations.GetCompilationOptions{Limit: int32(limit), Offset: int32(offset)})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
@@ -166,7 +163,11 @@ func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetAllSeries() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID := ctx.Get("REQUEST_ID").(string)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
+		}
+
 		limitStr := ctx.QueryParam("limit")
 		limit, err := strconv.Atoi(limitStr)
 		if err != nil {
@@ -181,15 +182,7 @@ func (h *compilationsHandler) GetAllSeries() echo.HandlerFunc {
 
 		selectedMC, err := h.compilationsMicroservice.GetAllSeries(context.Background(), &compilations.GetCompilationOptions{Limit: int32(limit), Offset: int32(offset)})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
@@ -201,18 +194,14 @@ func (h *compilationsHandler) GetAllSeries() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetMoviesCompilations() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID := ctx.Get("REQUEST_ID").(string)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
+		}
+
 		mainMoviesCompilations, err := h.compilationsMicroservice.GetMainCompilations(context.Background(), &compilations.GetMainCompilationsOptions{})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
@@ -231,106 +220,82 @@ func (h *compilationsHandler) GetMoviesCompilations() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetMCByMovieID() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID := ctx.Get("REQUEST_ID").(string)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
+		}
+
 		movieID, err := strconv.Atoi(ctx.Param("movie_id"))
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		selectedMC, err := h.compilationsMicroservice.GetByMovie(context.Background(), &compilations.GetByIDOptions{ID: int32(movieID)})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
 func (h *compilationsHandler) GetMCByGenre() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID := ctx.Get("REQUEST_ID").(string)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
+		}
+
 		genreID, err := strconv.Atoi(ctx.Param("genre_id"))
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		selectedMC, err := h.compilationsMicroservice.GetByGenre(context.Background(), &compilations.GetByIDOptions{ID: int32(genreID)})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
 func (h *compilationsHandler) GetMCByPersonID() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID := ctx.Get("REQUEST_ID").(string)
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
+		}
+
 		personID, err := strconv.Atoi(ctx.Param("person_id"))
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		selectedMC, err := h.compilationsMicroservice.GetByPerson(context.Background(), &compilations.GetByIDOptions{ID: int32(personID)})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
@@ -344,21 +309,17 @@ func (h *compilationsHandler) GetTopMC() echo.HandlerFunc {
 		}
 		selectedMC, err := h.compilationsMicroservice.GetTop(context.Background(), &compilations.GetCompilationOptions{Limit: int32(limit)})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
@@ -367,86 +328,36 @@ func (h *compilationsHandler) GetYearTopMC() echo.HandlerFunc {
 		requestID := ctx.Get("REQUEST_ID").(string)
 		year, err := strconv.Atoi(ctx.Param("year"))
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		selectedMC, err := h.compilationsMicroservice.GetTopByYear(context.Background(), &compilations.GetByIDOptions{ID: int32(year)})
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusInternalServerError),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC))
+
+		resp, err := easyjson.Marshal(convertMC(selectedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }
 
 func (h *compilationsHandler) GetFavorites() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID, ok := ctx.Get("REQUEST_ID").(string)
-		if !ok {
-			h.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
-			})
-		}
-
-		userID, ok := ctx.Get("USER_ID").(int64)
-		if !ok {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.SessionRequired),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.SessionRequired,
-			})
-		}
-
-		if userID == -1 {
-			h.logger.Info(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.UserIsUnauthorized),
-				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
-			)
-			return ctx.JSON(http.StatusUnauthorized, &models.Response{
-				Status:  http.StatusUnauthorized,
-				Message: constants.UserIsUnauthorized,
-			})
+		userID, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
 		}
 
 		data := &profileMicroservice.UserID{ID: userID}
 		favorites, err := h.profileMicroservice.GetFavorites(context.Background(), data)
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
 		moviesData := &compilations.GetFavoritesOptions{
@@ -454,15 +365,7 @@ func (h *compilationsHandler) GetFavorites() echo.HandlerFunc {
 		}
 		selectedMC, err := h.compilationsMicroservice.GetFavorites(context.Background(), moviesData)
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
@@ -481,54 +384,15 @@ func (h *compilationsHandler) GetFavorites() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetFavoritesFilms() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID, ok := ctx.Get("REQUEST_ID").(string)
-		if !ok {
-			h.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
-			})
-		}
-
-		userID, ok := ctx.Get("USER_ID").(int64)
-		if !ok {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.SessionRequired),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.SessionRequired,
-			})
-		}
-
-		if userID == -1 {
-			h.logger.Info(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.UserIsUnauthorized),
-				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
-			)
-			return ctx.JSON(http.StatusUnauthorized, &models.Response{
-				Status:  http.StatusUnauthorized,
-				Message: constants.UserIsUnauthorized,
-			})
+		userID, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
 		}
 
 		data := &profileMicroservice.UserID{ID: userID}
 		favorites, err := h.profileMicroservice.GetFavorites(context.Background(), data)
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
 		moviesData := &compilations.GetFavoritesOptions{
@@ -536,15 +400,7 @@ func (h *compilationsHandler) GetFavoritesFilms() echo.HandlerFunc {
 		}
 		selectedMC, err := h.compilationsMicroservice.GetFavoritesFilms(context.Background(), moviesData)
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
@@ -557,54 +413,15 @@ func (h *compilationsHandler) GetFavoritesFilms() echo.HandlerFunc {
 
 func (h *compilationsHandler) GetFavoritesSeries() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID, ok := ctx.Get("REQUEST_ID").(string)
-		if !ok {
-			h.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
-			})
-		}
-
-		userID, ok := ctx.Get("USER_ID").(int64)
-		if !ok {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.SessionRequired),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.SessionRequired,
-			})
-		}
-
-		if userID == -1 {
-			h.logger.Info(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.UserIsUnauthorized),
-				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
-			)
-			return ctx.JSON(http.StatusUnauthorized, &models.Response{
-				Status:  http.StatusUnauthorized,
-				Message: constants.UserIsUnauthorized,
-			})
+		userID, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
 		}
 
 		data := &profileMicroservice.UserID{ID: userID}
 		favorites, err := h.profileMicroservice.GetFavorites(context.Background(), data)
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
 		moviesData := &compilations.GetFavoritesOptions{
@@ -612,92 +429,44 @@ func (h *compilationsHandler) GetFavoritesSeries() echo.HandlerFunc {
 		}
 		selectedMC, err := h.compilationsMicroservice.GetFavoritesSeries(context.Background(), moviesData)
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 		h.logger.Info(
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-
 		return ctx.JSON(http.StatusOK, convertMC(selectedMC).Movies)
 	}
 }
 
 func (h *compilationsHandler) Find() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		requestID, ok := ctx.Get("REQUEST_ID").(string)
-		if !ok {
-			h.logger.Error(
-				zap.String("ERROR", constants.NoRequestId),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError))
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.NoRequestId,
-			})
-		}
-
-		userID, ok := ctx.Get("USER_ID").(int64)
-		if !ok {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.SessionRequired),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: constants.SessionRequired,
-			})
-		}
-
-		if userID == -1 {
-			h.logger.Info(
-				zap.String("ID", requestID),
-				zap.String("ERROR", constants.UserIsUnauthorized),
-				zap.Int("ANSWER STATUS", http.StatusUnauthorized),
-			)
-			return ctx.JSON(http.StatusUnauthorized, &models.Response{
-				Status:  http.StatusUnauthorized,
-				Message: constants.UserIsUnauthorized,
-			})
+		_, requestID, err := constants.DefaultUserChecks(ctx, h.logger)
+		if err != nil {
+			return err
 		}
 
 		movieID := models.FindDTO{}
 
-		if err := ctx.Bind(&movieID); err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &models.Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+		if err = ctx.Bind(&movieID); err != nil {
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
 		data := &compilations.SearchText{Text: movieID.Text}
 
 		searchedMC, err := h.compilationsMicroservice.Find(context.Background(), data)
 		if err != nil {
-			h.logger.Error(
-				zap.String("ID", requestID),
-				zap.String("ERROR", err.Error()),
-				zap.Int("ANSWER STATUS", http.StatusInternalServerError),
-			)
-			return ctx.JSON(http.StatusInternalServerError, &Response{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-			})
+			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
-		return ctx.JSON(http.StatusOK, convertSearchCompilations(searchedMC))
+		h.logger.Info(
+			zap.String("ID", requestID),
+			zap.Int("ANSWER STATUS", http.StatusOK),
+		)
+		resp, err := easyjson.Marshal(convertSearchCompilations(searchedMC))
+		if err != nil {
+			return ctx.NoContent(http.StatusInternalServerError)
+		}
+		return ctx.JSONBlob(http.StatusOK, resp)
 	}
 }

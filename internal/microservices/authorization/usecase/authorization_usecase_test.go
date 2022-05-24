@@ -76,7 +76,7 @@ func TestAuthUseCase_SignUp(t *testing.T) {
 				Password: "danya123321",
 			},
 			expectedSession: &proto.Cookie{Cookie: ""},
-			expectedErr:     constants.EmailIsNotUnique,
+			expectedErr:     constants.ErrEmailIsNotUnique,
 		},
 		{
 			name: "Error occurred in IsUserUnique",
@@ -341,7 +341,7 @@ func TestAuthUseCase_CheckAuthorization(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
-			name: "Error occurred in GetUserId",
+			name: "Error occurred in GetUserID",
 			mock: func() {
 				gomock.InOrder(
 					mockStorage.EXPECT().GetUserId("session").Return(int64(-1), errors.New("error")),

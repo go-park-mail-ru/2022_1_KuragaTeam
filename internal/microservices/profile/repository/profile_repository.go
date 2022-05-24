@@ -329,7 +329,7 @@ func (s Storage) CheckCountPaymentsByToken(token string) error {
 	}
 
 	if count != 1 {
-		return constants.WrongCountPaymentsForToken
+		return constants.ErrWringCountPaymentsForToken
 	}
 
 	return nil
@@ -362,7 +362,7 @@ func (s Storage) IsSubscription(userID int64) error {
 
 	// Из базы пришел пустой запрос, значит пользователя в базе данных нет
 	if !rows.Next() {
-		return constants.NoSubscription
+		return constants.ErrNoSubscription
 	}
 
 	return nil

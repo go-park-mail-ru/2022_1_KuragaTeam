@@ -31,7 +31,7 @@ func (s *Service) SignUp(ctx context.Context, data *proto.SignUpData) (*proto.Co
 	}
 
 	if !isUnique {
-		return &proto.Cookie{}, status.Error(codes.InvalidArgument, constants.EmailIsNotUnique.Error())
+		return &proto.Cookie{}, status.Error(codes.InvalidArgument, constants.ErrEmailIsNotUnique.Error())
 	}
 
 	userID, err := s.storage.CreateUser(data)
@@ -77,7 +77,7 @@ func (s *Service) LogOut(ctx context.Context, cookie *proto.Cookie) (*proto.Empt
 }
 
 func (s *Service) CheckAuthorization(ctx context.Context, cookie *proto.Cookie) (*proto.UserID, error) {
-	userID, err := s.storage.GetUserId(cookie.Cookie)
+	userID, err := s.storage.GetUserID(cookie.Cookie)
 	if err != nil {
 		return &proto.UserID{ID: -1}, status.Error(codes.Internal, err.Error())
 	}
