@@ -123,9 +123,6 @@ func (p *profileHandler) Auth() echo.HandlerFunc {
 
 		data := &profile.UserID{ID: userID}
 		userAvatar, err := p.profileMicroservice.GetAvatar(context.Background(), data)
-		if err != nil {
-			return p.ParseError(ctx, requestID, err)
-		}
 
 		if err != nil {
 			return constants.RespError(ctx, p.logger, requestID, err.Error(), http.StatusInternalServerError)
@@ -487,7 +484,6 @@ func (p *profileHandler) GetPaymentsToken() echo.HandlerFunc {
 
 		data := &profile.UserID{ID: userID}
 		token, err := p.profileMicroservice.GetPaymentsToken(context.Background(), data)
-
 		if err != nil {
 			return constants.RespError(ctx, p.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}

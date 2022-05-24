@@ -48,6 +48,48 @@ func (mr *MockStorageMockRecorder) AddLike(data interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddLike", reflect.TypeOf((*MockStorage)(nil).AddLike), data)
 }
 
+// CheckCountPaymentsByToken mocks base method.
+func (m *MockStorage) CheckCountPaymentsByToken(token string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckCountPaymentsByToken", token)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckCountPaymentsByToken indicates an expected call of CheckCountPaymentsByToken.
+func (mr *MockStorageMockRecorder) CheckCountPaymentsByToken(token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckCountPaymentsByToken", reflect.TypeOf((*MockStorage)(nil).CheckCountPaymentsByToken), token)
+}
+
+// CreatePayment mocks base method.
+func (m *MockStorage) CreatePayment(token string, userID int64, price float64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePayment", token, userID, price)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreatePayment indicates an expected call of CreatePayment.
+func (mr *MockStorageMockRecorder) CreatePayment(token, userID, price interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePayment", reflect.TypeOf((*MockStorage)(nil).CreatePayment), token, userID, price)
+}
+
+// CreateSubscribe mocks base method.
+func (m *MockStorage) CreateSubscribe(userID int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSubscribe", userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateSubscribe indicates an expected call of CreateSubscribe.
+func (mr *MockStorageMockRecorder) CreateSubscribe(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubscribe", reflect.TypeOf((*MockStorage)(nil).CreateSubscribe), userID)
+}
+
 // DeleteFile mocks base method.
 func (m *MockStorage) DeleteFile(arg0 string) error {
 	m.ctrl.T.Helper()
@@ -91,6 +133,22 @@ func (mr *MockStorageMockRecorder) EditProfile(data interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditProfile", reflect.TypeOf((*MockStorage)(nil).EditProfile), data)
 }
 
+// GetAmountByToken mocks base method.
+func (m *MockStorage) GetAmountByToken(token string) (int64, float32, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAmountByToken", token)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(float32)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetAmountByToken indicates an expected call of GetAmountByToken.
+func (mr *MockStorageMockRecorder) GetAmountByToken(token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAmountByToken", reflect.TypeOf((*MockStorage)(nil).GetAmountByToken), token)
+}
+
 // GetAvatar mocks base method.
 func (m *MockStorage) GetAvatar(userID int64) (string, error) {
 	m.ctrl.T.Helper()
@@ -119,6 +177,21 @@ func (m *MockStorage) GetFavorites(userID int64) (*proto.Favorites, error) {
 func (mr *MockStorageMockRecorder) GetFavorites(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavorites", reflect.TypeOf((*MockStorage)(nil).GetFavorites), userID)
+}
+
+// GetIdByToken mocks base method.
+func (m *MockStorage) GetIdByToken(token string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIdByToken", token)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIdByToken indicates an expected call of GetIdByToken.
+func (mr *MockStorageMockRecorder) GetIdByToken(token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIdByToken", reflect.TypeOf((*MockStorage)(nil).GetIdByToken), token)
 }
 
 // GetRating mocks base method.
@@ -151,6 +224,20 @@ func (mr *MockStorageMockRecorder) GetUserProfile(userID interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserProfile", reflect.TypeOf((*MockStorage)(nil).GetUserProfile), userID)
 }
 
+// IsSubscription mocks base method.
+func (m *MockStorage) IsSubscription(userID int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSubscription", userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// IsSubscription indicates an expected call of IsSubscription.
+func (mr *MockStorageMockRecorder) IsSubscription(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSubscription", reflect.TypeOf((*MockStorage)(nil).IsSubscription), userID)
+}
+
 // RemoveLike mocks base method.
 func (m *MockStorage) RemoveLike(data *proto.LikeData) error {
 	m.ctrl.T.Helper()
@@ -163,6 +250,34 @@ func (m *MockStorage) RemoveLike(data *proto.LikeData) error {
 func (mr *MockStorageMockRecorder) RemoveLike(data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveLike", reflect.TypeOf((*MockStorage)(nil).RemoveLike), data)
+}
+
+// SetToken mocks base method.
+func (m *MockStorage) SetToken(token string, userID, expireTime int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetToken", token, userID, expireTime)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetToken indicates an expected call of SetToken.
+func (mr *MockStorageMockRecorder) SetToken(token, userID, expireTime interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetToken", reflect.TypeOf((*MockStorage)(nil).SetToken), token, userID, expireTime)
+}
+
+// UpdatePayment mocks base method.
+func (m *MockStorage) UpdatePayment(token string, userID int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePayment", token, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePayment indicates an expected call of UpdatePayment.
+func (mr *MockStorageMockRecorder) UpdatePayment(token, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePayment", reflect.TypeOf((*MockStorage)(nil).UpdatePayment), token, userID)
 }
 
 // UploadAvatar mocks base method.
