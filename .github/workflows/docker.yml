@@ -10,38 +10,37 @@ on:
       - main
 
 jobs:
-    tests:
-      name: Run tests
-      runs-on: self-hosted
-      steps:
-        - name: Install Go
-          uses: actions/setup-go@v2
-          with:
-            go-version: '1.18.x'
-        - name: Checkout code
-          uses: actions/checkout@v2
-        - name: Create env file
-          run: touch .env; echo ${{ secrets.ENV_FILE }} >> .env;
-        - name: Run all tests
-          run: make tests
+  tests:
+    name: Run tests
+    runs-on: self-hosted
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.18.x'
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create env file
+        run: touch .env; echo ${{ secrets.ENV_FILE }} >> .env;
+      - name: Run all tests
+        run: make tests
 
-    linter:
-      needs: tests
-      name: Run linter
-      runs-on: self-hosted
-      steps:
-        - name: Install Go
-          uses: actions/setup-go@v2
-          with:
-            go-version: '1.18.x'
-        - name: Checkout code
-          uses: actions/checkout@v2
-        - name: Run linter
-          run: |
-            export PATH=$PATH:$(go env GOPATH)/bin
-            go get github.com/golangci/golangci-lint/cmd/golangci-lint
-            make lint
-
+  linter:
+    needs: tests
+    name: Run linter
+    runs-on: self-hosted
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.18.x'
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run linter
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          go get github.com/golangci/golangci-lint/cmd/golangci-lint
+          make lint
   build:
         needs: linter
     name: Build Docker
