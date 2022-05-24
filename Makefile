@@ -1,4 +1,6 @@
 lint:
+	export PATH=$PATH:$(go env GOPATH)/bin
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	golangci-lint run
 test:
 	cp .env internal/api/delivery/
