@@ -90,7 +90,12 @@ func main() {
 		log.Fatal("zap logger build error")
 	}
 	logger := prLogger.Sugar()
-	defer prLogger.Sync()
+	defer func(prLogger *zap.Logger) {
+		err = prLogger.Sync()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(prLogger)
 
 	auth, profile, movie, compilations, conn := LoadMicroservices(echoServer)
 	defer func() {

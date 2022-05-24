@@ -16,7 +16,10 @@ import (
 var Tokens *HashToken
 
 func init() {
-	godotenv.Load(".env")
+	err := godotenv.Load(".env")
+	if err != nil {
+		return
+	}
 	Tokens = NewHMACHashToken(os.Getenv("CSRF_SECRET"))
 }
 

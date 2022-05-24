@@ -21,7 +21,12 @@ func main() {
 	}
 
 	logger := prLogger.Sugar()
-	defer prLogger.Sync()
+	defer func(prLogger *zap.Logger) {
+		err = prLogger.Sync()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(prLogger)
 
 	postgresDBC, err := composites.NewPostgresDBComposite()
 	if err != nil {

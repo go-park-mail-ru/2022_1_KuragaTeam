@@ -130,18 +130,27 @@ func (ms *movieStorage) AddMovieRating(options *proto.AddRatingOptions) error {
 
 	_, err = transaction.ExecContext(ctx, "INSERT INTO rating(movie_id, user_id, rating) VALUES ($1, $2, $3);", options.MovieID, options.UserID, options.Rating)
 	if err != nil {
-		transaction.Rollback()
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
 		return err
 	}
 
 	_, err = transaction.ExecContext(ctx, "UPDATE movies SET rating_count=((SELECT m1.rating_count FROM movies AS m1 WHERE m1.id=$1)+1) WHERE id=$1;", options.MovieID)
 	if err != nil {
-		transaction.Rollback()
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
 		return err
 	}
 	_, err = transaction.ExecContext(ctx, "UPDATE movies SET rating_sum=((SELECT m1.rating_sum FROM movies AS m1 WHERE m1.id=$1)+$2) WHERE id=$1;", options.MovieID, options.Rating)
 	if err != nil {
-		transaction.Rollback()
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
 		return err
 	}
 
@@ -169,13 +178,19 @@ func (ms *movieStorage) ChangeMovieRating(options *proto.AddRatingOptions) error
 		") "+
 		"WHERE id=$1; ", options.MovieID, options.UserID, options.Rating)
 	if err != nil {
-		transaction.Rollback()
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
 		return err
 	}
 
 	_, err = transaction.ExecContext(ctx, "UPDATE rating SET rating=$3 WHERE movie_id = $1 AND user_id=$2;", options.MovieID, options.UserID, options.Rating)
 	if err != nil {
-		transaction.Rollback()
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
 		return err
 	}
 
