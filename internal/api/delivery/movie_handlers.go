@@ -156,7 +156,7 @@ func (h *handler) AddMovieRating() echo.HandlerFunc {
 		}
 		requestOptions := internal.MovieRatingDTO{}
 
-		if err := ctx.Bind(&requestOptions); err != nil {
+		if err = ctx.Bind(&requestOptions); err != nil {
 			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
