@@ -104,8 +104,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-#      - name: Add env file
-#        run : echo -e ${{ secrets.ENV_FILE }} >> .env
+      - name: Create env file
+        run: touch .env; echo ${{ secrets.ENV_FILE }} >> .env;
       - name: Pull docker images
         run : |
           sudo docker-compose -f docker-compose-cd.yml pull
