@@ -30,7 +30,7 @@ services:
       - "5432:5432"
   redis:
     image: redis:latest
-    command: --slave-read-only no
+    command: [sh, -c, "rm -f /data/dump.rdb && redis-server --save ''"]
     restart: always
     ports:
       - "6379:6379"
