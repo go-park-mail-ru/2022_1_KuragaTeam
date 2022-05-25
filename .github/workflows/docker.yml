@@ -46,7 +46,7 @@ jobs:
           echo COMPILATIONS_PORT=${{ secrets.COMPILATIONS_PORT }} >> .env;
       - name: Run all tests
         run: cat .env;
-        make test;
+          make test;
   linter:
     name: Run linter
     runs-on: ubuntu-latest
