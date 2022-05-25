@@ -190,7 +190,7 @@ func easyjson521a5691DecodeMyappInternalModels2(in *jlexer.Lexer, out *LikeDTO) 
 		}
 		switch key {
 		case "id":
-			out.ID = int(in.Int())
+			out.ID = int(in.IntStr())
 		default:
 			in.SkipRecursive()
 		}
@@ -208,7 +208,7 @@ func easyjson521a5691EncodeMyappInternalModels2(out *jwriter.Writer, in LikeDTO)
 	{
 		const prefix string = ",\"id\":"
 		out.RawString(prefix[1:])
-		out.Int(int(in.ID))
+		out.IntStr(int(in.ID))
 	}
 	out.RawByte('}')
 }
