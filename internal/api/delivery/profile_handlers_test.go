@@ -3,16 +3,17 @@ package delivery
 import (
 	"bytes"
 	"mime/multipart"
-	"myapp/internal/constants"
-	"myapp/internal/csrf"
-	"myapp/internal/microservices/profile/proto"
-	"myapp/internal/microservices/profile/usecase"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
+
+	"myapp/internal/constants"
+	"myapp/internal/csrf"
+	"myapp/internal/microservices/profile/proto"
+	"myapp/internal/microservices/profile/usecase"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -59,7 +60,7 @@ func TestProfileHandler_GetUserProfile(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"user\":{\"username\":\"Olga\",\"email\":\"olga@mail.ru\",\"avatar\":\"avatar\"}}", // ,"date":"2022-05-18T22:26:17.289395Z"
+			expectedJSON:   "{\"status\":200,\"user\":{\"username\":\"Olga\",\"email\":\"olga@mail.ru\",\"avatar\":\"avatar\",\"date\":\"2022-05-18T22:26:17.289395Z\"}}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -658,7 +659,7 @@ func TestProfileHandler_AddLike(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":200,\"message\":\"" + constants.LikeIsEdited + "\"}",
-			data:           `{"id": 3}`,
+			data:           `{"id": "3"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -676,7 +677,7 @@ func TestProfileHandler_AddLike(t *testing.T) {
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
-			data:           `{"id": 3}`,
+			data:           `{"id": "3"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -776,7 +777,7 @@ func TestProfileHandler_RemoveLike(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			expectedJSON:   "{\"status\":200,\"message\":\"" + constants.LikeIsRemoved + "\"}",
-			data:           `{"id": 3}`,
+			data:           `{"id": "3"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -794,7 +795,7 @@ func TestProfileHandler_RemoveLike(t *testing.T) {
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
-			data:           `{"id": 3}`,
+			data:           `{"id": "3"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
