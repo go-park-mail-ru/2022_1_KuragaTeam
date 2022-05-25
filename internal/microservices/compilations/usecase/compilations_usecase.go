@@ -122,6 +122,16 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 	}
 	compilation = append(compilation, nextMC)
 
+	nextMC, err = s.GetByGenre(ctx, &proto.GetByIDOptions{
+		ID:     3,
+		Limit:  0,
+		Offset: 0,
+	}) // Драма
+	if err != nil {
+		return nil, err
+	}
+	compilation = append(compilation, nextMC)
+
 	return &proto.MovieCompilationsArr{MovieCompilations: compilation}, nil
 }
 
