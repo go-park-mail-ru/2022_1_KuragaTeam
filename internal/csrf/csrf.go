@@ -22,7 +22,6 @@ type HashToken struct {
 }
 
 func NewHMACHashToken(secret string) *HashToken {
-
 	return &HashToken{Secret: []byte(secret)}
 }
 
