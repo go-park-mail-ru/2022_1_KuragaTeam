@@ -25,7 +25,7 @@ type HashToken struct {
 func NewHMACHashToken(secret string) *HashToken {
 	err := godotenv.Load(".env")
 	if err != nil {
-		return nil
+		return &HashToken{Secret: []byte(secret)}
 	}
 	return &HashToken{Secret: []byte(secret)}
 }
