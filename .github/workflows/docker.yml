@@ -44,6 +44,8 @@ jobs:
           echo MOVIE_PORT=${{ secrets.MOVIE_PORT }} >> .env;
           echo COMPILATIONS_HOST=${{ secrets.COMPILATIONS_HOST }} >> .env;
           echo COMPILATIONS_PORT=${{ secrets.COMPILATIONS_PORT }} >> .env;
+          cat .env;
+          chmod 666 .env;
       - name: Run all tests
         run: make test
   linter:
