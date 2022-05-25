@@ -92,6 +92,8 @@ jobs:
           echo MOVIE_PORT=${{ secrets.MOVIE_PORT }} >> .env;
           echo COMPILATIONS_HOST=${{ secrets.COMPILATIONS_HOST }} >> .env;
           echo COMPILATIONS_PORT=${{ secrets.COMPILATIONS_PORT }} >> .env;
+          cat .env;
+          chmod 666 .env;
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to Docker
@@ -171,6 +173,8 @@ jobs:
           echo MOVIE_PORT=${{ secrets.MOVIE_PORT }} >> .env;
           echo COMPILATIONS_HOST=${{ secrets.COMPILATIONS_HOST }} >> .env;
           echo COMPILATIONS_PORT=${{ secrets.COMPILATIONS_PORT }} >> .env;
+          cat .env;
+          chmod 666 .env;
       - name: Pull docker images
         run : |
           sudo docker-compose -f docker-compose-cd.yml pull
