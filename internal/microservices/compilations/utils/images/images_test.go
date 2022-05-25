@@ -19,7 +19,7 @@ func TestGenerateFileURL(t *testing.T) {
 			name:     "GenerateFileUR",
 			fileName: "name1",
 			bucket:   "bucket1",
-			result:   fmt.Sprintf("http://%s/%s/%s", os.Getenv("HOST")+"/api/v1/minio", "bucket1", "name1"),
+			result:   fmt.Sprintf("https://%s/%s/%s", os.Getenv("HOST")+"/api/v1/minio", "bucket1", "name1"),
 		},
 	}
 

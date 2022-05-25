@@ -30,7 +30,7 @@ services:
       - "5432:5432"
   redis:
     image: redis:latest
-    command: [sh, -c, "rm -f /data/dump.rdb && redis-server --save ''"]
+    command: --slave-read-only no
     restart: always
     ports:
       - "6379:6379"
@@ -51,57 +51,47 @@ services:
     volumes:
       - minio_data:/data
   authorization:
-    build:
-      context: .
-      dockerfile: ./cmd/authorization/Dockerfile
-    restart: always
+    image: moviespace/authorization:latest
     links:
       - postgres:postgres
       - redis:redis
+    restart: always
     depends_on:
       - postgres
       - redis
     ports:
       - "5555:5555"
   profile:
-    build:
-      context: .
-      dockerfile: ./cmd/profile/Dockerfile
-    restart: always
+    image: moviespace/profile:latest
     links:
       - postgres:postgres
       - minio:minio
+    restart: always
     depends_on:
       - postgres
       - minio
     ports:
       - "6666:6666"
   movie:
-    build:
-      context: .
-      dockerfile: ./cmd/movie/Dockerfile
-    restart: always
+    image: moviespace/movie:latest
     links:
       - postgres:postgres
+    restart: always
     depends_on:
       - postgres
     ports:
       - "5001:5001"
   compilations:
-    build:
-      context: .
-      dockerfile: ./cmd/compilations/Dockerfile
-    restart: always
+    image: moviespace/compilations:latest
     links:
       - postgres:postgres
+    restart: always
     depends_on:
       - postgres
     ports:
       - "5002:5002"
   main:
-    build:
-      context: .
-      dockerfile: ./cmd/main/Dockerfile
+    image: moviespace/main:latest
     restart: always
     links:
       - postgres:postgres
@@ -123,17 +113,17 @@ services:
       - "1323:1323"
   nginx:
     image: nginx:latest
+    restart: always
     links:
       - main:main
       - minio:minio
-    restart: always
     depends_on:
       - movie
       - minio
     volumes:
       - /etc/letsencrypt/live/movie-space.ru/fullchain.pem:/etc/letsencrypt/live/movie-space.ru/fullchain.pem
       - /etc/letsencrypt/live/movie-space.ru/privkey.pem:/etc/letsencrypt/live/movie-space.ru/privkey.pem
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx/prod:/etc/nginx/conf.d
       - /home/ubuntu/2022_1_KURAGA_TEAM/build:/build
       - /home/ubuntu/2022_1_KURAGA_TEAM/src/static:/build/static
     ports:
@@ -166,5 +156,3 @@ services:
     volumes:
       - ./monitoring:/etc/config
       - grafana_data:/var/lib/grafana
-
-

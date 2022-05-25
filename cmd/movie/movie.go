@@ -21,7 +21,12 @@ func main() {
 	}
 
 	logger := prLogger.Sugar()
-	defer prLogger.Sync()
+	defer func(prLogger *zap.Logger) {
+		err = prLogger.Sync()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(prLogger)
 
 	postgresDBC, err := composites.NewPostgresDBComposite()
 	if err != nil {
@@ -33,16 +38,16 @@ func main() {
 		logger.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	grpcServ := grpc.NewServer()
 
 	composite, err := composites.NewMovieComposite(postgresDBC, logger)
 	if err != nil {
 		return
 	}
 
-	proto.RegisterMoviesServer(s, composite.Service)
+	proto.RegisterMoviesServer(grpcServ, composite.Service)
 	log.Printf("server listening at %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	if err := grpcServ.Serve(lis); err != nil {
+		log.Printf("failed to serve: %v", err)
 	}
 }

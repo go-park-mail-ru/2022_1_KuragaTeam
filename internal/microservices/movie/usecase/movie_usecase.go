@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"math"
 	"myapp/internal/country"
 	"myapp/internal/genre"
 	"myapp/internal/microservices/movie"
@@ -66,7 +67,13 @@ func (s *Service) concatURLs(movie *proto.Movie) error {
 		for _, season := range movie.Seasons {
 			for _, episode := range (*season).Episodes {
 				episode.Picture, err = images.GenerateFileURL(episode.Picture, "posters")
+				if err != nil {
+					return err
+				}
 				episode.Video, err = images.GenerateFileURL(episode.Video, "series")
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -109,7 +116,16 @@ func (s *Service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 		}
 	}
 
-	selectedMovie.Rating = 8.1 // пока что просто замокано
+	ratingValues, err := s.movieStorage.GetMovieRating(int(in.MovieID))
+	if err != nil {
+		return nil, err
+	}
+	if ratingValues.RatingSum != 0 {
+		selectedMovie.Rating = float32(math.Round(float64(float64(ratingValues.RatingSum)/
+			float64(ratingValues.RatingCount))*10) / 10)
+	} else {
+		selectedMovie.Rating = -1.0
+	}
 
 	err = s.concatURLs(selectedMovie)
 	if err != nil {
@@ -120,19 +136,28 @@ func (s *Service) GetByID(ctx context.Context, in *proto.GetMovieOptions) (*prot
 
 func (s *Service) GetRandom(ctx context.Context, in *proto.GetRandomOptions) (*proto.MoviesArr, error) {
 	movies, err := s.movieStorage.GetAllMovies(int(in.Limit), int(in.Offset))
-	for i := 0; i < len(movies); i++ {
-		err = s.fillGenres(movies[i])
+	for movieIndex := 0; movieIndex < len(movies); movieIndex++ {
+		err = s.fillGenres(movies[movieIndex])
 		if err != nil {
 			return nil, err
 		}
-		movies[i].Country, err = s.countryStorage.GetByMovieID(int(movies[i].ID))
+		movies[movieIndex].Country, err = s.countryStorage.GetByMovieID(int(movies[movieIndex].ID))
 		if err != nil {
 			return nil, err
 		}
 
-		movies[i].Rating = 8.1 // пока что просто замокано
+		ratingValues, err := s.movieStorage.GetMovieRating(int(movies[movieIndex].ID))
+		if err != nil {
+			return nil, err
+		}
+		if ratingValues.RatingSum != 0 {
+			movies[movieIndex].Rating = float32(math.Round(float64(float64(ratingValues.RatingSum)/
+				float64(ratingValues.RatingCount))*10) / 10)
+		} else {
+			movies[movieIndex].Rating = -1.0
+		}
 
-		err = s.concatURLs(movies[i])
+		err = s.concatURLs(movies[movieIndex])
 		if err != nil {
 			return nil, err
 		}
@@ -156,4 +181,42 @@ func (s *Service) GetMainMovie(ctx context.Context, in *proto.GetMainMovieOption
 	}
 
 	return selectedMovie, nil
+}
+
+func (s *Service) AddMovieRating(ctx context.Context, options *proto.AddRatingOptions) (*proto.NewMovieRating, error) {
+	checkRating, err := s.movieStorage.CheckRatingExists(options)
+	if err != nil {
+		return nil, err
+	}
+
+	if options.Rating > 10 {
+		options.Rating = 10
+	}
+	if options.Rating < 1 {
+		options.Rating = 1
+	}
+
+	if checkRating.Exists {
+		if checkRating.Rating != int(options.Rating) {
+			err := s.movieStorage.ChangeMovieRating(options)
+			if err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		err = s.movieStorage.AddMovieRating(options)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ratingValues, err := s.movieStorage.GetMovieRating(int(options.MovieID))
+	if err != nil {
+		return nil, err
+	}
+	if ratingValues.RatingSum != 0 {
+		return &proto.NewMovieRating{Rating: float32(math.Round(float64(float64(ratingValues.RatingSum)/
+			float64(ratingValues.RatingCount))*10) / 10)}, nil
+	}
+	return &proto.NewMovieRating{Rating: float32(-1.0)}, nil
 }

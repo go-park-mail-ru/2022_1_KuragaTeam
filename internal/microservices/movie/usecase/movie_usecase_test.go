@@ -2,17 +2,19 @@ package usecase
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 	"myapp/internal"
-	country "myapp/internal/country/repository"
+	countryRepository "myapp/internal/country/repository"
 	genre "myapp/internal/genre/repository"
+	"myapp/internal/microservices/movie"
 	"myapp/internal/microservices/movie/proto"
 	mock "myapp/internal/microservices/movie/repository"
 	"myapp/internal/microservices/movie/utils/images"
 	persons "myapp/internal/persons/repository"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestMovieUsecase_GetMainMovie(t *testing.T) {
@@ -20,22 +22,22 @@ func TestMovieUsecase_GetMainMovie(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	movie := proto.MainMovie{
+	mainMovie := proto.MainMovie{
 		ID:          0,
 		NamePicture: "name_picture.webp",
 		Tagline:     "This is test movie",
 		Picture:     "movie_picture.webp",
 	}
 	movieFromStorage := proto.MainMovie{
-		ID:          movie.ID,
-		NamePicture: movie.NamePicture,
-		Tagline:     movie.Tagline,
-		Picture:     movie.Picture,
+		ID:          mainMovie.ID,
+		NamePicture: mainMovie.NamePicture,
+		Tagline:     mainMovie.Tagline,
+		Picture:     mainMovie.Picture,
 	}
 	input := proto.GetMainMovieOptions{}
 
-	movie.Picture, _ = images.GenerateFileURL(movie.Picture, "posters")
-	movie.NamePicture, _ = images.GenerateFileURL(movie.NamePicture, "logos")
+	mainMovie.Picture, _ = images.GenerateFileURL(mainMovie.Picture, "posters")
+	mainMovie.NamePicture, _ = images.GenerateFileURL(mainMovie.NamePicture, "logos")
 
 	tests := []struct {
 		name          string
@@ -52,7 +54,7 @@ func TestMovieUsecase_GetMainMovie(t *testing.T) {
 				},
 			},
 			input:         input,
-			expected:      movie,
+			expected:      mainMovie,
 			expectedError: false,
 		},
 		{
@@ -100,7 +102,7 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		Photo:    "photo.webp",
 		Position: "Актер",
 	}
-	movie := proto.Movie{
+	movieStruct := proto.Movie{
 		ID:              1,
 		Name:            "Movie1",
 		IsMovie:         true,
@@ -175,20 +177,20 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 	}
 
 	movieFromStorage := proto.Movie{
-		ID:              movie.ID,
-		Name:            movie.Name,
+		ID:              movieStruct.ID,
+		Name:            movieStruct.Name,
 		IsMovie:         true,
-		NamePicture:     movie.NamePicture,
-		Year:            movie.Year,
-		Duration:        movie.Duration,
-		AgeLimit:        movie.AgeLimit,
-		Description:     movie.Description,
-		KinopoiskRating: movie.KinopoiskRating,
-		Rating:          movie.Rating,
-		Tagline:         movie.Tagline,
-		Picture:         movie.Picture,
-		Video:           movie.Video,
-		Trailer:         movie.Trailer,
+		NamePicture:     movieStruct.NamePicture,
+		Year:            movieStruct.Year,
+		Duration:        movieStruct.Duration,
+		AgeLimit:        movieStruct.AgeLimit,
+		Description:     movieStruct.Description,
+		KinopoiskRating: movieStruct.KinopoiskRating,
+		Rating:          movieStruct.Rating,
+		Tagline:         movieStruct.Tagline,
+		Picture:         movieStruct.Picture,
+		Video:           movieStruct.Video,
+		Trailer:         movieStruct.Trailer,
 		Country:         nil,
 		Genre:           nil,
 		Staff:           nil,
@@ -213,10 +215,10 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		Staff:           nil,
 	}
 
-	movie.Picture, _ = images.GenerateFileURL(movie.Picture, "posters")
-	movie.Video, _ = images.GenerateFileURL(movie.Video, "movie")
-	movie.Trailer, _ = images.GenerateFileURL(movie.Trailer, "trailers")
-	movie.NamePicture, _ = images.GenerateFileURL(movie.NamePicture, "logos")
+	movieStruct.Picture, _ = images.GenerateFileURL(movieStruct.Picture, "posters")
+	movieStruct.Video, _ = images.GenerateFileURL(movieStruct.Video, "movie")
+	movieStruct.Trailer, _ = images.GenerateFileURL(movieStruct.Trailer, "trailers")
+	movieStruct.NamePicture, _ = images.GenerateFileURL(movieStruct.NamePicture, "logos")
 
 	for i := 0; i < len(series.Seasons); i++ {
 		for j := 0; j < len(series.Seasons[i].Episodes); j++ {
@@ -232,7 +234,7 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 	tests := []struct {
 		name               string
 		movieStorageMock   *mock.MockMovieStorage
-		countryStorageMock *country.MockCountryStorage
+		countryStorageMock *countryRepository.MockCountryStorage
 		genreStorageMock   *genre.MockGenreStorage
 		personStorageMock  *persons.MockPersonsStorage
 		expected           proto.Movie
@@ -241,13 +243,19 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		{
 			name: "Get one movie",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetOneFunc: func(id int) (*proto.Movie, error) {
 					return &movieFromStorage, nil
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
-					return movie.Country, nil
+					return movieStruct.Country, nil
 				},
 			},
 			genreStorageMock: &genre.MockGenreStorage{
@@ -266,15 +274,21 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 			},
 			personStorageMock: &persons.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]*proto.PersonInMovie, error) {
-					return movie.Staff, nil
+					return movieStruct.Staff, nil
 				},
 			},
-			expected:      movie,
+			expected:      movieStruct,
 			expectedError: false,
 		},
 		{
 			name: "Get one series",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetOneFunc: func(id int) (*proto.Movie, error) {
 					return &seriesFromStorage, nil
 				},
@@ -282,9 +296,9 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 					return []*proto.Season{&season}, nil
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
-					return movie.Country, nil
+					return movieStruct.Country, nil
 				},
 			},
 			genreStorageMock: &genre.MockGenreStorage{
@@ -303,7 +317,7 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 			},
 			personStorageMock: &persons.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]*proto.PersonInMovie, error) {
-					return movie.Staff, nil
+					return movieStruct.Staff, nil
 				},
 			},
 			expected:      series,
@@ -312,13 +326,19 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		{
 			name: "Movie storage error",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetOneFunc: func(id int) (*proto.Movie, error) {
 					return nil, errors.New(testError)
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
-					return movie.Country, nil
+					return movieStruct.Country, nil
 				},
 			},
 			genreStorageMock: &genre.MockGenreStorage{
@@ -337,7 +357,7 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 			},
 			personStorageMock: &persons.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]*proto.PersonInMovie, error) {
-					return movie.Staff, nil
+					return movieStruct.Staff, nil
 				},
 			},
 			expectedError: true,
@@ -345,11 +365,17 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		{
 			name: "Country storage error",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetOneFunc: func(id int) (*proto.Movie, error) {
 					return &movieFromStorage, nil
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return nil, errors.New(testError)
 				},
@@ -370,7 +396,7 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 			},
 			personStorageMock: &persons.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]*proto.PersonInMovie, error) {
-					return movie.Staff, nil
+					return movieStruct.Staff, nil
 				},
 			},
 			expectedError: true,
@@ -378,13 +404,19 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		{
 			name: "Genre storage error",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetOneFunc: func(id int) (*proto.Movie, error) {
 					return &movieFromStorage, nil
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
-					return movie.Country, nil
+					return movieStruct.Country, nil
 				},
 			},
 			genreStorageMock: &genre.MockGenreStorage{
@@ -394,7 +426,7 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 			},
 			personStorageMock: &persons.MockPersonsStorage{
 				GetByMovieIDFunc: func(id int) ([]*proto.PersonInMovie, error) {
-					return movie.Staff, nil
+					return movieStruct.Staff, nil
 				},
 			},
 			expectedError: true,
@@ -402,13 +434,19 @@ func TestMovieUsecase_GetByID(t *testing.T) {
 		{
 			name: "Staff storage error",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetOneFunc: func(id int) (*proto.Movie, error) {
 					return &movieFromStorage, nil
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
-					return movie.Country, nil
+					return movieStruct.Country, nil
 				},
 			},
 			genreStorageMock: &genre.MockGenreStorage{
@@ -455,7 +493,7 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	movie := proto.Movie{
+	movieStruct := proto.Movie{
 		ID:              1,
 		Name:            "Movie1",
 		NamePicture:     "name_picture.webp",
@@ -485,34 +523,34 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 	}
 
 	movieFromStorage := proto.Movie{
-		ID:              movie.ID,
-		Name:            movie.Name,
-		NamePicture:     movie.NamePicture,
-		IsMovie:         movie.IsMovie,
-		Year:            movie.Year,
-		Duration:        movie.Duration,
-		AgeLimit:        movie.AgeLimit,
-		Description:     movie.Description,
-		KinopoiskRating: movie.KinopoiskRating,
-		Rating:          movie.Rating,
-		Tagline:         movie.Tagline,
-		Picture:         movie.Picture,
-		Video:           movie.Video,
-		Trailer:         movie.Trailer,
+		ID:              movieStruct.ID,
+		Name:            movieStruct.Name,
+		NamePicture:     movieStruct.NamePicture,
+		IsMovie:         movieStruct.IsMovie,
+		Year:            movieStruct.Year,
+		Duration:        movieStruct.Duration,
+		AgeLimit:        movieStruct.AgeLimit,
+		Description:     movieStruct.Description,
+		KinopoiskRating: movieStruct.KinopoiskRating,
+		Rating:          movieStruct.Rating,
+		Tagline:         movieStruct.Tagline,
+		Picture:         movieStruct.Picture,
+		Video:           movieStruct.Video,
+		Trailer:         movieStruct.Trailer,
 		Country:         nil,
 		Genre:           nil,
 		Staff:           nil,
 	}
 
-	movie.Picture, _ = images.GenerateFileURL(movie.Picture, "posters")
-	movie.Video, _ = images.GenerateFileURL(movie.Video, "movie")
-	movie.Trailer, _ = images.GenerateFileURL(movie.Trailer, "trailers")
-	movie.NamePicture, _ = images.GenerateFileURL(movie.NamePicture, "logos")
+	movieStruct.Picture, _ = images.GenerateFileURL(movieStruct.Picture, "posters")
+	movieStruct.Video, _ = images.GenerateFileURL(movieStruct.Video, "movie")
+	movieStruct.Trailer, _ = images.GenerateFileURL(movieStruct.Trailer, "trailers")
+	movieStruct.NamePicture, _ = images.GenerateFileURL(movieStruct.NamePicture, "logos")
 
 	tests := []struct {
 		name               string
 		movieStorageMock   *mock.MockMovieStorage
-		countryStorageMock *country.MockCountryStorage
+		countryStorageMock *countryRepository.MockCountryStorage
 		genreStorageMock   *genre.MockGenreStorage
 		expected           []*proto.Movie
 		expectedError      bool
@@ -520,54 +558,66 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 		{
 			name: "Get one movie",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetAllMoviesFunc: func(limit, offset int) ([]*proto.Movie, error) {
 					return []*proto.Movie{&movieFromStorage}, nil
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
-					return movie.Country, nil
+					return movieStruct.Country, nil
 				},
 			},
 			genreStorageMock: &genre.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]internal.Genre, error) {
 					return []internal.Genre{
 						{
-							ID:   int(movie.Genre[0].ID),
-							Name: movie.Genre[0].Name,
+							ID:   int(movieStruct.Genre[0].ID),
+							Name: movieStruct.Genre[0].Name,
 						},
 						{
-							ID:   int(movie.Genre[1].ID),
-							Name: movie.Genre[1].Name,
+							ID:   int(movieStruct.Genre[1].ID),
+							Name: movieStruct.Genre[1].Name,
 						},
 					}, nil
 				},
 			},
-			expected:      []*proto.Movie{&movie},
+			expected:      []*proto.Movie{&movieStruct},
 			expectedError: false,
 		},
 		{
 			name: "Movie storage error",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetAllMoviesFunc: func(limit, offset int) ([]*proto.Movie, error) {
 					return nil, errors.New(testError)
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
-					return movie.Country, nil
+					return movieStruct.Country, nil
 				},
 			},
 			genreStorageMock: &genre.MockGenreStorage{
 				GetByMovieIDFunc: func(id int) ([]internal.Genre, error) {
 					return []internal.Genre{
 						{
-							ID:   int(movie.Genre[0].ID),
-							Name: movie.Genre[0].Name,
+							ID:   int(movieStruct.Genre[0].ID),
+							Name: movieStruct.Genre[0].Name,
 						},
 						{
-							ID:   int(movie.Genre[1].ID),
-							Name: movie.Genre[1].Name,
+							ID:   int(movieStruct.Genre[1].ID),
+							Name: movieStruct.Genre[1].Name,
 						},
 					}, nil
 				},
@@ -577,11 +627,17 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 		{
 			name: "Country storage error",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetAllMoviesFunc: func(limit, offset int) ([]*proto.Movie, error) {
 					return []*proto.Movie{&movieFromStorage}, nil
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
 					return nil, errors.New(testError)
 				},
@@ -590,12 +646,12 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 				GetByMovieIDFunc: func(id int) ([]internal.Genre, error) {
 					return []internal.Genre{
 						{
-							ID:   int(movie.Genre[0].ID),
-							Name: movie.Genre[0].Name,
+							ID:   int(movieStruct.Genre[0].ID),
+							Name: movieStruct.Genre[0].Name,
 						},
 						{
-							ID:   int(movie.Genre[1].ID),
-							Name: movie.Genre[1].Name,
+							ID:   int(movieStruct.Genre[1].ID),
+							Name: movieStruct.Genre[1].Name,
 						},
 					}, nil
 				},
@@ -605,13 +661,19 @@ func TestMovieUsecase_GetRandom(t *testing.T) {
 		{
 			name: "Genre storage error",
 			movieStorageMock: &mock.MockMovieStorage{
+				GetMovieRatingFunc: func(movieID int) (*movie.GetMovieRatingAnswer, error) {
+					return &movie.GetMovieRatingAnswer{
+						RatingSum:   int(movieStruct.Rating * 10),
+						RatingCount: 10,
+					}, nil
+				},
 				GetAllMoviesFunc: func(limit, offset int) ([]*proto.Movie, error) {
 					return []*proto.Movie{&movieFromStorage}, nil
 				},
 			},
-			countryStorageMock: &country.MockCountryStorage{
+			countryStorageMock: &countryRepository.MockCountryStorage{
 				GetByMovieIDFunc: func(id int) ([]string, error) {
-					return movie.Country, nil
+					return movieStruct.Country, nil
 				},
 			},
 			genreStorageMock: &genre.MockGenreStorage{

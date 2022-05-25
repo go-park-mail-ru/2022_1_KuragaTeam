@@ -142,6 +142,8 @@ func TestMoviesCompilationsDelivery_GetMoviesCompilations(t *testing.T) {
 			ctx := server.NewContext(req, rec)
 			ctx.Set("REQUEST_ID", "1")
 
+			ctx.Set("USER_ID", int64(1))
+
 			r := NewCompilationsHandler(test.useCaseMock, test.profileUsecaseMock, logger)
 			r.Register(server)
 			mainMC := r.GetMoviesCompilations()
@@ -273,6 +275,7 @@ func TestMoviesCompilationsDelivery_GetMCByMovieID(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.Set("REQUEST_ID", "1")
+			ctx.Set("USER_ID", int64(1))
 			if test.paramExists {
 				ctx.SetParamNames("movie_id")
 				ctx.SetParamValues(test.param)
@@ -407,6 +410,8 @@ func TestMoviesCompilationsDelivery_GetMCByGenreID(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.Set("REQUEST_ID", "1")
+
+			ctx.Set("USER_ID", int64(1))
 			if test.paramExists {
 				ctx.SetParamNames("genre_id")
 				ctx.SetParamValues(test.param)
@@ -541,6 +546,7 @@ func TestMoviesCompilationsDelivery_GetMCByPersonID(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.Set("REQUEST_ID", "1")
+			ctx.Set("USER_ID", int64(1))
 			if test.paramExists {
 				ctx.SetParamNames("person_id")
 				ctx.SetParamValues(test.param)
@@ -666,6 +672,7 @@ func TestMoviesCompilationsDelivery_GetTopMC(t *testing.T) {
 			ctx := server.NewContext(req, rec)
 			ctx.Set("REQUEST_ID", "1")
 
+			ctx.Set("USER_ID", int64(1))
 			if test.paramExists {
 				ctx.QueryParams().Set("limit", test.param)
 			}
@@ -799,6 +806,7 @@ func TestMoviesCompilationsDelivery_GetTopByYear(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx := server.NewContext(req, rec)
 			ctx.Set("REQUEST_ID", "1")
+			ctx.Set("USER_ID", int64(1))
 			if test.paramExists {
 				ctx.SetParamNames("year")
 				ctx.SetParamValues(test.param)

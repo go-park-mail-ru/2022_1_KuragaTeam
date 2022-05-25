@@ -23,14 +23,14 @@ func NewService(MCStorage compilations.Storage, genreStorage genre.Storage, staf
 	return &Service{MCStorage: MCStorage, genreStorage: genreStorage, staffStorage: staffStorage}
 }
 
-func (s *Service) fillGenres(MC *proto.MovieCompilation) error {
-	for i := 0; i < len(MC.Movies); i++ {
-		nextGenres, err := s.genreStorage.GetByMovieID(int(MC.Movies[i].ID))
+func (s *Service) fillGenres(compilation *proto.MovieCompilation) error {
+	for mcIndex := 0; mcIndex < len(compilation.Movies); mcIndex++ {
+		nextGenres, err := s.genreStorage.GetByMovieID(int(compilation.Movies[mcIndex].ID))
 		if err != nil {
 			return err
 		}
 		for _, nextGenre := range nextGenres {
-			MC.Movies[i].Genre = append(MC.Movies[i].Genre, &proto.Genre{
+			compilation.Movies[mcIndex].Genre = append(compilation.Movies[mcIndex].Genre, &proto.Genre{
 				ID:   int32(nextGenre.ID),
 				Name: nextGenre.Name,
 			})
@@ -39,10 +39,10 @@ func (s *Service) fillGenres(MC *proto.MovieCompilation) error {
 	return nil
 }
 
-func (s *Service) concatUrls(MC *proto.MovieCompilation) error {
+func (s *Service) concatUrls(compilation *proto.MovieCompilation) error {
 	var err error
-	for i, _ := range MC.Movies {
-		MC.Movies[i].Picture, err = images.GenerateFileURL(MC.Movies[i].Picture, "posters")
+	for i := range compilation.Movies {
+		compilation.Movies[i].Picture, err = images.GenerateFileURL(compilation.Movies[i].Picture, "posters")
 		if err != nil {
 			return err
 		}
@@ -51,146 +51,158 @@ func (s *Service) concatUrls(MC *proto.MovieCompilation) error {
 }
 
 func (s *Service) GetAllMovies(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), true)
+	compilation, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), true)
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) GetAllSeries(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), false)
+	compilation, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), false)
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainCompilationsOptions) (*proto.MovieCompilationsArr, error) {
 
-	MC := make([]*proto.MovieCompilation, 0)
+	compilation := make([]*proto.MovieCompilation, 0)
 
-	nextMC, err := s.GetTop(ctx, &proto.GetCompilationOptions{Limit: 12})
+	nextMC, err := s.GetTop(ctx, &proto.GetCompilationOptions{Limit: 12, Offset: 0})
 	if err != nil {
 		return nil, err
 	}
-	MC = append(MC, nextMC)
+	compilation = append(compilation, nextMC)
 
-	nextMC, err = s.GetTopByYear(ctx, &proto.GetByIDOptions{ID: 2011})
+	nextMC, err = s.GetTopByYear(ctx, &proto.GetByIDOptions{
+		ID:     2011,
+		Limit:  0,
+		Offset: 0,
+	})
 	if err != nil {
 		return nil, err
 	}
-	MC = append(MC, nextMC)
+	compilation = append(compilation, nextMC)
 
-	nextMC, err = s.GetByGenre(ctx, &proto.GetByIDOptions{ID: 2}) // Боевик
+	nextMC, err = s.GetByGenre(ctx, &proto.GetByIDOptions{
+		ID:     2,
+		Limit:  0,
+		Offset: 0,
+	}) // Боевик
 	if err != nil {
 		return nil, err
 	}
-	MC = append(MC, nextMC)
+	compilation = append(compilation, nextMC)
 
-	nextMC, err = s.GetByCountry(ctx, &proto.GetByIDOptions{ID: 3}) // США
+	nextMC, err = s.GetByCountry(ctx, &proto.GetByIDOptions{
+		ID:     3,
+		Limit:  0,
+		Offset: 0,
+	}) // США
 	if err != nil {
 		return nil, err
 	}
-	MC = append(MC, nextMC)
+	compilation = append(compilation, nextMC)
 
-	return &proto.MovieCompilationsArr{MovieCompilations: MC}, nil
+	return &proto.MovieCompilationsArr{MovieCompilations: compilation}, nil
 }
 
 func (s *Service) GetByGenre(ctx context.Context, in *proto.GetByIDOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetByGenre(int(in.ID))
+	compilation, err := s.MCStorage.GetByGenre(int(in.ID))
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) GetByCountry(ctx context.Context, in *proto.GetByIDOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetByCountry(int(in.ID))
+	compilation, err := s.MCStorage.GetByCountry(int(in.ID))
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) GetByMovie(ctx context.Context, in *proto.GetByIDOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetByMovie(int(in.ID))
+	compilation, err := s.MCStorage.GetByMovie(int(in.ID))
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) GetByPerson(ctx context.Context, in *proto.GetByIDOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetByPerson(int(in.ID))
+	compilation, err := s.MCStorage.GetByPerson(int(in.ID))
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) GetTopByYear(ctx context.Context, in *proto.GetByIDOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetTopByYear(int(in.ID))
+	compilation, err := s.MCStorage.GetTopByYear(int(in.ID))
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) GetTop(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
@@ -198,79 +210,79 @@ func (s *Service) GetTop(ctx context.Context, in *proto.GetCompilationOptions) (
 		in.Limit = 40
 	}
 
-	MC, err := s.MCStorage.GetTop(int(in.Limit))
+	compilation, err := s.MCStorage.GetTop(int(in.Limit))
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) GetFavorites(ctx context.Context, in *proto.GetFavoritesOptions) (*proto.MovieCompilationsArr, error) {
-	MC, err := s.MCStorage.GetFavorites(in)
+	compilation, err := s.MCStorage.GetFavorites(in)
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC.MovieCompilations[0])
+	err = s.fillGenres(compilation.MovieCompilations[0])
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC.MovieCompilations[0])
+	err = s.concatUrls(compilation.MovieCompilations[0])
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.fillGenres(MC.MovieCompilations[1])
+	err = s.fillGenres(compilation.MovieCompilations[1])
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC.MovieCompilations[1])
+	err = s.concatUrls(compilation.MovieCompilations[1])
 	if err != nil {
 		return nil, err
 	}
-	result := &proto.MovieCompilationsArr{MovieCompilations: MC.MovieCompilations}
+	result := &proto.MovieCompilationsArr{MovieCompilations: compilation.MovieCompilations}
 	return result, nil
 }
 
 func (s *Service) GetFavoritesFilms(ctx context.Context, in *proto.GetFavoritesOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetFavoritesFilms(in)
+	compilation, err := s.MCStorage.GetFavoritesFilms(in)
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
 
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) GetFavoritesSeries(ctx context.Context, in *proto.GetFavoritesOptions) (*proto.MovieCompilation, error) {
-	MC, err := s.MCStorage.GetFavoritesSeries(in)
+	compilation, err := s.MCStorage.GetFavoritesSeries(in)
 	if err != nil {
 		return nil, err
 	}
-	err = s.fillGenres(MC)
+	err = s.fillGenres(compilation)
 	if err != nil {
 		return nil, err
 	}
-	err = s.concatUrls(MC)
+	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
 	}
 
-	return MC, nil
+	return compilation, nil
 }
 
 func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.SearchCompilation, error) {
@@ -356,7 +368,7 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 		}
 	}
 
-	for i, _ := range personsCompilations.Persons {
+	for i := range personsCompilations.Persons {
 		personsCompilations.Persons[i].Photo, err = images.GenerateFileURL(personsCompilations.Persons[i].Photo, "persons")
 		if err != nil {
 			return nil, err

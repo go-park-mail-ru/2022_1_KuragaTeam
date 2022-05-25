@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"golang.org/x/net/context"
 	"myapp/internal/microservices/movie"
 	"myapp/internal/microservices/movie/proto"
 )
@@ -10,7 +11,7 @@ type movieStorage struct {
 	db *sql.DB
 }
 
-func NewStorage(db *sql.DB) movie.Storage {
+func NewStorage(db *sql.DB) *movieStorage {
 	return &movieStorage{db: db}
 }
 
@@ -30,12 +31,12 @@ func (ms *movieStorage) GetOne(id int) (*proto.Movie, error) {
 	return &selectedMovie, nil
 }
 
-func (ms *movieStorage) GetSeasonsAndEpisodes(seriesId int) ([]*proto.Season, error) {
+func (ms *movieStorage) GetSeasonsAndEpisodes(seriesID int) ([]*proto.Season, error) {
 	sqlScript := "SELECT id, number FROM seasons WHERE movie_id = $1 ORDER BY number;"
 
 	selectedSeasons := make([]*proto.Season, 0)
 
-	rows, err := ms.db.Query(sqlScript, seriesId)
+	rows, err := ms.db.Query(sqlScript, seriesID)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (ms *movieStorage) GetSeasonsAndEpisodes(seriesId int) ([]*proto.Season, er
 
 	sqlScript = "SELECT e.id, e.name, e.number, e.description, e.video, e.photo, s.id, s.number FROM episode AS e JOIN seasons s on e.season_id = s.id WHERE s.movie_id = $1 ORDER BY s.number, e.number;"
 
-	rows, err = ms.db.Query(sqlScript, seriesId)
+	rows, err = ms.db.Query(sqlScript, seriesID)
 	if err != nil {
 		return nil, err
 	}
@@ -106,4 +107,114 @@ func (ms *movieStorage) GetRandomMovie() (*proto.MainMovie, error) {
 	}
 
 	return &mainMovie, nil
+}
+
+func (ms *movieStorage) GetMovieRating(movieID int) (*movie.GetMovieRatingAnswer, error) {
+	sqlScript := "SELECT rating_sum, rating_count FROM movies WHERE id = $1"
+
+	returnValue := movie.GetMovieRatingAnswer{
+		RatingSum:   0,
+		RatingCount: 0,
+	}
+	err := ms.db.QueryRow(sqlScript, movieID).Scan(&returnValue.RatingSum, &returnValue.RatingCount)
+
+	return &returnValue, err
+}
+
+func (ms *movieStorage) AddMovieRating(options *proto.AddRatingOptions) error {
+	ctx := context.Background()
+	transaction, err := ms.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = transaction.ExecContext(ctx, "INSERT INTO rating(movie_id, user_id, rating) VALUES ($1, $2, $3);", options.MovieID, options.UserID, options.Rating)
+	if err != nil {
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+
+	_, err = transaction.ExecContext(ctx, "UPDATE movies SET rating_count=((SELECT m1.rating_count FROM movies AS m1 WHERE m1.id=$1)+1) WHERE id=$1;", options.MovieID)
+	if err != nil {
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+	_, err = transaction.ExecContext(ctx, "UPDATE movies SET rating_sum=((SELECT m1.rating_sum FROM movies AS m1 WHERE m1.id=$1)+$2) WHERE id=$1;", options.MovieID, options.Rating)
+	if err != nil {
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return err
+	}
+	return err
+
+	//_, err := ms.db.Exec(sqlScript, options.MovieID, options.UserID, options.Rating)
+	//return err
+}
+
+func (ms *movieStorage) ChangeMovieRating(options *proto.AddRatingOptions) error {
+	ctx := context.Background()
+	transaction, err := ms.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = transaction.ExecContext(ctx, "UPDATE movies SET rating_sum=( "+
+		"(SELECT m1.rating_sum FROM movies AS m1 WHERE m1.id=$1) "+
+		"+ $3 "+
+		"- (SELECT rating FROM rating WHERE movie_id = $1 AND user_id=$2)"+
+		") "+
+		"WHERE id=$1; ", options.MovieID, options.UserID, options.Rating)
+	if err != nil {
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+
+	_, err = transaction.ExecContext(ctx, "UPDATE rating SET rating=$3 WHERE movie_id = $1 AND user_id=$2;", options.MovieID, options.UserID, options.Rating)
+	if err != nil {
+		err := transaction.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return err
+	}
+	return err
+}
+func (ms *movieStorage) CheckRatingExists(options *proto.AddRatingOptions) (*movie.CheckRatingExistsAnswer, error) {
+	sqlScript := "SELECT rating FROM rating WHERE user_id=$1 AND movie_id = $2"
+
+	returnValue := movie.CheckRatingExistsAnswer{
+		Exists: false,
+		Rating: 0,
+	}
+	err := ms.db.QueryRow(sqlScript, options.UserID, options.MovieID).Scan(&returnValue.Rating)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			returnValue.Exists = false
+			return &returnValue, nil
+		}
+		return nil, err
+	}
+	returnValue.Exists = true
+	return &returnValue, nil
 }

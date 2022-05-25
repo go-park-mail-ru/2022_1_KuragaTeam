@@ -25,6 +25,7 @@ type MoviesClient interface {
 	GetByID(ctx context.Context, in *GetMovieOptions, opts ...grpc.CallOption) (*Movie, error)
 	GetRandom(ctx context.Context, in *GetRandomOptions, opts ...grpc.CallOption) (*MoviesArr, error)
 	GetMainMovie(ctx context.Context, in *GetMainMovieOptions, opts ...grpc.CallOption) (*MainMovie, error)
+	AddMovieRating(ctx context.Context, in *AddRatingOptions, opts ...grpc.CallOption) (*NewMovieRating, error)
 }
 
 type moviesClient struct {
@@ -62,6 +63,15 @@ func (c *moviesClient) GetMainMovie(ctx context.Context, in *GetMainMovieOptions
 	return out, nil
 }
 
+func (c *moviesClient) AddMovieRating(ctx context.Context, in *AddRatingOptions, opts ...grpc.CallOption) (*NewMovieRating, error) {
+	out := new(NewMovieRating)
+	err := c.cc.Invoke(ctx, "/proto.Movies/AddMovieRating", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MoviesServer is the server API for Movies service.
 // All implementations should embed UnimplementedMoviesServer
 // for forward compatibility
@@ -69,6 +79,7 @@ type MoviesServer interface {
 	GetByID(context.Context, *GetMovieOptions) (*Movie, error)
 	GetRandom(context.Context, *GetRandomOptions) (*MoviesArr, error)
 	GetMainMovie(context.Context, *GetMainMovieOptions) (*MainMovie, error)
+	AddMovieRating(context.Context, *AddRatingOptions) (*NewMovieRating, error)
 }
 
 // UnimplementedMoviesServer should be embedded to have forward compatible implementations.
@@ -83,6 +94,9 @@ func (UnimplementedMoviesServer) GetRandom(context.Context, *GetRandomOptions) (
 }
 func (UnimplementedMoviesServer) GetMainMovie(context.Context, *GetMainMovieOptions) (*MainMovie, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMainMovie not implemented")
+}
+func (UnimplementedMoviesServer) AddMovieRating(context.Context, *AddRatingOptions) (*NewMovieRating, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddMovieRating not implemented")
 }
 
 // UnsafeMoviesServer may be embedded to opt out of forward compatibility for this service.
@@ -150,6 +164,24 @@ func _Movies_GetMainMovie_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Movies_AddMovieRating_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddRatingOptions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MoviesServer).AddMovieRating(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.Movies/AddMovieRating",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MoviesServer).AddMovieRating(ctx, req.(*AddRatingOptions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Movies_ServiceDesc is the grpc.ServiceDesc for Movies service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -168,6 +200,10 @@ var Movies_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMainMovie",
 			Handler:    _Movies_GetMainMovie_Handler,
+		},
+		{
+			MethodName: "AddMovieRating",
+			Handler:    _Movies_AddMovieRating_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

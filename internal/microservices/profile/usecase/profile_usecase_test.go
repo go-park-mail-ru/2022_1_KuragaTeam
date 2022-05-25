@@ -520,13 +520,13 @@ func TestProfileUseCase_GetFavorites(t *testing.T) {
 					ID: 1,
 				}
 				gomock.InOrder(
-					mockStorage.EXPECT().GetFavorites(data.ID).Return(&proto.Favorites{MovieId: likes}, nil),
+					mockStorage.EXPECT().GetFavorites(data.ID).Return(&proto.Favorites{Id: likes}, nil),
 				)
 			},
 			input: &proto.UserID{
 				ID: 1,
 			},
-			expected:    &proto.Favorites{MovieId: likes},
+			expected:    &proto.Favorites{Id: likes},
 			expectedErr: nil,
 		},
 		{
@@ -559,7 +559,434 @@ func TestProfileUseCase_GetFavorites(t *testing.T) {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
-				assert.Equal(t, favorites.MovieId, th.expected.MovieId)
+				assert.Equal(t, favorites.Id, th.expected.Id)
+			}
+		})
+	}
+}
+
+func TestProfileUseCase_CheckPaymentsToken(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+	mockStorage := repository.NewMockStorage(ctl)
+
+	tests := []struct {
+		name        string
+		mock        func()
+		input       *proto.CheckTokenData
+		expectedErr error
+	}{
+		{
+			name: "Successfully",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().GetIdByToken("token").Return(int64(1), nil),
+				)
+			},
+			input: &proto.CheckTokenData{
+				Token: "token",
+				Id:    int64(1),
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "Error occurred in GetIdByToken",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().GetIdByToken("token").Return(int64(-1), errors.New("error")),
+				)
+			},
+			input: &proto.CheckTokenData{
+				Token: "token",
+				Id:    int64(1),
+			},
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "Wrong token",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().GetIdByToken("token").Return(int64(2), nil),
+				)
+			},
+			input: &proto.CheckTokenData{
+				Token: "token",
+				Id:    int64(1),
+			},
+			expectedErr: constants.ErrWrongToken,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			service := NewService(mockStorage)
+
+			_, err := service.CheckPaymentsToken(context.Background(), th.input)
+
+			if th.expectedErr != nil {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestProfileUseCase_CheckToken(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+	mockStorage := repository.NewMockStorage(ctl)
+
+	tests := []struct {
+		name        string
+		mock        func()
+		input       *proto.Token
+		expectedErr error
+	}{
+		{
+			name: "Successfully",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().GetIdByToken("token").Return(int64(1), nil),
+				)
+			},
+			input: &proto.Token{
+				Token: "token",
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "Error occurred in GetIdByToken",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().GetIdByToken("token").Return(int64(-1), errors.New("error")),
+				)
+			},
+			input: &proto.Token{
+				Token: "token",
+			},
+			expectedErr: errors.New("error"),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			service := NewService(mockStorage)
+
+			_, err := service.CheckToken(context.Background(), th.input)
+
+			if th.expectedErr != nil {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestProfileUseCase_CreatePayment(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+	mockStorage := repository.NewMockStorage(ctl)
+
+	tests := []struct {
+		name        string
+		mock        func()
+		input       *proto.CheckTokenData
+		expectedErr error
+	}{
+		{
+			name: "Successfully",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().CreatePayment("token", int64(1), float64(constants.Price)).Return(nil),
+				)
+			},
+			input: &proto.CheckTokenData{
+				Token: "token",
+				Id:    int64(1),
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "Error occurred in CreatePayment",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().CreatePayment("token", int64(1), float64(constants.Price)).Return(errors.New("error")),
+				)
+			},
+			input: &proto.CheckTokenData{
+				Token: "token",
+				Id:    int64(1),
+			},
+			expectedErr: errors.New("error"),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			service := NewService(mockStorage)
+
+			_, err := service.CreatePayment(context.Background(), th.input)
+
+			if th.expectedErr != nil {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestProfileUseCase_CreateSubscribe(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+	mockStorage := repository.NewMockStorage(ctl)
+
+	tests := []struct {
+		name        string
+		mock        func()
+		input       *proto.SubscribeData
+		expectedErr error
+	}{
+		{
+			name: "Successfully",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().CheckCountPaymentsByToken("token").Return(nil),
+					mockStorage.EXPECT().GetAmountByToken("token").Return(int64(1), float32(constants.Price), nil),
+					mockStorage.EXPECT().UpdatePayment("token", int64(1)).Return(nil),
+					mockStorage.EXPECT().CreateSubscribe(int64(1)).Return(nil),
+				)
+			},
+			input: &proto.SubscribeData{
+				Token:  "token",
+				Amount: constants.Price,
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "Error occurred in CheckCountPaymentsByToken",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().CheckCountPaymentsByToken("token").Return(errors.New("error")),
+				)
+			},
+			input: &proto.SubscribeData{
+				Token:  "token",
+				Amount: constants.Price,
+			},
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "Error occurred in GetAmountByToken",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().CheckCountPaymentsByToken("token").Return(nil),
+					mockStorage.EXPECT().GetAmountByToken("token").Return(int64(1), float32(constants.Price), errors.New("error")),
+				)
+			},
+			input: &proto.SubscribeData{
+				Token:  "token",
+				Amount: constants.Price,
+			},
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "Wrong amount",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().CheckCountPaymentsByToken("token").Return(nil),
+					mockStorage.EXPECT().GetAmountByToken("token").Return(int64(1), float32(constants.Price), nil),
+				)
+			},
+			input: &proto.SubscribeData{
+				Token:  "token",
+				Amount: 1,
+			},
+			expectedErr: constants.ErrWrongAmount,
+		},
+		{
+			name: "Error occurred in UpdatePayment",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().CheckCountPaymentsByToken("token").Return(nil),
+					mockStorage.EXPECT().GetAmountByToken("token").Return(int64(1), float32(constants.Price), nil),
+					mockStorage.EXPECT().UpdatePayment("token", int64(1)).Return(errors.New("error")),
+				)
+			},
+			input: &proto.SubscribeData{
+				Token:  "token",
+				Amount: constants.Price,
+			},
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "Error occurred in CreateSubscribe",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().CheckCountPaymentsByToken("token").Return(nil),
+					mockStorage.EXPECT().GetAmountByToken("token").Return(int64(1), float32(constants.Price), nil),
+					mockStorage.EXPECT().UpdatePayment("token", int64(1)).Return(nil),
+					mockStorage.EXPECT().CreateSubscribe(int64(1)).Return(errors.New("error")),
+				)
+			},
+			input: &proto.SubscribeData{
+				Token:  "token",
+				Amount: constants.Price,
+			},
+			expectedErr: errors.New("error"),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			service := NewService(mockStorage)
+
+			_, err := service.CreateSubscribe(context.Background(), th.input)
+
+			if th.expectedErr != nil {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestProfileUseCase_IsSubscription(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+	mockStorage := repository.NewMockStorage(ctl)
+
+	tests := []struct {
+		name        string
+		mock        func()
+		input       *proto.UserID
+		expectedErr error
+	}{
+		{
+			name: "Successfully",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().IsSubscription(int64(1)).Return(nil),
+				)
+			},
+			input:       &proto.UserID{ID: int64(1)},
+			expectedErr: nil,
+		},
+		{
+			name: "Error occurred in IsSubscription",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().IsSubscription(int64(1)).Return(errors.New("error")),
+				)
+			},
+			input:       &proto.UserID{ID: int64(1)},
+			expectedErr: errors.New("error"),
+		},
+		{
+			name: "No subscription",
+			mock: func() {
+				gomock.InOrder(
+					mockStorage.EXPECT().IsSubscription(int64(1)).Return(constants.ErrNoSubscription),
+				)
+			},
+			input:       &proto.UserID{ID: int64(1)},
+			expectedErr: constants.ErrNoSubscription,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			service := NewService(mockStorage)
+
+			_, err := service.IsSubscription(context.Background(), th.input)
+
+			if th.expectedErr != nil {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestProfileUseCase_GetMovieRating(t *testing.T) {
+	ctl := gomock.NewController(t)
+	defer ctl.Finish()
+	mockStorage := repository.NewMockStorage(ctl)
+
+	tests := []struct {
+		name        string
+		mock        func()
+		input       *proto.MovieRating
+		expected    *proto.Rating
+		expectedErr error
+	}{
+		{
+			name: "Successfully",
+			mock: func() {
+				data := &proto.MovieRating{
+					UserID:  1,
+					MovieID: 1,
+				}
+				outputData := &proto.Rating{Rating: 4}
+				gomock.InOrder(
+					mockStorage.EXPECT().GetRating(data).Return(outputData, nil),
+				)
+			},
+			input: &proto.MovieRating{
+				UserID:  1,
+				MovieID: 1,
+			},
+			expected:    &proto.Rating{Rating: 4},
+			expectedErr: nil,
+		},
+		{
+			name: "Error occurred in GetRating",
+			mock: func() {
+				data := &proto.MovieRating{
+					UserID:  1,
+					MovieID: 1,
+				}
+				outputData := &proto.Rating{}
+				gomock.InOrder(
+					mockStorage.EXPECT().GetRating(data).Return(outputData, errors.New("error")),
+				)
+			},
+			input: &proto.MovieRating{
+				UserID:  1,
+				MovieID: 1,
+			},
+			expected:    &proto.Rating{},
+			expectedErr: errors.New("error"),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			th := test
+			th.mock()
+
+			service := NewService(mockStorage)
+
+			rating, err := service.GetMovieRating(context.Background(), th.input)
+
+			if th.expectedErr != nil {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, rating.Rating, rating.Rating)
 			}
 		})
 	}

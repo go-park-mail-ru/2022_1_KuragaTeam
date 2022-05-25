@@ -52,8 +52,8 @@ func TestAuthDelivery_SignUp(t *testing.T) {
 					mockService.EXPECT().SignUp(gomock.Any(), userData).Return(returnData, nil),
 				)
 			},
-			expectedStatus: http.StatusCreated,
-			expectedJSON:   "{\"status\":201,\"message\":\"User created\"}\n",
+			expectedStatus: http.StatusOK,
+			expectedJSON:   "{\"status\":200,\"message\":\"User created\"}",
 			data:           `{"username": "Olga", "email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "REQUEST_ID",
 		},
@@ -66,11 +66,11 @@ func TestAuthDelivery_SignUp(t *testing.T) {
 					Password: "olga123321",
 				}
 				gomock.InOrder(
-					mockService.EXPECT().SignUp(gomock.Any(), userData).Return(nil, status.Error(codes.InvalidArgument, constants.EmailIsNotUnique.Error())),
+					mockService.EXPECT().SignUp(gomock.Any(), userData).Return(nil, status.Error(codes.InvalidArgument, constants.ErrEmailIsNotUnique.Error())),
 				)
 			},
 			expectedStatus: http.StatusBadRequest,
-			expectedJSON:   "{\"status\":400,\"message\":\"" + constants.EmailIsNotUnique.Error() + "\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"" + constants.ErrEmailIsNotUnique.Error() + "\"}",
 			data:           `{"username": "Olga", "email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "REQUEST_ID",
 		},
@@ -87,7 +87,7 @@ func TestAuthDelivery_SignUp(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			data:           `{"username": "Olga", "email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "REQUEST_ID",
 		},
@@ -96,7 +96,7 @@ func TestAuthDelivery_SignUp(t *testing.T) {
 			mock: func() {
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			data:           `{"username": "Olga", "email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "WRONG_REQUEST_ID",
 		},
@@ -113,7 +113,7 @@ func TestAuthDelivery_SignUp(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			data:           `{"username": "Olga", "email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "REQUEST_ID",
 		},
@@ -180,7 +180,7 @@ func TestAuthHandler_LogIn(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"User can be logged in\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"User can be logged in\"}",
 			data:           `{"email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "REQUEST_ID",
 		},
@@ -196,7 +196,7 @@ func TestAuthHandler_LogIn(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusNotFound,
-			expectedJSON:   "{\"status\":404,\"message\":\"" + constants.ErrWrongData.Error() + "\"}\n",
+			expectedJSON:   "{\"status\":404,\"message\":\"" + constants.ErrWrongData.Error() + "\"}",
 			data:           `{"username": "Olga", "email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "REQUEST_ID",
 		},
@@ -212,7 +212,7 @@ func TestAuthHandler_LogIn(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			data:           `{"username": "Olga", "email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "REQUEST_ID",
 		},
@@ -221,7 +221,7 @@ func TestAuthHandler_LogIn(t *testing.T) {
 			mock: func() {
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			requestID:      "WRONG_REQUEST_ID",
 			data:           `{"email": "olga@mail.ru", "password": "olga123321"}`,
 		},
@@ -237,7 +237,7 @@ func TestAuthHandler_LogIn(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			data:           `{"email": "olga@mail.ru", "password": "olga123321"}`,
 			requestID:      "REQUEST_ID",
 		},
@@ -302,7 +302,7 @@ func TestAuthHandler_LogOut(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"User is logged out\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"User is logged out\"}",
 			cookie: http.Cookie{
 				Name:     "Session_cookie",
 				Value:    "session",
@@ -323,7 +323,7 @@ func TestAuthHandler_LogOut(t *testing.T) {
 				Expires:  time.Now().Add(time.Hour),
 				SameSite: 0,
 			},
-			expectedJSON: "{\"status\":500,\"message\":\"http: named cookie not present\"}\n",
+			expectedJSON: "{\"status\":500,\"message\":\"http: named cookie not present\"}",
 			requestID:    "REQUEST_ID",
 		},
 		{
@@ -344,7 +344,7 @@ func TestAuthHandler_LogOut(t *testing.T) {
 				SameSite: 0,
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			requestID:      "REQUEST_ID",
 		},
 		{
@@ -352,7 +352,7 @@ func TestAuthHandler_LogOut(t *testing.T) {
 			mock: func() {
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			requestID:      "WRONG_REQUEST_ID",
 		},
 	}

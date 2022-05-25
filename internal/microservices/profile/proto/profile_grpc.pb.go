@@ -30,6 +30,13 @@ type ProfileClient interface {
 	AddLike(ctx context.Context, in *LikeData, opts ...grpc.CallOption) (*Empty, error)
 	RemoveLike(ctx context.Context, in *LikeData, opts ...grpc.CallOption) (*Empty, error)
 	GetFavorites(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Favorites, error)
+	GetMovieRating(ctx context.Context, in *MovieRating, opts ...grpc.CallOption) (*Rating, error)
+	GetPaymentsToken(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Token, error)
+	CheckPaymentsToken(ctx context.Context, in *CheckTokenData, opts ...grpc.CallOption) (*Empty, error)
+	CheckToken(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Empty, error)
+	CreatePayment(ctx context.Context, in *CheckTokenData, opts ...grpc.CallOption) (*Empty, error)
+	CreateSubscribe(ctx context.Context, in *SubscribeData, opts ...grpc.CallOption) (*Empty, error)
+	IsSubscription(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type profileClient struct {
@@ -112,6 +119,69 @@ func (c *profileClient) GetFavorites(ctx context.Context, in *UserID, opts ...gr
 	return out, nil
 }
 
+func (c *profileClient) GetMovieRating(ctx context.Context, in *MovieRating, opts ...grpc.CallOption) (*Rating, error) {
+	out := new(Rating)
+	err := c.cc.Invoke(ctx, "/profile.Profile/GetMovieRating", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) GetPaymentsToken(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Token, error) {
+	out := new(Token)
+	err := c.cc.Invoke(ctx, "/profile.Profile/GetPaymentsToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) CheckPaymentsToken(ctx context.Context, in *CheckTokenData, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/profile.Profile/CheckPaymentsToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) CheckToken(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/profile.Profile/CheckToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) CreatePayment(ctx context.Context, in *CheckTokenData, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/profile.Profile/CreatePayment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) CreateSubscribe(ctx context.Context, in *SubscribeData, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/profile.Profile/CreateSubscribe", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) IsSubscription(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/profile.Profile/IsSubscription", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProfileServer is the server API for Profile service.
 // All implementations should embed UnimplementedProfileServer
 // for forward compatibility
@@ -124,6 +194,13 @@ type ProfileServer interface {
 	AddLike(context.Context, *LikeData) (*Empty, error)
 	RemoveLike(context.Context, *LikeData) (*Empty, error)
 	GetFavorites(context.Context, *UserID) (*Favorites, error)
+	GetMovieRating(context.Context, *MovieRating) (*Rating, error)
+	GetPaymentsToken(context.Context, *UserID) (*Token, error)
+	CheckPaymentsToken(context.Context, *CheckTokenData) (*Empty, error)
+	CheckToken(context.Context, *Token) (*Empty, error)
+	CreatePayment(context.Context, *CheckTokenData) (*Empty, error)
+	CreateSubscribe(context.Context, *SubscribeData) (*Empty, error)
+	IsSubscription(context.Context, *UserID) (*Empty, error)
 }
 
 // UnimplementedProfileServer should be embedded to have forward compatible implementations.
@@ -153,6 +230,27 @@ func (UnimplementedProfileServer) RemoveLike(context.Context, *LikeData) (*Empty
 }
 func (UnimplementedProfileServer) GetFavorites(context.Context, *UserID) (*Favorites, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFavorites not implemented")
+}
+func (UnimplementedProfileServer) GetMovieRating(context.Context, *MovieRating) (*Rating, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMovieRating not implemented")
+}
+func (UnimplementedProfileServer) GetPaymentsToken(context.Context, *UserID) (*Token, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentsToken not implemented")
+}
+func (UnimplementedProfileServer) CheckPaymentsToken(context.Context, *CheckTokenData) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckPaymentsToken not implemented")
+}
+func (UnimplementedProfileServer) CheckToken(context.Context, *Token) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckToken not implemented")
+}
+func (UnimplementedProfileServer) CreatePayment(context.Context, *CheckTokenData) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePayment not implemented")
+}
+func (UnimplementedProfileServer) CreateSubscribe(context.Context, *SubscribeData) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSubscribe not implemented")
+}
+func (UnimplementedProfileServer) IsSubscription(context.Context, *UserID) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsSubscription not implemented")
 }
 
 // UnsafeProfileServer may be embedded to opt out of forward compatibility for this service.
@@ -310,6 +408,132 @@ func _Profile_GetFavorites_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Profile_GetMovieRating_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MovieRating)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).GetMovieRating(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile.Profile/GetMovieRating",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).GetMovieRating(ctx, req.(*MovieRating))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_GetPaymentsToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).GetPaymentsToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile.Profile/GetPaymentsToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).GetPaymentsToken(ctx, req.(*UserID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_CheckPaymentsToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckTokenData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).CheckPaymentsToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile.Profile/CheckPaymentsToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).CheckPaymentsToken(ctx, req.(*CheckTokenData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_CheckToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Token)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).CheckToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile.Profile/CheckToken",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).CheckToken(ctx, req.(*Token))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_CreatePayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckTokenData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).CreatePayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile.Profile/CreatePayment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).CreatePayment(ctx, req.(*CheckTokenData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_CreateSubscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubscribeData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).CreateSubscribe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile.Profile/CreateSubscribe",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).CreateSubscribe(ctx, req.(*SubscribeData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_IsSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).IsSubscription(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/profile.Profile/IsSubscription",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).IsSubscription(ctx, req.(*UserID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Profile_ServiceDesc is the grpc.ServiceDesc for Profile service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -348,6 +572,34 @@ var Profile_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFavorites",
 			Handler:    _Profile_GetFavorites_Handler,
+		},
+		{
+			MethodName: "GetMovieRating",
+			Handler:    _Profile_GetMovieRating_Handler,
+		},
+		{
+			MethodName: "GetPaymentsToken",
+			Handler:    _Profile_GetPaymentsToken_Handler,
+		},
+		{
+			MethodName: "CheckPaymentsToken",
+			Handler:    _Profile_CheckPaymentsToken_Handler,
+		},
+		{
+			MethodName: "CheckToken",
+			Handler:    _Profile_CheckToken_Handler,
+		},
+		{
+			MethodName: "CreatePayment",
+			Handler:    _Profile_CreatePayment_Handler,
+		},
+		{
+			MethodName: "CreateSubscribe",
+			Handler:    _Profile_CreateSubscribe_Handler,
+		},
+		{
+			MethodName: "IsSubscription",
+			Handler:    _Profile_IsSubscription_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
