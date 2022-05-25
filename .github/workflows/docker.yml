@@ -12,7 +12,7 @@ on:
 jobs:
   tests:
     name: Run tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
@@ -21,12 +21,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Create env file
-        run: touch .env; echo -e ${{ secrets.ENV_FILE }} >> .env; chmod 666 .env;
+        run: touch .env;
+          echo DBHOST=${{ secrets.DBHOST }} >> .env;
+          echo DBPORT=${{ secrets.DBPORT }} >> .env;      
+          echo DBUSER=${{ secrets.DBUSER }} >> .env;
+          echo DBPASSWORD=${{ secrets.DBPASSWORD }} >> .env;
+          echo DBNAME=${{ secrets.DBNAME }} >> .env;
+          echo REDISHOST=${{ secrets.REDISHOST }} >> .env;
+          echo REDISPORT=${{ secrets.REDISPORT }} >> .env;
+          echo REDISPROTOCOL=${{ secrets.REDISPROTOCOL }} >> .env;
+          echo MINIOURL=${{ secrets.MINIOURL }} >> .env;
+          echo MINIOUSER=${{ secrets.MINIOUSER }} >> .env;
+          echo MINIOPASSWORD=${{ secrets.MINIOPASSWORD }} >> .env;
+          echo NGINX=${{ secrets.NGINX }} >> .env;
+          echo CSRF_SECRET=${{ secrets.CSRF_SECRET }} >> .env;
+          echo AUTH_HOST=${{ secrets.AUTH_HOST }} >> .env;
+          echo AUTH_PORT=${{ secrets.AUTH_PORT }} >> .env;
+          echo HOST=${{ secrets.HOST }} >> .env;
+          echo PROFILE_HOST=${{ secrets.PROFILE_HOST }} >> .env;
+          echo PROFILE_PORT=${{ secrets.PROFILE_PORT }} >> .env;
+          echo MOVIE_HOST=${{ secrets.MOVIE_HOST }} >> .env;
+          echo MOVIE_PORT=${{ secrets.MOVIE_PORT }} >> .env;
+          echo COMPILATIONS_HOST=${{ secrets.COMPILATIONS_HOST }} >> .env;
+          echo COMPILATIONS_PORT=${{ secrets.COMPILATIONS_PORT }} >> .env;
       - name: Run all tests
         run: make test
   linter:
     needs: tests
-    name: Run linter
+    name: ubuntu-latest
     runs-on: self-hosted
     steps:
       - name: Install Go
@@ -41,14 +63,36 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.2
           $(go env GOPATH)/bin/golangci-lint run
   build:
-    needs: linter
+    needs: [linter, tests]
     name: Build Docker
     runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Create env file
-        run: touch .env; echo -e ${{ secrets.ENV_FILE }} >> .env; chmod 666 .env;
+        run: touch .env;
+          echo DBHOST=${{ secrets.DBHOST }} >> .env;
+          echo DBPORT=${{ secrets.DBPORT }} >> .env;
+          echo DBUSER=${{ secrets.DBUSER }} >> .env;
+          echo DBPASSWORD=${{ secrets.DBPASSWORD }} >> .env;
+          echo DBNAME=${{ secrets.DBNAME }} >> .env;
+          echo REDISHOST=${{ secrets.REDISHOST }} >> .env;
+          echo REDISPORT=${{ secrets.REDISPORT }} >> .env;
+          echo REDISPROTOCOL=${{ secrets.REDISPROTOCOL }} >> .env;
+          echo MINIOURL=${{ secrets.MINIOURL }} >> .env;
+          echo MINIOUSER=${{ secrets.MINIOUSER }} >> .env;
+          echo MINIOPASSWORD=${{ secrets.MINIOPASSWORD }} >> .env;
+          echo NGINX=${{ secrets.NGINX }} >> .env;
+          echo CSRF_SECRET=${{ secrets.CSRF_SECRET }} >> .env;
+          echo AUTH_HOST=${{ secrets.AUTH_HOST }} >> .env;
+          echo AUTH_PORT=${{ secrets.AUTH_PORT }} >> .env;
+          echo HOST=${{ secrets.HOST }} >> .env;
+          echo PROFILE_HOST=${{ secrets.PROFILE_HOST }} >> .env;
+          echo PROFILE_PORT=${{ secrets.PROFILE_PORT }} >> .env;
+          echo MOVIE_HOST=${{ secrets.MOVIE_HOST }} >> .env;
+          echo MOVIE_PORT=${{ secrets.MOVIE_PORT }} >> .env;
+          echo COMPILATIONS_HOST=${{ secrets.COMPILATIONS_HOST }} >> .env;
+          echo COMPILATIONS_PORT=${{ secrets.COMPILATIONS_PORT }} >> .env;
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to Docker
@@ -105,7 +149,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Create env file
-        run: touch .env; echo -e ${{ secrets.ENV_FILE }} >> .env; chmod 666 .env;
+        run: touch .env;
+          echo DBHOST=${{ secrets.DBHOST }} >> .env;
+          echo DBPORT=${{ secrets.DBPORT }} >> .env;
+          echo DBUSER=${{ secrets.DBUSER }} >> .env;
+          echo DBPASSWORD=${{ secrets.DBPASSWORD }} >> .env;
+          echo DBNAME=${{ secrets.DBNAME }} >> .env;
+          echo REDISHOST=${{ secrets.REDISHOST }} >> .env;
+          echo REDISPORT=${{ secrets.REDISPORT }} >> .env;
+          echo REDISPROTOCOL=${{ secrets.REDISPROTOCOL }} >> .env;
+          echo MINIOURL=${{ secrets.MINIOURL }} >> .env;
+          echo MINIOUSER=${{ secrets.MINIOUSER }} >> .env;
+          echo MINIOPASSWORD=${{ secrets.MINIOPASSWORD }} >> .env;
+          echo NGINX=${{ secrets.NGINX }} >> .env;
+          echo CSRF_SECRET=${{ secrets.CSRF_SECRET }} >> .env;
+          echo AUTH_HOST=${{ secrets.AUTH_HOST }} >> .env;
+          echo AUTH_PORT=${{ secrets.AUTH_PORT }} >> .env;
+          echo HOST=${{ secrets.HOST }} >> .env;
+          echo PROFILE_HOST=${{ secrets.PROFILE_HOST }} >> .env;
+          echo PROFILE_PORT=${{ secrets.PROFILE_PORT }} >> .env;
+          echo MOVIE_HOST=${{ secrets.MOVIE_HOST }} >> .env;
+          echo MOVIE_PORT=${{ secrets.MOVIE_PORT }} >> .env;
+          echo COMPILATIONS_HOST=${{ secrets.COMPILATIONS_HOST }} >> .env;
+          echo COMPILATIONS_PORT=${{ secrets.COMPILATIONS_PORT }} >> .env;
       - name: Pull docker images
         run : |
           sudo docker-compose -f docker-compose-cd.yml pull
