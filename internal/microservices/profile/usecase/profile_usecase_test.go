@@ -613,7 +613,7 @@ func TestProfileUseCase_CheckPaymentsToken(t *testing.T) {
 				Token: "token",
 				Id:    int64(1),
 			},
-			expectedErr: constants.WrongToken,
+			expectedErr: constants.ErrWrongToken,
 		},
 	}
 	for _, test := range tests {
@@ -810,7 +810,7 @@ func TestProfileUseCase_CreateSubscribe(t *testing.T) {
 				Token:  "token",
 				Amount: 1,
 			},
-			expectedErr: constants.WrongAmount,
+			expectedErr: constants.ErrWrongAmount,
 		},
 		{
 			name: "Error occurred in UpdatePayment",
@@ -897,11 +897,11 @@ func TestProfileUseCase_IsSubscription(t *testing.T) {
 			name: "No subscription",
 			mock: func() {
 				gomock.InOrder(
-					mockStorage.EXPECT().IsSubscription(int64(1)).Return(constants.NoSubscription),
+					mockStorage.EXPECT().IsSubscription(int64(1)).Return(constants.ErrNoSubscription),
 				)
 			},
 			input:       &proto.UserID{ID: int64(1)},
-			expectedErr: constants.NoSubscription,
+			expectedErr: constants.ErrNoSubscription,
 		},
 	}
 	for _, test := range tests {

@@ -33,7 +33,7 @@ func (a *authHandler) Register(router *echo.Echo) {
 }
 
 func (a *authHandler) ParseError(ctx echo.Context, requestID string, err error) error {
-	if getErr, ok := status.FromError(err); ok == true {
+	if getErr, ok := status.FromError(err); ok {
 		switch getErr.Code() {
 		case codes.Internal:
 			a.logger.Error(

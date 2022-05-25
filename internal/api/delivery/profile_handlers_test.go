@@ -3,16 +3,17 @@ package delivery
 import (
 	"bytes"
 	"mime/multipart"
-	"myapp/internal/constants"
-	"myapp/internal/csrf"
-	"myapp/internal/microservices/profile/proto"
-	"myapp/internal/microservices/profile/usecase"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
+
+	"myapp/internal/constants"
+	"myapp/internal/csrf"
+	"myapp/internal/microservices/profile/proto"
+	"myapp/internal/microservices/profile/usecase"
 
 	"github.com/golang/mock/gomock"
 	"github.com/labstack/echo/v4"
@@ -59,7 +60,7 @@ func TestProfileHandler_GetUserProfile(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"user\":{\"username\":\"Olga\",\"email\":\"olga@mail.ru\",\"avatar\":\"avatar\",\"date\":\"2022-05-18T22:26:17.289395Z\"}}\n",
+			expectedJSON:   "{\"status\":200,\"user\":{\"username\":\"Olga\",\"email\":\"olga@mail.ru\",\"avatar\":\"avatar\",\"date\":\"2022-05-18T22:26:17.289395Z\"}}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -67,8 +68,8 @@ func TestProfileHandler_GetUserProfile(t *testing.T) {
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -77,7 +78,7 @@ func TestProfileHandler_GetUserProfile(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "WRONG_REQUEST_ID",
@@ -91,7 +92,7 @@ func TestProfileHandler_GetUserProfile(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -100,7 +101,7 @@ func TestProfileHandler_GetUserProfile(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -114,7 +115,7 @@ func TestProfileHandler_GetUserProfile(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -176,8 +177,8 @@ func TestProfileHandler_EditAvatar(t *testing.T) {
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(-1),
 			fieldName:      "file",
@@ -187,7 +188,7 @@ func TestProfileHandler_EditAvatar(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "WRONG_REQUEST_ID",
@@ -196,7 +197,7 @@ func TestProfileHandler_EditAvatar(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			fieldName:      "file",
@@ -206,7 +207,7 @@ func TestProfileHandler_EditAvatar(t *testing.T) {
 			name:           "Handler returned status 500, Error file",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"http: no such file\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"http: no such file\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			fieldName:      "wrong_file",
@@ -216,7 +217,7 @@ func TestProfileHandler_EditAvatar(t *testing.T) {
 			name:           "Handler returned status 500, Error content type",
 			mock:           func() {},
 			expectedStatus: http.StatusBadRequest,
-			expectedJSON:   "{\"status\":400,\"message\":\"File type is not supported\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"File type is not supported\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			fieldName:      "file",
@@ -285,8 +286,8 @@ func TestProfileHandler_EditProfile(t *testing.T) {
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(1),
 			data:           `{"username": "Olga", "password": "olga123321"}`,
@@ -296,7 +297,7 @@ func TestProfileHandler_EditProfile(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "WRONG_REQUEST_ID",
@@ -305,7 +306,7 @@ func TestProfileHandler_EditProfile(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			data:           `{"username": "Olga", "password": "olga123321"}`,
@@ -324,7 +325,7 @@ func TestProfileHandler_EditProfile(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"Profile is edited\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"Profile is edited\"}",
 			data:           `{"username": "Olga", "password": "olga123321"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -343,7 +344,7 @@ func TestProfileHandler_EditProfile(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			data:           `{"username": "Olga", "password": "olga123321"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -405,7 +406,7 @@ func TestProfileHandler_GetCsrf(t *testing.T) {
 		{
 			name:           "Handler returned status 200",
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"" + token + "\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"" + token + "\"}",
 			expectedError:  false,
 			cookie: http.Cookie{
 				Name:     "Session_cookie",
@@ -419,7 +420,7 @@ func TestProfileHandler_GetCsrf(t *testing.T) {
 		{
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}",
 			expectedError:  false,
 			cookie: http.Cookie{
 				Name:     "Session_cookie",
@@ -433,7 +434,7 @@ func TestProfileHandler_GetCsrf(t *testing.T) {
 		{
 			name:           "Handler returned status 500",
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"http: named cookie not present\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"http: named cookie not present\"}",
 			expectedError:  true,
 			cookie: http.Cookie{
 				Name:     "Wrong_Session_cookie",
@@ -503,7 +504,7 @@ func TestProfileHandler_Auth(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"ok\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"ok\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -512,14 +513,14 @@ func TestProfileHandler_Auth(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}",
 			requestID:      "WRONG_REQUEST_ID",
 		},
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -528,7 +529,7 @@ func TestProfileHandler_Auth(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -542,7 +543,7 @@ func TestProfileHandler_Auth(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"rpc error: code = Internal desc = error\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -557,7 +558,7 @@ func TestProfileHandler_Auth(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusForbidden,
-			expectedJSON:   "{\"status\":403,\"message\":\"wrong avatar\"}\n",
+			expectedJSON:   "{\"status\":403,\"message\":\"wrong avatar\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -619,8 +620,8 @@ func TestProfileHandler_AddLike(t *testing.T) {
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(1),
 			data:           `{"id": "3"}`,
@@ -630,7 +631,7 @@ func TestProfileHandler_AddLike(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "WRONG_REQUEST_ID",
@@ -639,7 +640,7 @@ func TestProfileHandler_AddLike(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			data:           `{"id": "3"}`,
@@ -657,7 +658,7 @@ func TestProfileHandler_AddLike(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"" + constants.LikeIsEdited + "\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"" + constants.LikeIsEdited + "\"}",
 			data:           `{"id": "3"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -675,7 +676,7 @@ func TestProfileHandler_AddLike(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			data:           `{"id": "3"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -737,8 +738,8 @@ func TestProfileHandler_RemoveLike(t *testing.T) {
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(1),
 			data:           `{"id": "3"}`,
@@ -748,7 +749,7 @@ func TestProfileHandler_RemoveLike(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "WRONG_REQUEST_ID",
@@ -757,7 +758,7 @@ func TestProfileHandler_RemoveLike(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			data:           `{"id": "3"}`,
@@ -775,7 +776,7 @@ func TestProfileHandler_RemoveLike(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"" + constants.LikeIsRemoved + "\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"" + constants.LikeIsRemoved + "\"}",
 			data:           `{"id": "3"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -793,7 +794,7 @@ func TestProfileHandler_RemoveLike(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			data:           `{"id": "3"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -863,7 +864,7 @@ func TestProfileHandler_GetFavorites(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"favorites\":{\"id\":[1,2,3]}}\n",
+			expectedJSON:   "{\"status\":200,\"favorites\":{\"id\":[1,2,3]}}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -871,8 +872,8 @@ func TestProfileHandler_GetFavorites(t *testing.T) {
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -881,7 +882,7 @@ func TestProfileHandler_GetFavorites(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "WRONG_REQUEST_ID",
@@ -895,7 +896,7 @@ func TestProfileHandler_GetFavorites(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -904,7 +905,7 @@ func TestProfileHandler_GetFavorites(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -918,7 +919,7 @@ func TestProfileHandler_GetFavorites(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -984,7 +985,7 @@ func TestProfileHandler_Check(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"ok\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"ok\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -993,14 +994,14 @@ func TestProfileHandler_Check(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}",
 			requestID:      "WRONG_REQUEST_ID",
 		},
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -1009,7 +1010,7 @@ func TestProfileHandler_Check(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -1023,7 +1024,7 @@ func TestProfileHandler_Check(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -1033,11 +1034,11 @@ func TestProfileHandler_Check(t *testing.T) {
 			mock: func() {
 				data := &proto.UserID{ID: 1}
 				gomock.InOrder(
-					mockService.EXPECT().IsSubscription(gomock.Any(), data).Return(&proto.Empty{}, status.Error(codes.PermissionDenied, constants.NoSubscription.Error())),
+					mockService.EXPECT().IsSubscription(gomock.Any(), data).Return(&proto.Empty{}, status.Error(codes.PermissionDenied, constants.ErrNoSubscription.Error())),
 				)
 			},
 			expectedStatus: http.StatusForbidden,
-			expectedJSON:   "{\"status\":403,\"message\":\"no subscription\"}\n",
+			expectedJSON:   "{\"status\":403,\"message\":\"no subscription\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -1103,7 +1104,7 @@ func TestProfileHandler_GetPaymentsToken(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"token\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"token\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -1112,14 +1113,14 @@ func TestProfileHandler_GetPaymentsToken(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"No RequestID in context\"}",
 			requestID:      "WRONG_REQUEST_ID",
 		},
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -1128,7 +1129,7 @@ func TestProfileHandler_GetPaymentsToken(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			requestID:      "REQUEST_ID",
@@ -1143,7 +1144,7 @@ func TestProfileHandler_GetPaymentsToken(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"rpc error: code = Internal desc = error\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "REQUEST_ID",
@@ -1203,8 +1204,8 @@ func TestProfileHandler_Payment(t *testing.T) {
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(1),
 			data:           `{"token": "token"}`,
@@ -1214,7 +1215,7 @@ func TestProfileHandler_Payment(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			requestID:      "WRONG_REQUEST_ID",
@@ -1223,7 +1224,7 @@ func TestProfileHandler_Payment(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			data:           `{"token": "token"}`,
@@ -1242,7 +1243,7 @@ func TestProfileHandler_Payment(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"Payment is created\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"Payment is created\"}",
 			data:           `{"token": "token"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -1260,7 +1261,7 @@ func TestProfileHandler_Payment(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			data:           `{"token": "token"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -1279,7 +1280,7 @@ func TestProfileHandler_Payment(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			data:           `{"token": "token"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -1293,11 +1294,11 @@ func TestProfileHandler_Payment(t *testing.T) {
 					Id:    1,
 				}
 				gomock.InOrder(
-					mockService.EXPECT().CheckPaymentsToken(gomock.Any(), userData).Return(&proto.Empty{}, status.Error(codes.InvalidArgument, constants.WrongToken.Error())),
+					mockService.EXPECT().CheckPaymentsToken(gomock.Any(), userData).Return(&proto.Empty{}, status.Error(codes.InvalidArgument, constants.ErrWrongToken.Error())),
 				)
 			},
 			expectedStatus: http.StatusBadRequest,
-			expectedJSON:   "{\"status\":400,\"message\":\"wrong payment token\"}\n",
+			expectedJSON:   "{\"status\":400,\"message\":\"wrong payment token\"}",
 			data:           `{"token": "token"}`,
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -1367,7 +1368,7 @@ func TestProfileHandler_Subscribe(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			requestID:      "WRONG_REQUEST_ID",
 			contentType:    echo.MIMEApplicationForm,
 			input:          data,
@@ -1389,7 +1390,7 @@ func TestProfileHandler_Subscribe(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"message\":\"Payment is created\"}\n",
+			expectedJSON:   "{\"status\":200,\"message\":\"Payment is created\"}",
 			requestID:      "REQUEST_ID",
 			contentType:    echo.MIMEApplicationForm,
 			input:          data,
@@ -1399,7 +1400,7 @@ func TestProfileHandler_Subscribe(t *testing.T) {
 			mock: func() {
 			},
 			expectedStatus: http.StatusUnsupportedMediaType,
-			expectedJSON:   "{\"status\":415,\"message\":\"Unsupported media type\"}\n",
+			expectedJSON:   "{\"status\":415,\"message\":\"Unsupported media type\"}",
 			requestID:      "REQUEST_ID",
 			contentType:    echo.MIMEApplicationJSON,
 			input:          data,
@@ -1409,7 +1410,7 @@ func TestProfileHandler_Subscribe(t *testing.T) {
 			mock: func() {
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"strconv.ParseFloat: parsing \\\"a\\\": invalid syntax\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"strconv.ParseFloat: parsing \\\"a\\\": invalid syntax\"}",
 			requestID:      "REQUEST_ID",
 			contentType:    echo.MIMEApplicationForm,
 			input:          wrongData,
@@ -1425,7 +1426,7 @@ func TestProfileHandler_Subscribe(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			requestID:      "REQUEST_ID",
 			contentType:    echo.MIMEApplicationForm,
 			input:          data,
@@ -1447,7 +1448,7 @@ func TestProfileHandler_Subscribe(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			requestID:      "REQUEST_ID",
 			contentType:    echo.MIMEApplicationForm,
 			input:          data,
@@ -1508,8 +1509,8 @@ func TestProfileHandler_GetRating(t *testing.T) {
 		{
 			name:           "Handler returned status 500, ctx hasn't USER_ID",
 			mock:           func() {},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"Session required\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"Session required\"}",
 			userIDKey:      "WRONG_USER_ID",
 			userIDValue:    int64(1),
 			param:          "1",
@@ -1520,7 +1521,7 @@ func TestProfileHandler_GetRating(t *testing.T) {
 			name:           "Handler returned status 500, wrong REQUEST_ID",
 			mock:           func() {},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestId + "\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"" + constants.NoRequestID + "\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
 			param:          "1",
@@ -1531,7 +1532,7 @@ func TestProfileHandler_GetRating(t *testing.T) {
 			name:           "Handler returned status 401, User is unauthorized",
 			mock:           func() {},
 			expectedStatus: http.StatusUnauthorized,
-			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}\n",
+			expectedJSON:   "{\"status\":401,\"message\":\"User is unauthorized\"}",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(-1),
 			param:          "1",
@@ -1548,7 +1549,7 @@ func TestProfileHandler_GetRating(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusOK,
-			expectedJSON:   "{\"status\":200,\"rating\":5}\n",
+			expectedJSON:   "{\"status\":200,\"rating\":5}",
 			param:          "1",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -1559,8 +1560,8 @@ func TestProfileHandler_GetRating(t *testing.T) {
 			name: "Handler returned status 500, No MovieID in context",
 			mock: func() {
 			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"No MovieID in context\"}\n",
+			expectedStatus: http.StatusBadRequest,
+			expectedJSON:   "{\"status\":400,\"message\":\"No MovieID in context\"}",
 			param:          "1.6",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -1577,7 +1578,7 @@ func TestProfileHandler_GetRating(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusInternalServerError,
-			expectedJSON:   "{\"status\":500,\"message\":\"error\"}\n",
+			expectedJSON:   "{\"status\":500,\"message\":\"error\"}",
 			param:          "1",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),
@@ -1593,7 +1594,7 @@ func TestProfileHandler_GetRating(t *testing.T) {
 				)
 			},
 			expectedStatus: http.StatusNotFound,
-			expectedJSON:   "{\"status\":404,\"rating\":0}\n",
+			expectedJSON:   "{\"status\":404,\"rating\":0}",
 			param:          "1",
 			userIDKey:      "USER_ID",
 			userIDValue:    int64(1),

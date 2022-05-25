@@ -61,7 +61,7 @@ func (s Storage) EditProfile(data *proto.EditProfileData) error {
 	notChangedPassword, _ := hash.ComparePasswords(oldPassword, oldSalt, data.Password)
 
 	switch {
-	case notChangedPassword == false && len(data.Password) != 0 && data.Name != oldName && len(data.Name) != 0:
+	case !notChangedPassword && len(data.Password) != 0 && data.Name != oldName && len(data.Name) != 0:
 		salt, err := uuid.NewV4()
 		if err != nil {
 			return err
@@ -81,7 +81,7 @@ func (s Storage) EditProfile(data *proto.EditProfileData) error {
 
 		return nil
 
-	case notChangedPassword == false && len(data.Password) != 0:
+	case !notChangedPassword && len(data.Password) != 0:
 		salt, err := uuid.NewV4()
 		if err != nil {
 			return err
@@ -329,7 +329,7 @@ func (s Storage) CheckCountPaymentsByToken(token string) error {
 	}
 
 	if count != 1 {
-		return constants.ErrWringCountPaymentsForToken
+		return constants.ErrWrongCountPaymentsForToken
 	}
 
 	return nil

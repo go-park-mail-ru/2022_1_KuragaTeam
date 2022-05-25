@@ -3,6 +3,7 @@ package delivery
 import (
 	"context"
 	"github.com/mailru/easyjson"
+	"mime/multipart"
 	"myapp/internal/constants"
 	"myapp/internal/csrf"
 	profile "myapp/internal/microservices/profile/proto"
@@ -46,7 +47,7 @@ func (p *profileHandler) Register(router *echo.Echo) {
 }
 
 func (p *profileHandler) ParseError(ctx echo.Context, requestID string, err error) error {
-	if getErr, ok := status.FromError(err); ok == true {
+	if getErr, ok := status.FromError(err); ok {
 		switch getErr.Code() {
 		case codes.Internal:
 			p.logger.Error(
@@ -233,18 +234,25 @@ func (p *profileHandler) EditAvatar() echo.HandlerFunc {
 
 		buffer := make([]byte, file.Size)
 		_, err = src.Read(buffer)
+		if err != nil {
+			return constants.RespError(ctx, p.logger, requestID, err.Error(), http.StatusInternalServerError)
+		}
 		err = src.Close()
 		if err != nil {
 			return constants.RespError(ctx, p.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
 
+		file, err = ctx.FormFile("file")
 		if err != nil {
 			return constants.RespError(ctx, p.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
-
-		file, err = ctx.FormFile("file")
 		src, err = file.Open()
-		defer src.Close()
+		defer func(src multipart.File) {
+			err = src.Close()
+			if err != nil {
+				return
+			}
+		}(src)
 		if err != nil {
 			return constants.RespError(ctx, p.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}

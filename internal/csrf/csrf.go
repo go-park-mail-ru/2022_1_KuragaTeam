@@ -16,7 +16,6 @@ import (
 var Tokens *HashToken
 
 func init() {
-	godotenv.Load(".env")
 	Tokens = NewHMACHashToken(os.Getenv("CSRF_SECRET"))
 }
 
@@ -25,6 +24,10 @@ type HashToken struct {
 }
 
 func NewHMACHashToken(secret string) *HashToken {
+	err := godotenv.Load(".env")
+	if err != nil {
+		return &HashToken{Secret: []byte(secret)}
+	}
 	return &HashToken{Secret: []byte(secret)}
 }
 

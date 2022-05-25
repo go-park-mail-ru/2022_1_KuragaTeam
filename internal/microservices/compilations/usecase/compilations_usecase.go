@@ -41,7 +41,7 @@ func (s *Service) fillGenres(compilation *proto.MovieCompilation) error {
 
 func (s *Service) concatUrls(compilation *proto.MovieCompilation) error {
 	var err error
-	for i, _ := range compilation.Movies {
+	for i := range compilation.Movies {
 		compilation.Movies[i].Picture, err = images.GenerateFileURL(compilation.Movies[i].Picture, "posters")
 		if err != nil {
 			return err
@@ -368,7 +368,7 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 		}
 	}
 
-	for i, _ := range personsCompilations.Persons {
+	for i := range personsCompilations.Persons {
 		personsCompilations.Persons[i].Photo, err = images.GenerateFileURL(personsCompilations.Persons[i].Photo, "persons")
 		if err != nil {
 			return nil, err
