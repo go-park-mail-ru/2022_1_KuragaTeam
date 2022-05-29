@@ -28,12 +28,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-#  redis:
-#    image: redis:latest
-#    command: [sh, -c, "rm -f /data/dump.rdb && redis-server --save ''"]
-#    restart: always
-#    ports:
-#      - "6379:6379"
+  redis:
+    image: redis:latest
+    command: [sh, -c, "rm -f /data/dump.rdb && redis-server --save ''"]
+    restart: always
+    ports:
+      - "6379:6379"
   minio:
     image: minio/minio:latest
     command: server --console-address ":9001" /data/
@@ -54,11 +54,11 @@ services:
     image: moviespace/authorization:latest
     links:
       - postgres:postgres
-#      - redis:redis
+      - redis:redis
     restart: always
     depends_on:
       - postgres
-#      - redis
+      - redis
     ports:
       - "5555:5555"
   profile:
@@ -95,7 +95,7 @@ services:
     restart: always
     links:
       - postgres:postgres
-#      - redis:redis
+      - redis:redis
       - minio:minio
       - authorization:authorization
       - profile:profile
@@ -103,7 +103,7 @@ services:
       - compilations:compilations
     depends_on:
       - postgres
-#      - redis
+      - redis
       - minio
       - authorization
       - profile

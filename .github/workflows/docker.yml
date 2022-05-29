@@ -181,7 +181,7 @@ jobs:
           sudo docker-compose -f docker-compose-cd.yml pull
       - name: Run docker-compose
         run : |
-          sudo docker-compose -f docker-compose-cd.yml up --build -d
+          sudo docker-compose -f docker-compose-cd.yml up --renew-anon-volumes --build -d
       - name: Clear old images and containers
         run : |
           sudo docker container prune
