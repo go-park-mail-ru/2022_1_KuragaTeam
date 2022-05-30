@@ -3,6 +3,7 @@ version: "3.9"
 volumes:
   postgres_data:
   minio_data:
+  redis_data:
   grafana_data:
 
 services:
@@ -34,6 +35,8 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
   minio:
     image: minio/minio:latest
     command: server --console-address ":9001" /data/
