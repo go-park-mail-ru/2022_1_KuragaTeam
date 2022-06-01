@@ -30,7 +30,7 @@ services:
     ports:
       - "5432:5432"
   redis:
-    image: redis:latest
+    image: redis:6.2.7
     command: [sh, -c, "rm -f /data/dump.rdb && redis-server --save \"\" "]
     restart: always
     ports:
