@@ -29,7 +29,7 @@ const (
 		"WHERE m_g2.movie_id=$1"
 	getByPersonSQL = "SELECT m.id, m.name, m.picture FROM movies AS m JOIN movies_staff m_s ON " +
 		"m_s.movie_id = m.id WHERE m_s.person_id=$1"
-	getTopSQL          = "SELECT id, name, picture FROM movies ORDER BY kinopoisk_rating DESC LIMIT $1"
+	getTopSQL          = "SELECT id, name, picture FROM movies ORDER BY movies.rating_sum/movies.rating_count DESC LIMIT $1"
 	getTopByYearSQL    = "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating DESC"
 	getFavorites       = "SELECT id, name, picture, is_movie FROM movies WHERE id=$1;"
 	findMovie          = "SELECT id, name, picture FROM movies where to_tsvector('russian', name) @@ to_tsquery('russian', $1) AND is_movie=$2 ORDER BY name LIMIT $3;"
