@@ -40,8 +40,11 @@ var _ movie.Storage = &MockMovieStorage{}
 // 			GetRandomMovieFunc: func() (*proto.MainMovie, error) {
 // 				panic("mock out the GetRandomMovie method")
 // 			},
-// 			GetSeasonsAndEpisodesFunc: func(seriesId int) ([]*proto.Season, error) {
+// 			GetSeasonsAndEpisodesFunc: func(seriesID int) ([]*proto.Season, error) {
 // 				panic("mock out the GetSeasonsAndEpisodes method")
+// 			},
+// 			RemoveMovieRatingFunc: func(options *proto.AddRatingOptions) error {
+// 				panic("mock out the RemoveMovieRating method")
 // 			},
 // 		}
 //
@@ -72,7 +75,10 @@ type MockMovieStorage struct {
 	GetRandomMovieFunc func() (*proto.MainMovie, error)
 
 	// GetSeasonsAndEpisodesFunc mocks the GetSeasonsAndEpisodes method.
-	GetSeasonsAndEpisodesFunc func(seriesId int) ([]*proto.Season, error)
+	GetSeasonsAndEpisodesFunc func(seriesID int) ([]*proto.Season, error)
+
+	// RemoveMovieRatingFunc mocks the RemoveMovieRating method.
+	RemoveMovieRatingFunc func(options *proto.AddRatingOptions) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -113,8 +119,13 @@ type MockMovieStorage struct {
 		}
 		// GetSeasonsAndEpisodes holds details about calls to the GetSeasonsAndEpisodes method.
 		GetSeasonsAndEpisodes []struct {
-			// SeriesId is the seriesId argument value.
-			SeriesId int
+			// SeriesID is the seriesID argument value.
+			SeriesID int
+		}
+		// RemoveMovieRating holds details about calls to the RemoveMovieRating method.
+		RemoveMovieRating []struct {
+			// Options is the options argument value.
+			Options *proto.AddRatingOptions
 		}
 	}
 	lockAddMovieRating        sync.RWMutex
@@ -125,6 +136,7 @@ type MockMovieStorage struct {
 	lockGetOne                sync.RWMutex
 	lockGetRandomMovie        sync.RWMutex
 	lockGetSeasonsAndEpisodes sync.RWMutex
+	lockRemoveMovieRating     sync.RWMutex
 }
 
 // AddMovieRating calls AddMovieRatingFunc.
@@ -344,32 +356,63 @@ func (mock *MockMovieStorage) GetRandomMovieCalls() []struct {
 }
 
 // GetSeasonsAndEpisodes calls GetSeasonsAndEpisodesFunc.
-func (mock *MockMovieStorage) GetSeasonsAndEpisodes(seriesId int) ([]*proto.Season, error) {
+func (mock *MockMovieStorage) GetSeasonsAndEpisodes(seriesID int) ([]*proto.Season, error) {
 	if mock.GetSeasonsAndEpisodesFunc == nil {
 		panic("MockMovieStorage.GetSeasonsAndEpisodesFunc: method is nil but Storage.GetSeasonsAndEpisodes was just called")
 	}
 	callInfo := struct {
-		SeriesId int
+		SeriesID int
 	}{
-		SeriesId: seriesId,
+		SeriesID: seriesID,
 	}
 	mock.lockGetSeasonsAndEpisodes.Lock()
 	mock.calls.GetSeasonsAndEpisodes = append(mock.calls.GetSeasonsAndEpisodes, callInfo)
 	mock.lockGetSeasonsAndEpisodes.Unlock()
-	return mock.GetSeasonsAndEpisodesFunc(seriesId)
+	return mock.GetSeasonsAndEpisodesFunc(seriesID)
 }
 
 // GetSeasonsAndEpisodesCalls gets all the calls that were made to GetSeasonsAndEpisodes.
 // Check the length with:
 //     len(mockedStorage.GetSeasonsAndEpisodesCalls())
 func (mock *MockMovieStorage) GetSeasonsAndEpisodesCalls() []struct {
-	SeriesId int
+	SeriesID int
 } {
 	var calls []struct {
-		SeriesId int
+		SeriesID int
 	}
 	mock.lockGetSeasonsAndEpisodes.RLock()
 	calls = mock.calls.GetSeasonsAndEpisodes
 	mock.lockGetSeasonsAndEpisodes.RUnlock()
+	return calls
+}
+
+// RemoveMovieRating calls RemoveMovieRatingFunc.
+func (mock *MockMovieStorage) RemoveMovieRating(options *proto.AddRatingOptions) error {
+	if mock.RemoveMovieRatingFunc == nil {
+		panic("MockMovieStorage.RemoveMovieRatingFunc: method is nil but Storage.RemoveMovieRating was just called")
+	}
+	callInfo := struct {
+		Options *proto.AddRatingOptions
+	}{
+		Options: options,
+	}
+	mock.lockRemoveMovieRating.Lock()
+	mock.calls.RemoveMovieRating = append(mock.calls.RemoveMovieRating, callInfo)
+	mock.lockRemoveMovieRating.Unlock()
+	return mock.RemoveMovieRatingFunc(options)
+}
+
+// RemoveMovieRatingCalls gets all the calls that were made to RemoveMovieRating.
+// Check the length with:
+//     len(mockedStorage.RemoveMovieRatingCalls())
+func (mock *MockMovieStorage) RemoveMovieRatingCalls() []struct {
+	Options *proto.AddRatingOptions
+} {
+	var calls []struct {
+		Options *proto.AddRatingOptions
+	}
+	mock.lockRemoveMovieRating.RLock()
+	calls = mock.calls.RemoveMovieRating
+	mock.lockRemoveMovieRating.RUnlock()
 	return calls
 }
