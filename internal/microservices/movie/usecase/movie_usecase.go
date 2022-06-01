@@ -193,24 +193,31 @@ func (s *Service) AddMovieRating(ctx context.Context, options *proto.AddRatingOp
 		return nil, err
 	}
 
-	if options.Rating > 10 {
-		options.Rating = 10
-	}
-	if options.Rating < 1 {
-		options.Rating = 1
-	}
+	if options.Rating == -1 && checkRating.Exists {
+		err = s.movieStorage.RemoveMovieRating(options)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		if options.Rating > 10 {
+			options.Rating = 10
+		}
+		if options.Rating < 1 {
+			options.Rating = 1
+		}
 
-	if checkRating.Exists {
-		if checkRating.Rating != int(options.Rating) {
-			err := s.movieStorage.ChangeMovieRating(options)
+		if checkRating.Exists {
+			if checkRating.Rating != int(options.Rating) {
+				err = s.movieStorage.ChangeMovieRating(options)
+				if err != nil {
+					return nil, err
+				}
+			}
+		} else {
+			err = s.movieStorage.AddMovieRating(options)
 			if err != nil {
 				return nil, err
 			}
-		}
-	} else {
-		err = s.movieStorage.AddMovieRating(options)
-		if err != nil {
-			return nil, err
 		}
 	}
 

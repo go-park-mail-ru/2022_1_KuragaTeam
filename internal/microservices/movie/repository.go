@@ -11,6 +11,7 @@ type Storage interface {
 	GetRandomMovie() (*proto.MainMovie, error)
 	GetMovieRating(movieID int) (*GetMovieRatingAnswer, error)
 	AddMovieRating(options *proto.AddRatingOptions) error
+	RemoveMovieRating(options *proto.AddRatingOptions) error
 	ChangeMovieRating(options *proto.AddRatingOptions) error
 	CheckRatingExists(options *proto.AddRatingOptions) (*CheckRatingExistsAnswer, error)
 }

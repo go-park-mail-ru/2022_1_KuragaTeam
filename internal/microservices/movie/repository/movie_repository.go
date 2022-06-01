@@ -159,9 +159,55 @@ func (ms *movieStorage) AddMovieRating(options *proto.AddRatingOptions) error {
 		return err
 	}
 	return err
+}
 
-	//_, err := ms.db.Exec(sqlScript, options.MovieID, options.UserID, options.Rating)
-	//return err
+func (ms *movieStorage) RemoveMovieRating(options *proto.AddRatingOptions) error {
+	ctx := context.Background()
+	transaction, err := ms.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = transaction.QueryRow("SELECT rating FROM rating WHERE movie_id = $1 AND user_id = $2;", options.MovieID, options.UserID).Scan(&options.Rating)
+	if err != nil {
+		err = transaction.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+
+	_, err = transaction.ExecContext(ctx, "DELETE FROM rating WHERE movie_id = $1 AND user_id = $2;", options.MovieID, options.UserID)
+	if err != nil {
+		err = transaction.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+
+	_, err = transaction.ExecContext(ctx, "UPDATE movies SET rating_count=((SELECT m1.rating_count FROM movies AS m1 WHERE m1.id=$1)-1) WHERE id=$1;", options.MovieID)
+	if err != nil {
+		err = transaction.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+	_, err = transaction.ExecContext(ctx, "UPDATE movies SET rating_sum=((SELECT m1.rating_sum FROM movies AS m1 WHERE m1.id=$1)-$2) WHERE id=$1;", options.MovieID, options.Rating)
+	if err != nil {
+		err = transaction.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+
+	err = transaction.Commit()
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func (ms *movieStorage) ChangeMovieRating(options *proto.AddRatingOptions) error {
@@ -200,6 +246,7 @@ func (ms *movieStorage) ChangeMovieRating(options *proto.AddRatingOptions) error
 	}
 	return err
 }
+
 func (ms *movieStorage) CheckRatingExists(options *proto.AddRatingOptions) (*movie.CheckRatingExistsAnswer, error) {
 	sqlScript := "SELECT rating FROM rating WHERE user_id=$1 AND movie_id = $2"
 
