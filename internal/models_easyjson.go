@@ -376,9 +376,9 @@ func easyjsonD2b7633eDecodeMyappInternal3(in *jlexer.Lexer, out *MovieRatingDTO)
 		}
 		switch key {
 		case "id":
-			out.MovieID = int(in.Int())
+			out.MovieID = int(in.IntStr())
 		case "rating":
-			out.Rating = int(in.Int())
+			out.Rating = int(in.IntStr())
 		default:
 			in.SkipRecursive()
 		}
@@ -396,12 +396,12 @@ func easyjsonD2b7633eEncodeMyappInternal3(out *jwriter.Writer, in MovieRatingDTO
 	{
 		const prefix string = ",\"id\":"
 		out.RawString(prefix[1:])
-		out.Int(int(in.MovieID))
+		out.IntStr(int(in.MovieID))
 	}
 	{
 		const prefix string = ",\"rating\":"
 		out.RawString(prefix)
-		out.Int(int(in.Rating))
+		out.IntStr(int(in.Rating))
 	}
 	out.RawByte('}')
 }
