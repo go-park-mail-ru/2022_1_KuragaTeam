@@ -63,7 +63,8 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.2
           $(go env GOPATH)/bin/golangci-lint run
   build:
-    needs: [linter, tests]
+#    needs: [linter, tests]
+    needs: linter
     name: Build Docker
     runs-on: self-hosted
     steps:
