@@ -48,11 +48,6 @@ func (s *Service) concatURLs(movie *proto.Movie) error {
 		return err
 	}
 
-	movie.Video, err = images.GenerateFileURL(movie.Video, "movie")
-	if err != nil {
-		return err
-	}
-
 	movie.Trailer, err = images.GenerateFileURL(movie.Trailer, "trailers")
 	if err != nil {
 		return err
@@ -75,6 +70,15 @@ func (s *Service) concatURLs(movie *proto.Movie) error {
 					return err
 				}
 			}
+		}
+		movie.Video, err = images.GenerateFileURL(movie.Video, "series")
+		if err != nil {
+			return err
+		}
+	} else {
+		movie.Video, err = images.GenerateFileURL(movie.Video, "movie")
+		if err != nil {
+			return err
 		}
 	}
 
