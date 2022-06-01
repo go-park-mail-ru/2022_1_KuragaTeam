@@ -14,6 +14,7 @@ message MovieInfo {
   string Name = 2;
   repeated Genre Genre = 3;
   string Picture = 4;
+  float Rating = 5;
 }
 
 message MovieCompilation {

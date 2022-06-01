@@ -72,6 +72,7 @@ func convertMC(in *compilations.MovieCompilation) *internal.MovieCompilation {
 			ID:      int(movie.ID),
 			Name:    movie.Name,
 			Picture: movie.Picture,
+			Rating:  movie.Rating,
 		}
 		for _, genre := range movie.Genre {
 			returnMovie.Genre = append(returnMovie.Genre, internal.Genre{
@@ -92,6 +93,7 @@ func convertSearchCompilations(in *compilations.SearchCompilation) *models.Searc
 			ID:      int(movie.ID),
 			Name:    movie.Name,
 			Picture: movie.Picture,
+			Rating:  movie.Rating,
 		}
 		for _, genre := range movie.Genre {
 			returnMovie.Genre = append(returnMovie.Genre, models.Genre{
@@ -107,6 +109,7 @@ func convertSearchCompilations(in *compilations.SearchCompilation) *models.Searc
 			ID:      int(series.ID),
 			Name:    series.Name,
 			Picture: series.Picture,
+			Rating:  series.Rating,
 		}
 		for _, genre := range series.Genre {
 			returnSeries.Genre = append(returnSeries.Genre, models.Genre{

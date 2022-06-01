@@ -5,6 +5,7 @@ import (
 	"myapp/internal/microservices/compilations"
 	"myapp/internal/microservices/compilations/repository"
 	"myapp/internal/microservices/compilations/usecase"
+	movieRepository "myapp/internal/microservices/movie/repository"
 	personRepository "myapp/internal/persons/repository"
 
 	"go.uber.org/zap"
@@ -19,7 +20,8 @@ func NewMoviesCompilationsComposite(postgresComposite *PostgresDBComposite, logg
 	MCStorage := repository.NewStorage(postgresComposite.db)
 	genreStorage := genreRepository.NewStorage(postgresComposite.db)
 	personStorage := personRepository.NewStorage(postgresComposite.db)
-	service := usecase.NewService(MCStorage, genreStorage, personStorage)
+	movieStorage := movieRepository.NewStorage(postgresComposite.db)
+	service := usecase.NewService(MCStorage, movieStorage, genreStorage, personStorage)
 	return &MoviesCompilationsComposite{
 		Service: service,
 		Storage: MCStorage,

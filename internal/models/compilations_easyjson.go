@@ -44,7 +44,7 @@ func easyjson68b2ec0cDecodeMyappInternalModels(in *jlexer.Lexer, out *SearchComp
 				in.Delim('[')
 				if out.Movies == nil {
 					if !in.IsDelim(']') {
-						out.Movies = make([]MovieInfo, 0, 1)
+						out.Movies = make([]MovieInfo, 0, 0)
 					} else {
 						out.Movies = []MovieInfo{}
 					}
@@ -67,7 +67,7 @@ func easyjson68b2ec0cDecodeMyappInternalModels(in *jlexer.Lexer, out *SearchComp
 				in.Delim('[')
 				if out.Series == nil {
 					if !in.IsDelim(']') {
-						out.Series = make([]MovieInfo, 0, 1)
+						out.Series = make([]MovieInfo, 0, 0)
 					} else {
 						out.Series = []MovieInfo{}
 					}
@@ -360,6 +360,8 @@ func easyjson68b2ec0cDecodeMyappInternalModels2(in *jlexer.Lexer, out *MovieInfo
 			}
 		case "picture":
 			out.Picture = string(in.String())
+		case "rating":
+			out.Rating = float32(in.Float32())
 		default:
 			in.SkipRecursive()
 		}
@@ -404,6 +406,11 @@ func easyjson68b2ec0cEncodeMyappInternalModels2(out *jwriter.Writer, in MovieInf
 		const prefix string = ",\"picture\":"
 		out.RawString(prefix)
 		out.String(string(in.Picture))
+	}
+	{
+		const prefix string = ",\"rating\":"
+		out.RawString(prefix)
+		out.Float32(float32(in.Rating))
 	}
 	out.RawByte('}')
 }

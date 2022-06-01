@@ -70,6 +70,7 @@ type MovieInfo struct {
 	Name    string  `json:"name" form:"name"`
 	Genre   []Genre `json:"genre" form:"genre"`
 	Picture string  `json:"picture" form:"picture"`
+	Rating  float32 `json:"rating" form:"rating"`
 }
 
 type MovieCompilation struct {
