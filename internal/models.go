@@ -78,6 +78,11 @@ type MovieCompilation struct {
 	Movies []MovieInfo `json:"movies"`
 }
 
+type AllMoviesResponse struct {
+	Movies      []MovieInfo `json:"movies"`
+	HasNextPage bool        `json:"has_next_page"`
+}
+
 type MovieRatingDTO struct {
 	MovieID int `json:"id,string" form:"id"`
 	Rating  int `json:"rating,string" form:"rating"`

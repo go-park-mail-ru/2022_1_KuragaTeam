@@ -20,6 +20,7 @@ message MovieInfo {
 message MovieCompilation {
   string Name = 1;
   repeated MovieInfo Movies = 2;
+  bool HasNextPage = 3;
 }
 
 message MovieCompilationsArr {
@@ -32,11 +33,13 @@ message GetByIDOptions {
   int32 ID = 1;
   int32 limit = 2;
   int32 offset = 3;
+  bool random = 4;
 }
 
 message GetCompilationOptions {
   int32 limit = 1;
   int32 offset = 2;
+  bool random = 3;
 }
 
 message GetFavoritesOptions {

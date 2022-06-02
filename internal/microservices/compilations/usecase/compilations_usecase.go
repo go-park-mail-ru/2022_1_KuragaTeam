@@ -70,6 +70,9 @@ func (s *Service) concatUrls(compilation *proto.MovieCompilation) error {
 }
 
 func (s *Service) GetAllMovies(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
+	if in.Limit > 40 {
+		in.Limit = 40
+	}
 	compilation, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), true)
 	if err != nil {
 		return nil, err
@@ -90,6 +93,9 @@ func (s *Service) GetAllMovies(ctx context.Context, in *proto.GetCompilationOpti
 }
 
 func (s *Service) GetAllSeries(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
+	if in.Limit > 40 {
+		in.Limit = 40
+	}
 	compilation, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), false)
 	if err != nil {
 		return nil, err
@@ -113,7 +119,7 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 
 	compilation := make([]*proto.MovieCompilation, 0)
 
-	nextMC, err := s.GetTop(ctx, &proto.GetCompilationOptions{Limit: 12, Offset: 0})
+	nextMC, err := s.GetTop(ctx, &proto.GetCompilationOptions{Limit: 12, Offset: 0, Random: true})
 	if err != nil {
 		return nil, err
 	}
@@ -131,8 +137,9 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 
 	nextMC, err = s.GetByGenre(ctx, &proto.GetByIDOptions{
 		ID:     2,
-		Limit:  0,
+		Limit:  12,
 		Offset: 0,
+		Random: true,
 	}) // Боевик
 	if err != nil {
 		return nil, err
@@ -141,8 +148,9 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 
 	nextMC, err = s.GetByCountry(ctx, &proto.GetByIDOptions{
 		ID:     3,
-		Limit:  0,
+		Limit:  12,
 		Offset: 0,
+		Random: true,
 	}) // США
 	if err != nil {
 		return nil, err
@@ -150,10 +158,10 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 	compilation = append(compilation, nextMC)
 
 	nextMC, err = s.GetByGenre(ctx, &proto.GetByIDOptions{
-		ID:     3,
-		Limit:  0,
+		ID:     10,
+		Limit:  12,
 		Offset: 0,
-	}) // Драма
+	}) // Детектив
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +171,10 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 }
 
 func (s *Service) GetByGenre(ctx context.Context, in *proto.GetByIDOptions) (*proto.MovieCompilation, error) {
-	compilation, err := s.MCStorage.GetByGenre(int(in.ID))
+	if in.Limit > 40 {
+		in.Limit = 40
+	}
+	compilation, err := s.MCStorage.GetByGenre(int(in.Limit), int(in.Offset), int(in.ID), in.Random)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +194,7 @@ func (s *Service) GetByGenre(ctx context.Context, in *proto.GetByIDOptions) (*pr
 }
 
 func (s *Service) GetByCountry(ctx context.Context, in *proto.GetByIDOptions) (*proto.MovieCompilation, error) {
-	compilation, err := s.MCStorage.GetByCountry(int(in.ID))
+	compilation, err := s.MCStorage.GetByCountry(int(in.ID), in.Random)
 	if err != nil {
 		return nil, err
 	}

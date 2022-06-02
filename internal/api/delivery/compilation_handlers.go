@@ -142,7 +142,7 @@ func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
 		limitStr := ctx.QueryParam("limit")
 		limit, err := strconv.Atoi(limitStr)
 		if err != nil {
-			limit = randomCount
+			limit = defaultLimit
 		}
 
 		offsetStr := ctx.QueryParam("offset")
@@ -160,7 +160,10 @@ func (h *compilationsHandler) GetAllMovies() echo.HandlerFunc {
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
 
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC).Movies)
+		return ctx.JSON(http.StatusOK, internal.AllMoviesResponse{
+			Movies:      convertMC(selectedMC).Movies,
+			HasNextPage: selectedMC.HasNextPage,
+		})
 	}
 }
 
@@ -174,7 +177,7 @@ func (h *compilationsHandler) GetAllSeries() echo.HandlerFunc {
 		limitStr := ctx.QueryParam("limit")
 		limit, err := strconv.Atoi(limitStr)
 		if err != nil {
-			limit = randomCount
+			limit = defaultLimit
 		}
 
 		offsetStr := ctx.QueryParam("offset")
@@ -191,7 +194,10 @@ func (h *compilationsHandler) GetAllSeries() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		return ctx.JSON(http.StatusOK, convertMC(selectedMC).Movies)
+		return ctx.JSON(http.StatusOK, internal.AllMoviesResponse{
+			Movies:      convertMC(selectedMC).Movies,
+			HasNextPage: selectedMC.HasNextPage,
+		})
 	}
 }
 
@@ -255,11 +261,28 @@ func (h *compilationsHandler) GetMCByGenre() echo.HandlerFunc {
 			return err
 		}
 
+		limitStr := ctx.QueryParam("limit")
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil {
+			limit = defaultLimit
+		}
+
+		offsetStr := ctx.QueryParam("offset")
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil {
+			offset = defaultOffset
+		}
+
 		genreID, err := strconv.Atoi(ctx.Param("genre_id"))
 		if err != nil {
 			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
-		selectedMC, err := h.compilationsMicroservice.GetByGenre(context.Background(), &compilations.GetByIDOptions{ID: int32(genreID)})
+		selectedMC, err := h.compilationsMicroservice.GetByGenre(context.Background(), &compilations.GetByIDOptions{
+			ID:     int32(genreID),
+			Limit:  int32(limit),
+			Offset: int32(offset),
+		})
+
 		if err != nil {
 			return constants.RespError(ctx, h.logger, requestID, err.Error(), http.StatusInternalServerError)
 		}
@@ -267,11 +290,14 @@ func (h *compilationsHandler) GetMCByGenre() echo.HandlerFunc {
 			zap.String("ID", requestID),
 			zap.Int("ANSWER STATUS", http.StatusOK),
 		)
-		resp, err := easyjson.Marshal(convertMC(selectedMC))
-		if err != nil {
-			return ctx.NoContent(http.StatusInternalServerError)
-		}
-		return ctx.JSONBlob(http.StatusOK, resp)
+		//resp, err := easyjson.Marshal(convertMC(selectedMC))
+		//if err != nil {
+		//	return ctx.NoContent(http.StatusInternalServerError)
+		//}
+		return ctx.JSON(http.StatusOK, internal.AllMoviesResponse{
+			Movies:      convertMC(selectedMC).Movies,
+			HasNextPage: selectedMC.HasNextPage,
+		})
 	}
 }
 
