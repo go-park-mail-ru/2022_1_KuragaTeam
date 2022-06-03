@@ -15,7 +15,7 @@ func NewStorage(db *sql.DB) *positionStorage {
 func (ms *positionStorage) GetByPersonID(id int) ([]string, error) {
 	personPositions := make([]string, 0)
 
-	sqlScript := "SELECT pos.name FROM position AS pos JOIN movies_staff mv_s ON mv_s.position_id = pos.id " +
+	sqlScript := "SELECT DISTINCT pos.name FROM position AS pos JOIN movies_staff mv_s ON mv_s.position_id = pos.id " +
 		"WHERE mv_s.person_id = $1"
 	rows, err := ms.db.Query(sqlScript, id)
 	if err != nil {

@@ -17,7 +17,7 @@ const (
 	movieURL      = "api/v1/movie/:movie_id"
 	mainMovieURL  = "api/v1/mainMovie"
 	addRatingURL  = "api/v1/addMovieRating"
-	randomCount   = 10
+	defaultLimit  = 10
 	defaultOffset = 0
 )
 

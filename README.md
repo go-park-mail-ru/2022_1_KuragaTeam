@@ -2,7 +2,7 @@
 
 ## Ссылка на деплой
 
-http://movie-space.ru:8080/
+http://movie-space.ru
 
 ## Авторы
 

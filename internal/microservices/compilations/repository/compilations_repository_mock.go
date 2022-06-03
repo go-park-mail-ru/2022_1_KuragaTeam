@@ -28,10 +28,10 @@ var _ compilations.Storage = &MockMovieCompilationStorage{}
 // 			GetAllMoviesFunc: func(limit int, offset int, isMovie bool) (*proto.MovieCompilation, error) {
 // 				panic("mock out the GetAllMovies method")
 // 			},
-// 			GetByCountryFunc: func(countryID int) (*proto.MovieCompilation, error) {
+// 			GetByCountryFunc: func(countryID int, random bool) (*proto.MovieCompilation, error) {
 // 				panic("mock out the GetByCountry method")
 // 			},
-// 			GetByGenreFunc: func(genreID int) (*proto.MovieCompilation, error) {
+// 			GetByGenreFunc: func(limit int, offset int, genreID int, random bool) (*proto.MovieCompilation, error) {
 // 				panic("mock out the GetByGenre method")
 // 			},
 // 			GetByMovieFunc: func(movieID int) (*proto.MovieCompilation, error) {
@@ -72,10 +72,10 @@ type MockMovieCompilationStorage struct {
 	GetAllMoviesFunc func(limit int, offset int, isMovie bool) (*proto.MovieCompilation, error)
 
 	// GetByCountryFunc mocks the GetByCountry method.
-	GetByCountryFunc func(countryID int) (*proto.MovieCompilation, error)
+	GetByCountryFunc func(countryID int, random bool) (*proto.MovieCompilation, error)
 
 	// GetByGenreFunc mocks the GetByGenre method.
-	GetByGenreFunc func(genreID int) (*proto.MovieCompilation, error)
+	GetByGenreFunc func(limit int, offset int, genreID int, random bool) (*proto.MovieCompilation, error)
 
 	// GetByMovieFunc mocks the GetByMovie method.
 	GetByMovieFunc func(movieID int) (*proto.MovieCompilation, error)
@@ -127,11 +127,19 @@ type MockMovieCompilationStorage struct {
 		GetByCountry []struct {
 			// CountryID is the countryID argument value.
 			CountryID int
+			// Random is the random argument value.
+			Random bool
 		}
 		// GetByGenre holds details about calls to the GetByGenre method.
 		GetByGenre []struct {
+			// Limit is the limit argument value.
+			Limit int
+			// Offset is the offset argument value.
+			Offset int
 			// GenreID is the genreID argument value.
 			GenreID int
+			// Random is the random argument value.
+			Random bool
 		}
 		// GetByMovie holds details about calls to the GetByMovie method.
 		GetByMovie []struct {
@@ -293,19 +301,21 @@ func (mock *MockMovieCompilationStorage) GetAllMoviesCalls() []struct {
 }
 
 // GetByCountry calls GetByCountryFunc.
-func (mock *MockMovieCompilationStorage) GetByCountry(countryID int) (*proto.MovieCompilation, error) {
+func (mock *MockMovieCompilationStorage) GetByCountry(countryID int, random bool) (*proto.MovieCompilation, error) {
 	if mock.GetByCountryFunc == nil {
 		panic("MockMovieCompilationStorage.GetByCountryFunc: method is nil but Storage.GetByCountry was just called")
 	}
 	callInfo := struct {
 		CountryID int
+		Random    bool
 	}{
 		CountryID: countryID,
+		Random:    random,
 	}
 	mock.lockGetByCountry.Lock()
 	mock.calls.GetByCountry = append(mock.calls.GetByCountry, callInfo)
 	mock.lockGetByCountry.Unlock()
-	return mock.GetByCountryFunc(countryID)
+	return mock.GetByCountryFunc(countryID, random)
 }
 
 // GetByCountryCalls gets all the calls that were made to GetByCountry.
@@ -313,9 +323,11 @@ func (mock *MockMovieCompilationStorage) GetByCountry(countryID int) (*proto.Mov
 //     len(mockedStorage.GetByCountryCalls())
 func (mock *MockMovieCompilationStorage) GetByCountryCalls() []struct {
 	CountryID int
+	Random    bool
 } {
 	var calls []struct {
 		CountryID int
+		Random    bool
 	}
 	mock.lockGetByCountry.RLock()
 	calls = mock.calls.GetByCountry
@@ -324,29 +336,41 @@ func (mock *MockMovieCompilationStorage) GetByCountryCalls() []struct {
 }
 
 // GetByGenre calls GetByGenreFunc.
-func (mock *MockMovieCompilationStorage) GetByGenre(genreID int) (*proto.MovieCompilation, error) {
+func (mock *MockMovieCompilationStorage) GetByGenre(limit int, offset int, genreID int, random bool) (*proto.MovieCompilation, error) {
 	if mock.GetByGenreFunc == nil {
 		panic("MockMovieCompilationStorage.GetByGenreFunc: method is nil but Storage.GetByGenre was just called")
 	}
 	callInfo := struct {
+		Limit   int
+		Offset  int
 		GenreID int
+		Random  bool
 	}{
+		Limit:   limit,
+		Offset:  offset,
 		GenreID: genreID,
+		Random:  random,
 	}
 	mock.lockGetByGenre.Lock()
 	mock.calls.GetByGenre = append(mock.calls.GetByGenre, callInfo)
 	mock.lockGetByGenre.Unlock()
-	return mock.GetByGenreFunc(genreID)
+	return mock.GetByGenreFunc(limit, offset, genreID, random)
 }
 
 // GetByGenreCalls gets all the calls that were made to GetByGenre.
 // Check the length with:
 //     len(mockedStorage.GetByGenreCalls())
 func (mock *MockMovieCompilationStorage) GetByGenreCalls() []struct {
+	Limit   int
+	Offset  int
 	GenreID int
+	Random  bool
 } {
 	var calls []struct {
+		Limit   int
+		Offset  int
 		GenreID int
+		Random  bool
 	}
 	mock.lockGetByGenre.RLock()
 	calls = mock.calls.GetByGenre

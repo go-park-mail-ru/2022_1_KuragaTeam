@@ -477,6 +477,8 @@ func easyjsonD2b7633eDecodeMyappInternal4(in *jlexer.Lexer, out *MovieInfo) {
 			}
 		case "picture":
 			out.Picture = string(in.String())
+		case "rating":
+			out.Rating = float32(in.Float32())
 		default:
 			in.SkipRecursive()
 		}
@@ -521,6 +523,11 @@ func easyjsonD2b7633eEncodeMyappInternal4(out *jwriter.Writer, in MovieInfo) {
 		const prefix string = ",\"picture\":"
 		out.RawString(prefix)
 		out.String(string(in.Picture))
+	}
+	{
+		const prefix string = ",\"rating\":"
+		out.RawString(prefix)
+		out.Float32(float32(in.Rating))
 	}
 	out.RawByte('}')
 }
@@ -577,7 +584,7 @@ func easyjsonD2b7633eDecodeMyappInternal5(in *jlexer.Lexer, out *MovieCompilatio
 				in.Delim('[')
 				if out.Movies == nil {
 					if !in.IsDelim(']') {
-						out.Movies = make([]MovieInfo, 0, 1)
+						out.Movies = make([]MovieInfo, 0, 0)
 					} else {
 						out.Movies = []MovieInfo{}
 					}

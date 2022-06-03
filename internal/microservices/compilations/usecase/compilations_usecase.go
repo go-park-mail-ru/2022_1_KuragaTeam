@@ -1,12 +1,14 @@
 package usecase
 
 import (
+	"math"
 	"myapp/internal/constants"
 	"myapp/internal/genre"
 	"myapp/internal/microservices/compilations"
 	"myapp/internal/microservices/compilations/proto"
 	"myapp/internal/microservices/compilations/utils/contains"
 	"myapp/internal/microservices/compilations/utils/images"
+	"myapp/internal/microservices/movie"
 	"myapp/internal/persons"
 	"strings"
 
@@ -15,12 +17,29 @@ import (
 
 type Service struct {
 	MCStorage    compilations.Storage
+	movieStorage movie.Storage
 	genreStorage genre.Storage
 	staffStorage persons.Storage
 }
 
-func NewService(MCStorage compilations.Storage, genreStorage genre.Storage, staffStorage persons.Storage) *Service {
-	return &Service{MCStorage: MCStorage, genreStorage: genreStorage, staffStorage: staffStorage}
+func NewService(MCStorage compilations.Storage, movieStorage movie.Storage, genreStorage genre.Storage, staffStorage persons.Storage) *Service {
+	return &Service{MCStorage: MCStorage, genreStorage: genreStorage, staffStorage: staffStorage, movieStorage: movieStorage}
+}
+
+func (s *Service) fillRating(compilation *proto.MovieCompilation) error {
+	for mcIndex := 0; mcIndex < len(compilation.Movies); mcIndex++ {
+		ratingValues, err := s.movieStorage.GetMovieRating(int(compilation.Movies[mcIndex].ID))
+		if err != nil {
+			return err
+		}
+		if ratingValues.RatingSum != 0 {
+			compilation.Movies[mcIndex].Rating = float32(math.Round(float64(float64(ratingValues.RatingSum)/
+				float64(ratingValues.RatingCount))*10) / 10)
+		} else {
+			compilation.Movies[mcIndex].Rating = -1.0
+		}
+	}
+	return nil
 }
 
 func (s *Service) fillGenres(compilation *proto.MovieCompilation) error {
@@ -51,11 +70,18 @@ func (s *Service) concatUrls(compilation *proto.MovieCompilation) error {
 }
 
 func (s *Service) GetAllMovies(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
+	if in.Limit > 40 {
+		in.Limit = 40
+	}
 	compilation, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), true)
 	if err != nil {
 		return nil, err
 	}
 	err = s.fillGenres(compilation)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillRating(compilation)
 	if err != nil {
 		return nil, err
 	}
@@ -67,11 +93,18 @@ func (s *Service) GetAllMovies(ctx context.Context, in *proto.GetCompilationOpti
 }
 
 func (s *Service) GetAllSeries(ctx context.Context, in *proto.GetCompilationOptions) (*proto.MovieCompilation, error) {
+	if in.Limit > 40 {
+		in.Limit = 40
+	}
 	compilation, err := s.MCStorage.GetAllMovies(int(in.Limit), int(in.Offset), false)
 	if err != nil {
 		return nil, err
 	}
 	err = s.fillGenres(compilation)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillRating(compilation)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +119,7 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 
 	compilation := make([]*proto.MovieCompilation, 0)
 
-	nextMC, err := s.GetTop(ctx, &proto.GetCompilationOptions{Limit: 12, Offset: 0})
+	nextMC, err := s.GetTop(ctx, &proto.GetCompilationOptions{Limit: 12, Offset: 0, Random: true})
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +137,9 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 
 	nextMC, err = s.GetByGenre(ctx, &proto.GetByIDOptions{
 		ID:     2,
-		Limit:  0,
+		Limit:  12,
 		Offset: 0,
+		Random: true,
 	}) // Боевик
 	if err != nil {
 		return nil, err
@@ -114,9 +148,20 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 
 	nextMC, err = s.GetByCountry(ctx, &proto.GetByIDOptions{
 		ID:     3,
-		Limit:  0,
+		Limit:  12,
 		Offset: 0,
+		Random: true,
 	}) // США
+	if err != nil {
+		return nil, err
+	}
+	compilation = append(compilation, nextMC)
+
+	nextMC, err = s.GetByGenre(ctx, &proto.GetByIDOptions{
+		ID:     10,
+		Limit:  12,
+		Offset: 0,
+	}) // Детектив
 	if err != nil {
 		return nil, err
 	}
@@ -126,11 +171,18 @@ func (s *Service) GetMainCompilations(ctx context.Context, in *proto.GetMainComp
 }
 
 func (s *Service) GetByGenre(ctx context.Context, in *proto.GetByIDOptions) (*proto.MovieCompilation, error) {
-	compilation, err := s.MCStorage.GetByGenre(int(in.ID))
+	if in.Limit > 40 {
+		in.Limit = 40
+	}
+	compilation, err := s.MCStorage.GetByGenre(int(in.Limit), int(in.Offset), int(in.ID), in.Random)
 	if err != nil {
 		return nil, err
 	}
 	err = s.fillGenres(compilation)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillRating(compilation)
 	if err != nil {
 		return nil, err
 	}
@@ -142,11 +194,15 @@ func (s *Service) GetByGenre(ctx context.Context, in *proto.GetByIDOptions) (*pr
 }
 
 func (s *Service) GetByCountry(ctx context.Context, in *proto.GetByIDOptions) (*proto.MovieCompilation, error) {
-	compilation, err := s.MCStorage.GetByCountry(int(in.ID))
+	compilation, err := s.MCStorage.GetByCountry(int(in.ID), in.Random)
 	if err != nil {
 		return nil, err
 	}
 	err = s.fillGenres(compilation)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillRating(compilation)
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +222,10 @@ func (s *Service) GetByMovie(ctx context.Context, in *proto.GetByIDOptions) (*pr
 	if err != nil {
 		return nil, err
 	}
+	err = s.fillRating(compilation)
+	if err != nil {
+		return nil, err
+	}
 	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
@@ -182,6 +242,10 @@ func (s *Service) GetByPerson(ctx context.Context, in *proto.GetByIDOptions) (*p
 	if err != nil {
 		return nil, err
 	}
+	err = s.fillRating(compilation)
+	if err != nil {
+		return nil, err
+	}
 	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
@@ -195,6 +259,10 @@ func (s *Service) GetTopByYear(ctx context.Context, in *proto.GetByIDOptions) (*
 		return nil, err
 	}
 	err = s.fillGenres(compilation)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillRating(compilation)
 	if err != nil {
 		return nil, err
 	}
@@ -218,6 +286,10 @@ func (s *Service) GetTop(ctx context.Context, in *proto.GetCompilationOptions) (
 	if err != nil {
 		return nil, err
 	}
+	err = s.fillRating(compilation)
+	if err != nil {
+		return nil, err
+	}
 	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
@@ -234,12 +306,20 @@ func (s *Service) GetFavorites(ctx context.Context, in *proto.GetFavoritesOption
 	if err != nil {
 		return nil, err
 	}
+	err = s.fillRating(compilation.MovieCompilations[0])
+	if err != nil {
+		return nil, err
+	}
 	err = s.concatUrls(compilation.MovieCompilations[0])
 	if err != nil {
 		return nil, err
 	}
 
 	err = s.fillGenres(compilation.MovieCompilations[1])
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillRating(compilation.MovieCompilations[1])
 	if err != nil {
 		return nil, err
 	}
@@ -260,6 +340,10 @@ func (s *Service) GetFavoritesFilms(ctx context.Context, in *proto.GetFavoritesO
 	if err != nil {
 		return nil, err
 	}
+	err = s.fillRating(compilation)
+	if err != nil {
+		return nil, err
+	}
 	err = s.concatUrls(compilation)
 	if err != nil {
 		return nil, err
@@ -274,6 +358,10 @@ func (s *Service) GetFavoritesSeries(ctx context.Context, in *proto.GetFavorites
 		return nil, err
 	}
 	err = s.fillGenres(compilation)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillRating(compilation)
 	if err != nil {
 		return nil, err
 	}
@@ -318,6 +406,10 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 	if err != nil {
 		return nil, err
 	}
+	err = s.fillRating(movieCompilations)
+	if err != nil {
+		return nil, err
+	}
 	err = s.concatUrls(movieCompilations)
 	if err != nil {
 		return nil, err
@@ -342,6 +434,10 @@ func (s *Service) Find(ctx context.Context, in *proto.SearchText) (*proto.Search
 	}
 
 	err = s.fillGenres(seriesCompilations)
+	if err != nil {
+		return nil, err
+	}
+	err = s.fillRating(seriesCompilations)
 	if err != nil {
 		return nil, err
 	}

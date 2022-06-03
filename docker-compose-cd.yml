@@ -3,6 +3,7 @@ version: "3.9"
 volumes:
   postgres_data:
   minio_data:
+  redis_data:
   grafana_data:
 
 services:
@@ -29,11 +30,13 @@ services:
     ports:
       - "5432:5432"
   redis:
-    image: redis:latest
-    command: --slave-read-only no
+    image: redis:6.2.7
+    command: [sh, -c, "rm -f /data/dump.rdb && redis-server --save \"\" "]
     restart: always
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
   minio:
     image: minio/minio:latest
     command: server --console-address ":9001" /data/

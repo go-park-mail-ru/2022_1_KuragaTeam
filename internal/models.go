@@ -70,6 +70,7 @@ type MovieInfo struct {
 	Name    string  `json:"name" form:"name"`
 	Genre   []Genre `json:"genre" form:"genre"`
 	Picture string  `json:"picture" form:"picture"`
+	Rating  float32 `json:"rating" form:"rating"`
 }
 
 type MovieCompilation struct {
@@ -77,7 +78,12 @@ type MovieCompilation struct {
 	Movies []MovieInfo `json:"movies"`
 }
 
+type AllMoviesResponse struct {
+	Movies      []MovieInfo `json:"movies"`
+	HasNextPage bool        `json:"has_next_page"`
+}
+
 type MovieRatingDTO struct {
-	MovieID int `json:"id" form:"id"`
-	Rating  int `json:"rating" form:"rating"`
+	MovieID int `json:"id,string" form:"id"`
+	Rating  int `json:"rating,string" form:"rating"`
 }

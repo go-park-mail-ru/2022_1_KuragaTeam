@@ -18,10 +18,13 @@ func NewStorage(db *sql.DB) *movieCompilationsStorage {
 const (
 	getAllMoviesSQL = "SELECT m.id, m.name, m.picture FROM movies AS m WHERE m.is_movie=$1 LIMIT $2 OFFSET $3"
 	getByGenreSQL   = "SELECT m.id, m.name, m.picture FROM movies AS m JOIN movies_genre m_g ON " +
-		"m_g.movie_id = m.id WHERE m_g.genre_id=$1"
-	getGenreNameSQL = "SELECT name FROM genre WHERE id=$1"
-	getByCountrySQL = "SELECT m.id, m.name, m.picture FROM movies AS m JOIN movies_countries m_c ON " +
+		"m_g.movie_id = m.id WHERE m_g.genre_id=$1 LIMIT $2 OFFSET $3"
+	getByGenreRandomSQL = "SELECT m.id, m.name, m.picture FROM movies AS m JOIN movies_genre m_g ON m_g.movie_id = m.id WHERE m_g.genre_id=$1 ORDER BY random() LIMIT $2 OFFSET $3"
+	getGenreNameSQL     = "SELECT name FROM genre WHERE id=$1"
+	getByCountrySQL     = "SELECT m.id, m.name, m.picture FROM movies AS m JOIN movies_countries m_c ON " +
 		"m_c.movie_id = m.id WHERE m_c.country_id=$1"
+	getByCountryRandomSQL = "SELECT m.id, m.name, m.picture FROM movies AS m JOIN movies_countries m_c ON " +
+		"m_c.movie_id = m.id WHERE m_c.country_id=$1 ORDER BY random()"
 	getCountryNameSQL = "SELECT name FROM country WHERE id=$1"
 	getByMovieSQL     = "SELECT DISTINCT m.id, m.name, m.picture FROM movies AS m " +
 		"JOIN movies_genre m_g ON m_g.movie_id = m.id " +
@@ -29,8 +32,8 @@ const (
 		"WHERE m_g2.movie_id=$1"
 	getByPersonSQL = "SELECT m.id, m.name, m.picture FROM movies AS m JOIN movies_staff m_s ON " +
 		"m_s.movie_id = m.id WHERE m_s.person_id=$1"
-	getTopSQL          = "SELECT id, name, picture FROM movies ORDER BY kinopoisk_rating DESC LIMIT $1"
-	getTopByYearSQL    = "SELECT id, name, picture FROM movies WHERE year=$1 ORDER BY kinopoisk_rating DESC"
+	getTopSQL          = "SELECT id, name, picture FROM movies WHERE movies.rating_count > 0 ORDER BY movies.rating_sum*10/movies.rating_count DESC LIMIT $1"
+	getTopByYearSQL    = "SELECT id, name, picture FROM movies WHERE year=$1 AND movies.rating_count > 0 ORDER BY movies.rating_sum*10/movies.rating_count DESC"
 	getFavorites       = "SELECT id, name, picture, is_movie FROM movies WHERE id=$1;"
 	findMovie          = "SELECT id, name, picture FROM movies where to_tsvector('russian', name) @@ to_tsquery('russian', $1) AND is_movie=$2 ORDER BY name LIMIT $3;"
 	findMovieByPartial = "SELECT id, name, picture FROM movies where name ILIKE $1 AND is_movie=$2 ORDER BY name LIMIT $3;"
@@ -38,6 +41,7 @@ const (
 
 func (ms *movieCompilationsStorage) GetAllMovies(limit, offset int, isMovie bool) (*proto.MovieCompilation, error) {
 	var selectedMovieCompilation proto.MovieCompilation
+	selectedMovieCompilation.HasNextPage = true
 
 	rows, err := ms.db.Query(getAllMoviesSQL, isMovie, limit, offset)
 	if err != nil {
@@ -57,18 +61,29 @@ func (ms *movieCompilationsStorage) GetAllMovies(limit, offset int, isMovie bool
 		}
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
 	}
+
+	if len(selectedMovieCompilation.Movies) < limit {
+		selectedMovieCompilation.HasNextPage = false
+	}
+
 	return &selectedMovieCompilation, nil
 }
 
-func (ms *movieCompilationsStorage) GetByGenre(genreID int) (*proto.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) GetByGenre(limit, offset int, genreID int, random bool) (*proto.MovieCompilation, error) {
 	var selectedMovieCompilation proto.MovieCompilation
+	selectedMovieCompilation.HasNextPage = true
 
 	err := ms.db.QueryRow(getGenreNameSQL, genreID).Scan(&selectedMovieCompilation.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := ms.db.Query(getByGenreSQL, genreID)
+	var rows *sql.Rows
+	if random {
+		rows, err = ms.db.Query(getByGenreRandomSQL, genreID, limit, offset)
+	} else {
+		rows, err = ms.db.Query(getByGenreSQL, genreID, limit, offset)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -86,18 +101,26 @@ func (ms *movieCompilationsStorage) GetByGenre(genreID int) (*proto.MovieCompila
 		}
 		selectedMovieCompilation.Movies = append(selectedMovieCompilation.Movies, &selectedMovie)
 	}
+	if len(selectedMovieCompilation.Movies) < limit {
+		selectedMovieCompilation.HasNextPage = false
+	}
+
 	return &selectedMovieCompilation, nil
 }
 
-func (ms *movieCompilationsStorage) GetByCountry(countryID int) (*proto.MovieCompilation, error) {
+func (ms *movieCompilationsStorage) GetByCountry(countryID int, random bool) (*proto.MovieCompilation, error) {
 	var selectedMovieCompilation proto.MovieCompilation
 
 	err := ms.db.QueryRow(getCountryNameSQL, countryID).Scan(&selectedMovieCompilation.Name)
 	if err != nil {
 		return nil, err
 	}
-
-	rows, err := ms.db.Query(getByCountrySQL, countryID)
+	var rows *sql.Rows
+	if random {
+		rows, err = ms.db.Query(getByCountryRandomSQL, countryID)
+	} else {
+		rows, err = ms.db.Query(getByCountrySQL, countryID)
+	}
 	if err != nil {
 		return nil, err
 	}
