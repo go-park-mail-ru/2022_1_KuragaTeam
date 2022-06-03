@@ -86,6 +86,7 @@ message MainMovie {
   string NamePicture = 2;
   string Tagline = 3;
   string Picture = 4;
+  bool IsMovie = 5;
 }
 
 service Movies {

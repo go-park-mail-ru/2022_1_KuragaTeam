@@ -5,6 +5,7 @@ type MainMovieInfoDTO struct {
 	NamePicture string `json:"name_picture" form:"name_picture"`
 	Tagline     string `json:"tagline" form:"tagline"`
 	Picture     string `json:"picture" form:"picture"`
+	IsMovie     bool   `json:"is_movie" form:"is_movie"`
 }
 
 type Genre struct {
