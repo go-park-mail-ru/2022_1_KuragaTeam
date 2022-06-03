@@ -80,8 +80,9 @@ type MovieCompilation struct {
 }
 
 type MovieCompilationResponse struct {
-	MovieCompilation *MovieCompilation `json:"movie_compilation"`
-	HasNextPage      bool              `json:"has_next_page"`
+	Name        string      `json:"compilation_name"`
+	Movies      []MovieInfo `json:"movies"`
+	HasNextPage bool        `json:"has_next_page"`
 }
 
 type AllMoviesResponse struct {

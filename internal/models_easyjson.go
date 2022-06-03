@@ -574,15 +574,30 @@ func easyjsonD2b7633eDecodeMyappInternal5(in *jlexer.Lexer, out *MovieCompilatio
 			continue
 		}
 		switch key {
-		case "movie_compilation":
+		case "compilation_name":
+			out.Name = string(in.String())
+		case "movies":
 			if in.IsNull() {
 				in.Skip()
-				out.MovieCompilation = nil
+				out.Movies = nil
 			} else {
-				if out.MovieCompilation == nil {
-					out.MovieCompilation = new(MovieCompilation)
+				in.Delim('[')
+				if out.Movies == nil {
+					if !in.IsDelim(']') {
+						out.Movies = make([]MovieInfo, 0, 0)
+					} else {
+						out.Movies = []MovieInfo{}
+					}
+				} else {
+					out.Movies = (out.Movies)[:0]
 				}
-				(*out.MovieCompilation).UnmarshalEasyJSON(in)
+				for !in.IsDelim(']') {
+					var v10 MovieInfo
+					(v10).UnmarshalEasyJSON(in)
+					out.Movies = append(out.Movies, v10)
+					in.WantComma()
+				}
+				in.Delim(']')
 			}
 		case "has_next_page":
 			out.HasNextPage = bool(in.Bool())
@@ -601,12 +616,24 @@ func easyjsonD2b7633eEncodeMyappInternal5(out *jwriter.Writer, in MovieCompilati
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"movie_compilation\":"
+		const prefix string = ",\"compilation_name\":"
 		out.RawString(prefix[1:])
-		if in.MovieCompilation == nil {
+		out.String(string(in.Name))
+	}
+	{
+		const prefix string = ",\"movies\":"
+		out.RawString(prefix)
+		if in.Movies == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 			out.RawString("null")
 		} else {
-			(*in.MovieCompilation).MarshalEasyJSON(out)
+			out.RawByte('[')
+			for v11, v12 := range in.Movies {
+				if v11 > 0 {
+					out.RawByte(',')
+				}
+				(v12).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
 		}
 	}
 	{
@@ -677,9 +704,9 @@ func easyjsonD2b7633eDecodeMyappInternal6(in *jlexer.Lexer, out *MovieCompilatio
 					out.Movies = (out.Movies)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v10 MovieInfo
-					(v10).UnmarshalEasyJSON(in)
-					out.Movies = append(out.Movies, v10)
+					var v13 MovieInfo
+					(v13).UnmarshalEasyJSON(in)
+					out.Movies = append(out.Movies, v13)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -710,11 +737,11 @@ func easyjsonD2b7633eEncodeMyappInternal6(out *jwriter.Writer, in MovieCompilati
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v11, v12 := range in.Movies {
-				if v11 > 0 {
+			for v14, v15 := range in.Movies {
+				if v14 > 0 {
 					out.RawByte(',')
 				}
-				(v12).MarshalEasyJSON(out)
+				(v15).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -808,9 +835,9 @@ func easyjsonD2b7633eDecodeMyappInternal7(in *jlexer.Lexer, out *Movie) {
 					out.Season = (out.Season)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v13 Season
-					(v13).UnmarshalEasyJSON(in)
-					out.Season = append(out.Season, v13)
+					var v16 Season
+					(v16).UnmarshalEasyJSON(in)
+					out.Season = append(out.Season, v16)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -831,9 +858,9 @@ func easyjsonD2b7633eDecodeMyappInternal7(in *jlexer.Lexer, out *Movie) {
 					out.Country = (out.Country)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v14 string
-					v14 = string(in.String())
-					out.Country = append(out.Country, v14)
+					var v17 string
+					v17 = string(in.String())
+					out.Country = append(out.Country, v17)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -854,9 +881,9 @@ func easyjsonD2b7633eDecodeMyappInternal7(in *jlexer.Lexer, out *Movie) {
 					out.Genre = (out.Genre)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v15 Genre
-					(v15).UnmarshalEasyJSON(in)
-					out.Genre = append(out.Genre, v15)
+					var v18 Genre
+					(v18).UnmarshalEasyJSON(in)
+					out.Genre = append(out.Genre, v18)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -877,9 +904,9 @@ func easyjsonD2b7633eDecodeMyappInternal7(in *jlexer.Lexer, out *Movie) {
 					out.Staff = (out.Staff)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v16 PersonInMovieDTO
-					(v16).UnmarshalEasyJSON(in)
-					out.Staff = append(out.Staff, v16)
+					var v19 PersonInMovieDTO
+					(v19).UnmarshalEasyJSON(in)
+					out.Staff = append(out.Staff, v19)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -975,11 +1002,11 @@ func easyjsonD2b7633eEncodeMyappInternal7(out *jwriter.Writer, in Movie) {
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v17, v18 := range in.Season {
-				if v17 > 0 {
+			for v20, v21 := range in.Season {
+				if v20 > 0 {
 					out.RawByte(',')
 				}
-				(v18).MarshalEasyJSON(out)
+				(v21).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -991,11 +1018,11 @@ func easyjsonD2b7633eEncodeMyappInternal7(out *jwriter.Writer, in Movie) {
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v19, v20 := range in.Country {
-				if v19 > 0 {
+			for v22, v23 := range in.Country {
+				if v22 > 0 {
 					out.RawByte(',')
 				}
-				out.String(string(v20))
+				out.String(string(v23))
 			}
 			out.RawByte(']')
 		}
@@ -1007,11 +1034,11 @@ func easyjsonD2b7633eEncodeMyappInternal7(out *jwriter.Writer, in Movie) {
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v21, v22 := range in.Genre {
-				if v21 > 0 {
+			for v24, v25 := range in.Genre {
+				if v24 > 0 {
 					out.RawByte(',')
 				}
-				(v22).MarshalEasyJSON(out)
+				(v25).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1023,11 +1050,11 @@ func easyjsonD2b7633eEncodeMyappInternal7(out *jwriter.Writer, in Movie) {
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v23, v24 := range in.Staff {
-				if v23 > 0 {
+			for v26, v27 := range in.Staff {
+				if v26 > 0 {
 					out.RawByte(',')
 				}
-				(v24).MarshalEasyJSON(out)
+				(v27).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1361,9 +1388,9 @@ func easyjsonD2b7633eDecodeMyappInternal11(in *jlexer.Lexer, out *AllMoviesRespo
 					out.Movies = (out.Movies)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v25 MovieInfo
-					(v25).UnmarshalEasyJSON(in)
-					out.Movies = append(out.Movies, v25)
+					var v28 MovieInfo
+					(v28).UnmarshalEasyJSON(in)
+					out.Movies = append(out.Movies, v28)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1391,11 +1418,11 @@ func easyjsonD2b7633eEncodeMyappInternal11(out *jwriter.Writer, in AllMoviesResp
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v26, v27 := range in.Movies {
-				if v26 > 0 {
+			for v29, v30 := range in.Movies {
+				if v29 > 0 {
 					out.RawByte(',')
 				}
-				(v27).MarshalEasyJSON(out)
+				(v30).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
