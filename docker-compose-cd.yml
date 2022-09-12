@@ -129,16 +129,16 @@ services:
       - ./nginx/prod:/etc/nginx/conf.d
       - /home/ubuntu/2022_1_KURAGA_TEAM/build:/build
       - /home/ubuntu/2022_1_KURAGA_TEAM/src/static:/build/static
-      - ./var/www/html:/var/www/html/
-      - ./var/conf/:/etc/nginx/ssl/:ro
+      - /home/ubuntu/2022_1_KuragaTeam/var/www/html:/var/www/html/
+      - /home/ubuntu/2022_1_KuragaTeam/var/conf/:/etc/nginx/ssl/:ro
     ports:
       - "80:80"
       - "443:443"
   certbot:
     image: certbot/certbot:latest
     volumes:
-      - ./var/www/html/:/var/www/html/:rw
-      - ./var/conf/:/etc/letsencrypt/:rw
+      - /home/ubuntu/2022_1_KuragaTeam/var/www/html/:/var/www/html/:rw
+      - /home/ubuntu/2022_1_KuragaTeam/var/conf/:/etc/letsencrypt/:rw
   prometheus:
     container_name: prometheus
     image: prom/prometheus
