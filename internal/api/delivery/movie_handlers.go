@@ -90,6 +90,7 @@ func mapMainMovie(inputMovie *movie.MainMovie) *internal.MainMovieInfoDTO {
 		NamePicture: inputMovie.NamePicture,
 		Tagline:     inputMovie.Tagline,
 		Picture:     inputMovie.Picture,
+		IsMovie:     inputMovie.IsMovie,
 	}
 }
 

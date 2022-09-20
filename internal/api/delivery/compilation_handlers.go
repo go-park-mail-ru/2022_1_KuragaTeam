@@ -294,8 +294,9 @@ func (h *compilationsHandler) GetMCByGenre() echo.HandlerFunc {
 		//if err != nil {
 		//	return ctx.NoContent(http.StatusInternalServerError)
 		//}
-		return ctx.JSON(http.StatusOK, internal.AllMoviesResponse{
+		return ctx.JSON(http.StatusOK, internal.MovieCompilationResponse{
 			Movies:      convertMC(selectedMC).Movies,
+			Name:        selectedMC.Name,
 			HasNextPage: selectedMC.HasNextPage,
 		})
 	}

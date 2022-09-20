@@ -5,6 +5,7 @@ type MainMovieInfoDTO struct {
 	NamePicture string `json:"name_picture" form:"name_picture"`
 	Tagline     string `json:"tagline" form:"tagline"`
 	Picture     string `json:"picture" form:"picture"`
+	IsMovie     bool   `json:"is_movie" form:"is_movie"`
 }
 
 type Genre struct {
@@ -76,6 +77,12 @@ type MovieInfo struct {
 type MovieCompilation struct {
 	Name   string      `json:"compilation_name"`
 	Movies []MovieInfo `json:"movies"`
+}
+
+type MovieCompilationResponse struct {
+	Name        string      `json:"compilation_name"`
+	Movies      []MovieInfo `json:"movies"`
+	HasNextPage bool        `json:"has_next_page"`
 }
 
 type AllMoviesResponse struct {
